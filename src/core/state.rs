@@ -1,4 +1,4 @@
-﻿//! Process-wide application state.
+//! Process-wide application state.
 
 use crate::core::config::{AppConfig, HardwareStatus};
 use crate::core::driver::acpi::AcpiDriver;
@@ -80,7 +80,8 @@ impl AppState {
             guard.sanitise();
             guard.clone()
         };
-        crate::core::config::save_config(&snapshot).map_err(|e| format!("could not save config: {e}"))
+        crate::core::config::save_config(&snapshot)
+            .map_err(|e| format!("could not save config: {e}"))
     }
 
     pub fn config_error(&self) -> Option<String> {

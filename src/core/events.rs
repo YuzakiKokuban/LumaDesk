@@ -21,11 +21,17 @@ pub struct Event {
 impl Event {
     /// Builds an event from a name and a payload.
     pub fn new(name: impl Into<String>, payload: serde_json::Value) -> Self {
-        Self { name: name.into(), payload }
+        Self {
+            name: name.into(),
+            payload,
+        }
     }
 
     /// Builds a payload-less event.
     pub fn bare(name: impl Into<String>) -> Self {
-        Self { name: name.into(), payload: serde_json::Value::Null }
+        Self {
+            name: name.into(),
+            payload: serde_json::Value::Null,
+        }
     }
 }

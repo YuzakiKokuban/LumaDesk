@@ -200,11 +200,16 @@ pub struct CpuStatus {
 
 impl Default for CpuStatus {
     fn default() -> Self {
-        Self { temp: None, freq_mhz: 0.0, load: 0.0, power_w: None }
+        Self {
+            temp: None,
+            freq_mhz: 0.0,
+            load: 0.0,
+            power_w: None,
+        }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct GpuStatus {
     pub present: bool,
     pub name: String,
@@ -215,21 +220,7 @@ pub struct GpuStatus {
     pub vram_total_mb: Option<u64>,
 }
 
-impl Default for GpuStatus {
-    fn default() -> Self {
-        Self {
-            present: false,
-            name: String::new(),
-            temp: None,
-            freq_mhz: None,
-            load: None,
-            vram_used_mb: None,
-            vram_total_mb: None,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct FanStatus {
     #[serde(default)]
     pub available: bool,
@@ -237,23 +228,25 @@ pub struct FanStatus {
     pub gpu_rpm: u32,
 }
 
-impl Default for FanStatus {
-    fn default() -> Self {
-        Self { available: false, cpu_rpm: 0, gpu_rpm: 0 }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BatteryStatus {
     pub percent: f64,
     pub charging: bool,
+    #[serde(default)]
+    pub on_ac: bool,
     pub limit: u32,
     pub health_percent: Option<f64>,
 }
 
 impl Default for BatteryStatus {
     fn default() -> Self {
-        Self { percent: 0.0, charging: false, limit: 100, health_percent: None }
+        Self {
+            percent: 0.0,
+            charging: false,
+            on_ac: false,
+            limit: 100,
+            health_percent: None,
+        }
     }
 }
 
@@ -279,7 +272,7 @@ impl Default for DeviceStatus {
 }
 
 /// Whole-machine snapshot returned by `get_hardware_status`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct HardwareStatus {
     pub cpu: CpuStatus,
     pub gpu: GpuStatus,
@@ -293,24 +286,6 @@ pub struct HardwareStatus {
     pub fan_boost: Option<bool>,
     pub windows_power_scheme: String,
     pub elevated: bool,
-}
-
-impl Default for HardwareStatus {
-    fn default() -> Self {
-        Self {
-            cpu: CpuStatus::default(),
-            gpu: GpuStatus::default(),
-            fans: FanStatus::default(),
-            battery: BatteryStatus::default(),
-            device: DeviceStatus::default(),
-            support_flags: SupportFlags::default(),
-            power_mode: 0,
-            gpu_mode: None,
-            fan_boost: None,
-            windows_power_scheme: String::new(),
-            elevated: false,
-        }
-    }
 }
 
 // ------------------------------------------------------------- curve / light
@@ -327,7 +302,11 @@ pub struct CurvePoint {
 
 impl Default for CurvePoint {
     fn default() -> Self {
-        Self { temp: 0.0, duty: 0.0, volt: 0 }
+        Self {
+            temp: 0.0,
+            duty: 0.0,
+            volt: 0,
+        }
     }
 }
 
@@ -505,11 +484,31 @@ impl Default for AppConfig {
             // A conservative default curve, mirroring the shape the original
             // wrote into models.json: 40 °C → 20 %, 95 °C → 100 %.
             cooler_curve_points: vec![
-                CurvePoint { temp: 40.0, duty: 20.0, volt: 0 },
-                CurvePoint { temp: 55.0, duty: 35.0, volt: 0 },
-                CurvePoint { temp: 70.0, duty: 60.0, volt: 0 },
-                CurvePoint { temp: 85.0, duty: 85.0, volt: 0 },
-                CurvePoint { temp: 95.0, duty: 100.0, volt: 0 },
+                CurvePoint {
+                    temp: 40.0,
+                    duty: 20.0,
+                    volt: 0,
+                },
+                CurvePoint {
+                    temp: 55.0,
+                    duty: 35.0,
+                    volt: 0,
+                },
+                CurvePoint {
+                    temp: 70.0,
+                    duty: 60.0,
+                    volt: 0,
+                },
+                CurvePoint {
+                    temp: 85.0,
+                    duty: 85.0,
+                    volt: 0,
+                },
+                CurvePoint {
+                    temp: 95.0,
+                    duty: 100.0,
+                    volt: 0,
+                },
             ],
             osd_enabled: true,
             osd_theme: "dark".into(),
@@ -563,8 +562,11 @@ impl AppConfig {
                 _ => 0,
             };
         }
-        self.cooler_curve_points
-            .sort_by(|a, b| a.temp.partial_cmp(&b.temp).unwrap_or(std::cmp::Ordering::Equal));
+        self.cooler_curve_points.sort_by(|a, b| {
+            a.temp
+                .partial_cmp(&b.temp)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         self.osd.sanitise();
         // The two representations of the OSD switch must never disagree.
@@ -618,26 +620,40 @@ pub fn data_dir() -> PathBuf {
 /// Copies the old configuration once, retaining the original directory.
 /// Existing destination files are never overwritten; links are skipped.
 fn migrate_legacy_data() -> std::io::Result<()> {
-    if std::env::var_os("JIYAOCHU_DATA_DIR").is_some() { return Ok(()); }
-    let Some(base) = dirs::config_dir() else { return Ok(()); };
+    if std::env::var_os("JIYAOCHU_DATA_DIR").is_some() {
+        return Ok(());
+    }
+    let Some(base) = dirs::config_dir() else {
+        return Ok(());
+    };
     let target = data_dir();
     let marker = target.join("migration-from-openrevo.done");
-    if marker.exists() { return Ok(()); }
+    if marker.exists() {
+        return Ok(());
+    }
     fn copy_tree(source: &Path, target: &Path) -> std::io::Result<()> {
         std::fs::create_dir_all(target)?;
         for entry in std::fs::read_dir(source)? {
             let entry = entry?;
             let kind = entry.file_type()?;
             let dest = target.join(entry.file_name());
-            if kind.is_dir() { copy_tree(&entry.path(), &dest)?; }
-            else if kind.is_file() && !dest.exists() { std::fs::copy(entry.path(), dest)?; }
+            if kind.is_dir() {
+                copy_tree(&entry.path(), &dest)?;
+            } else if kind.is_file() && !dest.exists() {
+                std::fs::copy(entry.path(), dest)?;
+            }
         }
         Ok(())
     }
     let source = base.join("OpenRevo");
-    if source.is_dir() { copy_tree(&source, &target)?; }
+    if source.is_dir() {
+        copy_tree(&source, &target)?;
+    }
     std::fs::create_dir_all(&target)?;
-    std::fs::write(marker, "Legacy files copied without replacing existing files.\n")
+    std::fs::write(
+        marker,
+        "Legacy files copied without replacing existing files.\n",
+    )
 }
 
 /// `%APPDATA%\JiYaoChu\config.json`
@@ -677,7 +693,10 @@ pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
 /// the user can recover hand-edited values.
 pub fn load_config() -> (AppConfig, Option<String>) {
     if let Err(error) = migrate_legacy_data() {
-        return (AppConfig::default(), Some(format!("旧配置复制失败：{error}")));
+        return (
+            AppConfig::default(),
+            Some(format!("旧配置复制失败：{error}")),
+        );
     }
     let path = config_path();
     match std::fs::read_to_string(&path) {

@@ -30,17 +30,32 @@ pub struct PresetTuning {
 impl PresetTuning {
     /// `office` for the factory example in the guide.
     pub fn office() -> Self {
-        PresetTuning { pl1: 45.0, pl2: 45.0, pl4: 125.0, temp_offset: 15.0 }
+        PresetTuning {
+            pl1: 45.0,
+            pl2: 45.0,
+            pl4: 125.0,
+            temp_offset: 15.0,
+        }
     }
 
     /// `balanced` for the factory example in the guide.
     pub fn balanced() -> Self {
-        PresetTuning { pl1: 75.0, pl2: 75.0, pl4: 125.0, temp_offset: 5.0 }
+        PresetTuning {
+            pl1: 75.0,
+            pl2: 75.0,
+            pl4: 125.0,
+            temp_offset: 5.0,
+        }
     }
 
     /// `turbo` for the factory example in the guide.
     pub fn turbo() -> Self {
-        PresetTuning { pl1: 205.0, pl2: 205.0, pl4: 200.0, temp_offset: 5.0 }
+        PresetTuning {
+            pl1: 205.0,
+            pl2: 205.0,
+            pl4: 200.0,
+            temp_offset: 5.0,
+        }
     }
 
     /// Applies the documented safe ranges: PL1 15..220 W, PL2 15..250 W,
@@ -163,7 +178,9 @@ pub struct ModelCatalogue {
 
 impl Default for ModelCatalogue {
     fn default() -> Self {
-        ModelCatalogue { models: vec![ModelEntry::local("Unknown")] }
+        ModelCatalogue {
+            models: vec![ModelEntry::local("Unknown")],
+        }
     }
 }
 
@@ -219,8 +236,9 @@ impl ModelCatalogue {
 
     /// Parses a catalogue, enforcing the "local machine is index 0" rule.
     pub fn parse(text: &str) -> HalResult<Self> {
-        let mut models: Vec<ModelEntry> = serde_json::from_str(text)
-            .map_err(|error| HalError::io(format!("the machine catalogue is not valid: {error}")))?;
+        let mut models: Vec<ModelEntry> = serde_json::from_str(text).map_err(|error| {
+            HalError::io(format!("the machine catalogue is not valid: {error}"))
+        })?;
 
         if models.is_empty() {
             return Err(HalError::io(
@@ -250,8 +268,11 @@ impl ModelCatalogue {
         if let Some(parent) = path.parent() {
             crate::core::config::ensure_dir(parent)?;
         }
-        let text = serde_json::to_string_pretty(self)
-            .map_err(|error| HalError::io(format!("the machine catalogue could not be encoded: {error}")))?;
+        let text = serde_json::to_string_pretty(self).map_err(|error| {
+            HalError::io(format!(
+                "the machine catalogue could not be encoded: {error}"
+            ))
+        })?;
         let temporary = path.with_extension("json.tmp");
         std::fs::write(&temporary, text)?;
         std::fs::rename(&temporary, &path)?;
@@ -260,7 +281,9 @@ impl ModelCatalogue {
 
     /// The entry for the local machine.
     pub fn local(&self) -> &ModelEntry {
-        self.models.first().unwrap_or_else(|| unreachable!("a catalogue always has one entry"))
+        self.models
+            .first()
+            .unwrap_or_else(|| unreachable!("a catalogue always has one entry"))
     }
 
     /// Replaces the catalogue with the contents of `jsonContent`.
@@ -272,8 +295,11 @@ impl ModelCatalogue {
 
     /// Serialises the catalogue for the export button.
     pub fn export_json(&self) -> HalResult<String> {
-        serde_json::to_string_pretty(self)
-            .map_err(|error| HalError::io(format!("the machine catalogue could not be exported: {error}")))
+        serde_json::to_string_pretty(self).map_err(|error| {
+            HalError::io(format!(
+                "the machine catalogue could not be exported: {error}"
+            ))
+        })
     }
 }
 
@@ -320,7 +346,12 @@ mod tests {
 
     #[test]
     fn documented_ranges_are_enforced() {
-        let mut tuning = PresetTuning { pl1: 999.0, pl2: 1.0, pl4: 10.0, temp_offset: 99.0 };
+        let mut tuning = PresetTuning {
+            pl1: 999.0,
+            pl2: 1.0,
+            pl4: 10.0,
+            temp_offset: 99.0,
+        };
         tuning.sanitise();
         assert_eq!(tuning.pl1, 220.0);
         assert_eq!(tuning.pl2, 15.0);

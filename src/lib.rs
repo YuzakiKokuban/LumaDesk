@@ -9,5 +9,5 @@
 pub mod core;
 pub mod ffi;
 
-pub use core::{Api, AppState, HardwareStatus};
 pub use core::{AcpiDriver, HalError, HalResult, HardwareHal};
+pub use core::{Api, AppState, HardwareStatus};

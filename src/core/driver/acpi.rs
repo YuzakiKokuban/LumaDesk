@@ -121,14 +121,24 @@ impl Default for AcpiDriver {
 
 impl AcpiDriver {
     /// Serialize complete read/modify/write sequences within this process.
-    pub fn transaction<T>(&self, work: impl FnOnce(&mut EcSession) -> HalResult<T>) -> HalResult<T> {
+    pub fn transaction<T>(
+        &self,
+        work: impl FnOnce(&mut EcSession) -> HalResult<T>,
+    ) -> HalResult<T> {
         let _guard = self.io.lock().unwrap_or_else(|e| e.into_inner());
         #[cfg(windows)]
         {
             use std::os::windows::fs::OpenOptionsExt;
             let status = self.status();
-            let path = status.device_path.as_deref().ok_or_else(|| HalError::unavailable(status.summary()))?;
-            let file = OpenOptions::new().read(true).write(true).share_mode(3).open(path)?;
+            let path = status
+                .device_path
+                .as_deref()
+                .ok_or_else(|| HalError::unavailable(status.summary()))?;
+            let file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .share_mode(3)
+                .open(path)?;
             work(&mut EcSession { file })
         }
         #[cfg(not(windows))]
@@ -282,11 +292,15 @@ impl AcpiDriver {
     fn lock_probe(&self) -> std::sync::MutexGuard<'_, Probe> {
         // A poisoned lock only means another thread panicked while probing;
         // the cached verdict is still perfectly readable.
-        self.probe.lock().unwrap_or_else(|poison| poison.into_inner())
+        self.probe
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
     }
 
     fn lock_notes(&self) -> std::sync::MutexGuard<'_, Vec<String>> {
-        self.notes.lock().unwrap_or_else(|poison| poison.into_inner())
+        self.notes
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
     }
 }
 
@@ -384,29 +398,51 @@ impl EcSession {
         let mut returned = 0;
         // SAFETY: the file owns the live handle; input/output outlive synchronous IO.
         unsafe {
-            DeviceIoControl(HANDLE(self.file.as_raw_handle()), code,
-                Some(input.as_ptr().cast()), std::mem::size_of_val(input) as u32,
-                Some((&mut output as *mut u32).cast()), 4, Some(&mut returned), None)
-        }.map_err(|e| HalError::io(format!("EC IOCTL {code:#x}: {e}")))?;
+            DeviceIoControl(
+                HANDLE(self.file.as_raw_handle()),
+                code,
+                Some(input.as_ptr().cast()),
+                std::mem::size_of_val(input) as u32,
+                Some((&mut output as *mut u32).cast()),
+                4,
+                Some(&mut returned),
+                None,
+            )
+        }
+        .map_err(|e| HalError::io(format!("EC IOCTL {code:#x}: {e}")))?;
         if returned != 4 {
-            return Err(HalError::io(format!("EC IOCTL returned {returned} bytes, expected 4")));
+            return Err(HalError::io(format!(
+                "EC IOCTL returned {returned} bytes, expected 4"
+            )));
         }
         Ok(output)
     }
 
     pub fn read(&self, address: u16) -> HalResult<u8> {
         #[cfg(windows)]
-        { self.ioctl(IOCTL_EC_READ, &[u32::from(address)]).map(|value| value as u8) }
+        {
+            self.ioctl(IOCTL_EC_READ, &[u32::from(address)])
+                .map(|value| value as u8)
+        }
         #[cfg(not(windows))]
-        { let _ = address; Err(HalError::unavailable("EC access requires Windows")) }
+        {
+            let _ = address;
+            Err(HalError::unavailable("EC access requires Windows"))
+        }
     }
 
     /// Send a firmware command whose trigger bit may clear before it can be read.
     pub fn write_command(&self, address: u16, value: u8) -> HalResult<()> {
         #[cfg(windows)]
-        { self.ioctl(IOCTL_EC_WRITE, &[u32::from(address), u32::from(value)]).map(|_| ()) }
+        {
+            self.ioctl(IOCTL_EC_WRITE, &[u32::from(address), u32::from(value)])
+                .map(|_| ())
+        }
         #[cfg(not(windows))]
-        { let _ = (address, value); Err(HalError::unavailable("EC access requires Windows")) }
+        {
+            let _ = (address, value);
+            Err(HalError::unavailable("EC access requires Windows"))
+        }
     }
 
     pub fn write_verified(&self, address: u16, value: u8) -> HalResult<()> {
@@ -415,12 +451,17 @@ impl EcSession {
             self.ioctl(IOCTL_EC_WRITE, &[u32::from(address), u32::from(value)])?;
             let actual = self.read(address)?;
             if actual != value {
-                return Err(HalError::io(format!("EC {address:#x}: wrote {value:#x}, read back {actual:#x}")));
+                return Err(HalError::io(format!(
+                    "EC {address:#x}: wrote {value:#x}, read back {actual:#x}"
+                )));
             }
             Ok(())
         }
         #[cfg(not(windows))]
-        { let _ = (address, value); Err(HalError::unavailable("EC access requires Windows")) }
+        {
+            let _ = (address, value);
+            Err(HalError::unavailable("EC access requires Windows"))
+        }
     }
 
     pub fn set_bit(&self, address: u16, mask: u8, enabled: bool) -> HalResult<()> {

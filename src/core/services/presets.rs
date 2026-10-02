@@ -90,31 +90,91 @@ pub fn builtin_presets(catalogue: &ModelCatalogue) -> Vec<ProfilePreset> {
 /// The same conservative curve `AppConfig::default()` uses.
 pub fn default_fan_curve() -> Vec<CurvePoint> {
     vec![
-        CurvePoint { temp: 40.0, duty: 20.0, volt: 0 },
-        CurvePoint { temp: 55.0, duty: 35.0, volt: 0 },
-        CurvePoint { temp: 70.0, duty: 60.0, volt: 0 },
-        CurvePoint { temp: 85.0, duty: 85.0, volt: 0 },
-        CurvePoint { temp: 95.0, duty: 100.0, volt: 0 },
+        CurvePoint {
+            temp: 40.0,
+            duty: 20.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 55.0,
+            duty: 35.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 70.0,
+            duty: 60.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 85.0,
+            duty: 85.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 95.0,
+            duty: 100.0,
+            volt: 0,
+        },
     ]
 }
 
 fn quiet_curve() -> Vec<CurvePoint> {
     vec![
-        CurvePoint { temp: 45.0, duty: 0.0, volt: 0 },
-        CurvePoint { temp: 60.0, duty: 20.0, volt: 0 },
-        CurvePoint { temp: 75.0, duty: 40.0, volt: 0 },
-        CurvePoint { temp: 88.0, duty: 70.0, volt: 0 },
-        CurvePoint { temp: 95.0, duty: 100.0, volt: 0 },
+        CurvePoint {
+            temp: 45.0,
+            duty: 0.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 60.0,
+            duty: 20.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 75.0,
+            duty: 40.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 88.0,
+            duty: 70.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 95.0,
+            duty: 100.0,
+            volt: 0,
+        },
     ]
 }
 
 fn aggressive_curve() -> Vec<CurvePoint> {
     vec![
-        CurvePoint { temp: 40.0, duty: 40.0, volt: 0 },
-        CurvePoint { temp: 55.0, duty: 60.0, volt: 0 },
-        CurvePoint { temp: 70.0, duty: 80.0, volt: 0 },
-        CurvePoint { temp: 80.0, duty: 95.0, volt: 0 },
-        CurvePoint { temp: 90.0, duty: 100.0, volt: 0 },
+        CurvePoint {
+            temp: 40.0,
+            duty: 40.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 55.0,
+            duty: 60.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 70.0,
+            duty: 80.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 80.0,
+            duty: 95.0,
+            volt: 0,
+        },
+        CurvePoint {
+            temp: 90.0,
+            duty: 100.0,
+            volt: 0,
+        },
     ]
 }
 
@@ -141,7 +201,10 @@ impl StoredProfile {
     }
 
     fn user(preset: ProfilePreset, path: PathBuf) -> Self {
-        StoredProfile { preset, path: Some(path) }
+        StoredProfile {
+            preset,
+            path: Some(path),
+        }
     }
 }
 
@@ -188,10 +251,10 @@ pub fn load_profiles(catalogue: &ModelCatalogue) -> (Vec<StoredProfile>, Vec<Str
                 preset.builtin = false;
                 if out.iter().any(|stored| stored.preset.id == preset.id) {
                     warnings.push(format!(
-                        "{} has the id '{}' which is already in use; the file was loaded as '{}'",
+                        "{} has the id '{}' which is already in use; the file was loaded as '{}-file'",
                         path.display(),
                         preset.id,
-                        format!("{}-file", preset.id)
+                        preset.id
                     ));
                     preset.id = format!("{}-file", preset.id);
                 }
@@ -234,9 +297,11 @@ pub fn sanitise_profile(preset: &mut ProfilePreset) {
             _ => 0,
         };
     }
-    preset
-        .fan_curve
-        .sort_by(|a, b| a.temp.partial_cmp(&b.temp).unwrap_or(std::cmp::Ordering::Equal));
+    preset.fan_curve.sort_by(|a, b| {
+        a.temp
+            .partial_cmp(&b.temp)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 }
 
 /// Writes a profile file, returning the path it went to.
@@ -244,7 +309,9 @@ pub fn save_profile(preset: &ProfilePreset) -> HalResult<PathBuf> {
     let mut preset = preset.clone();
     preset.builtin = false;
     if preset.id.trim().is_empty() {
-        return Err(HalError::io("a profile preset needs an id before it can be saved"));
+        return Err(HalError::io(
+            "a profile preset needs an id before it can be saved",
+        ));
     }
     sanitise_profile(&mut preset);
 
@@ -259,14 +326,19 @@ pub fn save_profile(preset: &ProfilePreset) -> HalResult<PathBuf> {
 
 /// Removes a user profile file. Built-ins cannot be deleted.
 pub fn delete_profile(catalogue: &ModelCatalogue, id: &str) -> HalResult<()> {
-    if builtin_presets(catalogue).iter().any(|preset| preset.id == id) {
+    if builtin_presets(catalogue)
+        .iter()
+        .any(|preset| preset.id == id)
+    {
         return Err(HalError::unsupported(format!(
             "'{id}' is a built-in preset; it can be reset but not deleted"
         )));
     }
     let path = profiles_dir().join(format!("{}.json", safe_file_stem(id)));
     if !path.exists() {
-        return Err(HalError::io(format!("no profile preset named '{id}' exists")));
+        return Err(HalError::io(format!(
+            "no profile preset named '{id}' exists"
+        )));
     }
     std::fs::remove_file(&path)?;
     Ok(())
@@ -288,7 +360,9 @@ pub fn reset_profile(catalogue: &ModelCatalogue, id: &str) -> HalResult<ProfileP
         .find(|profile| profile.preset.id == id)
         .map(|profile| profile.preset)
     else {
-        return Err(HalError::io(format!("no profile preset named '{id}' exists")));
+        return Err(HalError::io(format!(
+            "no profile preset named '{id}' exists"
+        )));
     };
 
     let base = builtins
@@ -378,7 +452,10 @@ pub fn all_color_presets() -> (Vec<ColorPreset>, Vec<String>) {
         Ok(reader) => reader
             .flatten()
             .map(|entry| entry.path())
-            .filter(|path| path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("json")))
+            .filter(|path| {
+                path.extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
+            })
             .collect(),
         Err(error) => {
             warnings.push(format!("{} could not be listed: {error}", dir.display()));
@@ -391,8 +468,9 @@ pub fn all_color_presets() -> (Vec<ColorPreset>, Vec<String>) {
         match std::fs::read_to_string(&path)
             .map_err(HalError::from)
             .and_then(|text| {
-                serde_json::from_str::<ColorPreset>(&text)
-                    .map_err(|error| HalError::io(format!("colour preset JSON is not valid: {error}")))
+                serde_json::from_str::<ColorPreset>(&text).map_err(|error| {
+                    HalError::io(format!("colour preset JSON is not valid: {error}"))
+                })
             }) {
             Ok(mut preset) => {
                 if preset.id.trim().is_empty() {
@@ -433,8 +511,9 @@ pub fn import_color_preset(json_content: &str) -> HalResult<ColorPreset> {
     let dir = colors_dir();
     crate::core::config::ensure_dir(&dir)?;
     let path = dir.join(format!("{}.json", safe_file_stem(&preset.id)));
-    let text = serde_json::to_string_pretty(&preset)
-        .map_err(|error| HalError::io(format!("the colour preset could not be encoded: {error}")))?;
+    let text = serde_json::to_string_pretty(&preset).map_err(|error| {
+        HalError::io(format!("the colour preset could not be encoded: {error}"))
+    })?;
     std::fs::write(path, text)?;
     Ok(preset)
 }
@@ -474,7 +553,10 @@ pub fn list_brfx() -> HalResult<Vec<String>> {
         .flatten()
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
-        .filter_map(|path| path.file_name().map(|name| name.to_string_lossy().to_string()))
+        .filter_map(|path| {
+            path.file_name()
+                .map(|name| name.to_string_lossy().to_string())
+        })
         .collect();
     out.sort();
     Ok(out)
@@ -532,11 +614,12 @@ pub fn script_file(filename: &str) -> HalResult<PathBuf> {
 fn normalise_script_name(name: &str) -> String {
     let trimmed = name.trim();
     let cut = trimmed.len().saturating_sub(5);
-    let stem_source = if trimmed.is_char_boundary(cut) && trimmed[cut..].eq_ignore_ascii_case(".brfx") {
-        &trimmed[..cut]
-    } else {
-        trimmed
-    };
+    let stem_source =
+        if trimmed.is_char_boundary(cut) && trimmed[cut..].eq_ignore_ascii_case(".brfx") {
+            &trimmed[..cut]
+        } else {
+            trimmed
+        };
 
     let mut stem = String::new();
     for character in stem_source.chars() {
@@ -561,20 +644,44 @@ fn normalise_script_name(name: &str) -> String {
 /// `supported` is false for everything that needs the vendor driver, which is
 /// what makes the UI render them as unavailable instead of offering a switch
 /// that does nothing.
-pub fn device_switches(config: &AppConfig, vendor_driver: bool) -> Vec<crate::core::hal::DeviceSwitch> {
-    let switch = |id: &str, name: &str, enabled: bool, supported: bool| crate::core::hal::DeviceSwitch {
-        id: id.to_string(),
-        name: name.to_string(),
-        enabled,
-        supported,
-    };
+pub fn device_switches(
+    config: &AppConfig,
+    vendor_driver: bool,
+) -> Vec<crate::core::hal::DeviceSwitch> {
+    let switch =
+        |id: &str, name: &str, enabled: bool, supported: bool| crate::core::hal::DeviceSwitch {
+            id: id.to_string(),
+            name: name.to_string(),
+            enabled,
+            supported,
+        };
 
     vec![
-        switch("usb_charge", "USB charging while off", config.usb_charge_enabled, false),
-        switch("ac_recovery", "Restore power state after AC loss", config.ac_recovery_enabled, false),
+        switch(
+            "usb_charge",
+            "USB charging while off",
+            config.usb_charge_enabled,
+            false,
+        ),
+        switch(
+            "ac_recovery",
+            "Restore power state after AC loss",
+            config.ac_recovery_enabled,
+            false,
+        ),
         switch("fn_lock", "Fn lock", config.fn_lock_enabled, false),
-        switch("win_key_lock", "Windows key lock", config.win_key_locked, vendor_driver),
-        switch("water_cooler", "Water cooler", config.water_cooler_enabled, false),
+        switch(
+            "win_key_lock",
+            "Windows key lock",
+            config.win_key_locked,
+            vendor_driver,
+        ),
+        switch(
+            "water_cooler",
+            "Water cooler",
+            config.water_cooler_enabled,
+            false,
+        ),
         switch("bios_advanced", "BIOS advanced menu", false, false),
     ]
 }

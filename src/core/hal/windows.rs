@@ -117,7 +117,10 @@ impl HardwareHal for WindowsHal {
             device: self.device_status()?,
             support_flags: self.support_flags()?,
             power_mode: self.get_power_mode()?,
-            gpu_mode: self.gpu_mode_info(cfg).ok().and_then(|info| info.configured_mode),
+            gpu_mode: self
+                .gpu_mode_info(cfg)
+                .ok()
+                .and_then(|info| info.configured_mode),
             fan_boost: self.acpi.read_ec(0x751).ok().map(|v| v & 0x40 != 0),
             windows_power_scheme: self.active_windows_power_scheme().unwrap_or_default(),
             elevated: self.is_elevated(),
@@ -149,19 +152,24 @@ impl HardwareHal for WindowsHal {
 
             let temp = acpi_thermal_zone_celsius();
 
-            return Ok(CpuStatus {
+            Ok(CpuStatus {
                 temp,
                 freq_mhz,
                 load,
                 // Package power needs an MSR or the vendor driver; neither is
                 // available, so we say so instead of estimating.
                 power_w: None,
-            });
+            })
         }
 
         #[cfg(not(windows))]
         {
-            Ok(CpuStatus { temp: None, freq_mhz: 0.0, load, power_w: None })
+            Ok(CpuStatus {
+                temp: None,
+                freq_mhz: 0.0,
+                load,
+                power_w: None,
+            })
         }
     }
 
@@ -196,9 +204,9 @@ impl HardwareHal for WindowsHal {
             // that first and only fall back to WMI.
             let vram_total_mb = winapi::video_memory_bytes(&name)
                 .or_else(|| row.u64_of("AdapterRAM").filter(|bytes| *bytes > 0))
-                .map(|bytes| (bytes + 1024 * 1024 - 1) / (1024 * 1024));
+                .map(|bytes| bytes.div_ceil(1024 * 1024));
 
-            return Ok(GpuStatus {
+            Ok(GpuStatus {
                 present: !name.is_empty(),
                 name,
                 // GPU core temperature, clocks, utilisation and dedicated
@@ -210,7 +218,7 @@ impl HardwareHal for WindowsHal {
                 load: None,
                 vram_used_mb: None,
                 vram_total_mb,
-            });
+            })
         }
 
         #[cfg(not(windows))]
@@ -227,7 +235,11 @@ impl HardwareHal for WindowsHal {
             if cpu_rpm > 8000 || gpu_rpm > 8000 {
                 return Err(HalError::io("风扇转速读数超出有效范围"));
             }
-            Ok(FanStatus { available: true, cpu_rpm, gpu_rpm })
+            Ok(FanStatus {
+                available: true,
+                cpu_rpm,
+                gpu_rpm,
+            })
         });
         Ok(result.unwrap_or_default())
     }
@@ -237,14 +249,21 @@ impl HardwareHal for WindowsHal {
         {
             let snapshot = winapi::power_snapshot()?;
             let health = self.battery_health_percent()?;
-            return Ok(BatteryStatus {
+            Ok(BatteryStatus {
                 percent: snapshot.percent,
                 charging: snapshot.charging,
+                on_ac: snapshot.on_ac,
                 // The *applied* limit would have to be read back from the EC.
                 // We echo the configured value, which is what the UI shows.
-                limit: self.acpi.read_ec(0x7B9).ok().filter(|v| (50..=100).contains(v)).map(u32::from).unwrap_or(limit),
+                limit: self
+                    .acpi
+                    .read_ec(0x7B9)
+                    .ok()
+                    .filter(|v| (50..=100).contains(v))
+                    .map(u32::from)
+                    .unwrap_or(limit),
                 health_percent: health,
-            });
+            })
         }
 
         #[cfg(not(windows))]
@@ -270,8 +289,14 @@ impl HardwareHal for WindowsHal {
             .ok()
             .flatten();
 
-            let vendor = product.as_ref().and_then(|row| row.str_of("Vendor")).unwrap_or_default();
-            let product_name = product.as_ref().and_then(|row| row.str_of("Name")).unwrap_or_default();
+            let vendor = product
+                .as_ref()
+                .and_then(|row| row.str_of("Vendor"))
+                .unwrap_or_default();
+            let product_name = product
+                .as_ref()
+                .and_then(|row| row.str_of("Name"))
+                .unwrap_or_default();
             let serial = product
                 .as_ref()
                 .and_then(|row| row.str_of("IdentifyingNumber"))
@@ -291,15 +316,19 @@ impl HardwareHal for WindowsHal {
                 (true, true) => "Unknown".to_string(),
             };
 
-            return Ok(DeviceStatus {
+            Ok(DeviceStatus {
                 model,
                 // "Project" and "EC version" are UniWill-specific fields that
                 // only the driver knows. Left empty on purpose.
-                project: self.acpi.read_ec(0x740).map(|v| format!("0x{v:02X}")).unwrap_or_default(),
+                project: self
+                    .acpi
+                    .read_ec(0x740)
+                    .map(|v| format!("0x{v:02X}"))
+                    .unwrap_or_default(),
                 bios: bios_version,
                 ec: String::new(),
                 serial,
-            });
+            })
         }
 
         #[cfg(not(windows))]
@@ -312,7 +341,9 @@ impl HardwareHal for WindowsHal {
         let vendor = self.vendor_driver_ready();
 
         #[cfg(windows)]
-        let has_displays = winapi::displays().map(|list| !list.is_empty()).unwrap_or(false);
+        let has_displays = winapi::displays()
+            .map(|list| !list.is_empty())
+            .unwrap_or(false);
         #[cfg(not(windows))]
         let has_displays = false;
 
@@ -326,7 +357,9 @@ impl HardwareHal for WindowsHal {
             hinge: false,
             lightbar: false,
             bios_advanced: false,
-            gpu_switching: crate::core::driver::uefi::info(self.acpi.read_ec(0x740).ok()).map(|v| v.supported).unwrap_or(false),
+            gpu_switching: crate::core::driver::uefi::info(self.acpi.read_ec(0x740).ok())
+                .map(|v| v.supported)
+                .unwrap_or(false),
             // Display tuning is the gamma ramp: real, no driver needed.
             display_tuning: has_displays,
             // Custom fan curves are EC tables.
@@ -361,13 +394,21 @@ impl HardwareHal for WindowsHal {
         self.vendor_feature("custom fan curve control")
     }
 
-    fn apply_fan_curve_live(&self, cpu_curve: &[CurvePoint], gpu_curve: &[CurvePoint]) -> HalResult<()> {
+    fn apply_fan_curve_live(
+        &self,
+        cpu_curve: &[CurvePoint],
+        gpu_curve: &[CurvePoint],
+    ) -> HalResult<()> {
         let _ = (cpu_curve, gpu_curve);
         self.vendor_feature("live fan curve updates")
     }
 
     fn set_fan_ramp_rate(&self, speed_ms: u32) -> HalResult<()> {
-        let value = if speed_ms == 0 { 0x81 } else { 0x80 | (speed_ms.clamp(100, 12700) / 100) as u8 };
+        let value = if speed_ms == 0 {
+            0x81
+        } else {
+            0x80 | (speed_ms.clamp(100, 12700) / 100) as u8
+        };
         self.acpi.transaction(|ec| ec.write_verified(0x787, value))
     }
 
@@ -396,12 +437,33 @@ impl HardwareHal for WindowsHal {
         // Charge thresholds are stored in the recovered UniWill EC registers.
         self.acpi.transaction(|ec| {
             let limit = limit as u8;
-            let mode = if limit >= 95 { 1 } else if limit >= 66 { 0x11 } else { 0x21 };
-            let preserved = ec.read(0x7A6)? & 8;
-            ec.write_verified(0x770, if limit < 95 { 4 } else { 0xFF })?;
-            ec.write_verified(0x7B9, limit)?;
-            ec.write_verified(0x7D0, limit.saturating_sub(5))?;
-            ec.write_verified(0x7A6, preserved | mode)
+            let mode = if limit >= 95 {
+                1
+            } else if limit >= 66 {
+                0x11
+            } else {
+                0x21
+            };
+            let addresses = [0x770, 0x7B9, 0x7D0, 0x7A6];
+            let mut before = [0; 4];
+            for (i, address) in addresses.iter().enumerate() {
+                before[i] = ec.read(*address)?;
+            }
+            let values = [
+                if limit < 95 { 4 } else { 0xFF },
+                limit,
+                limit.saturating_sub(5),
+                (before[3] & 8) | mode,
+            ];
+            for (i, address) in addresses.iter().enumerate() {
+                if let Err(error) = ec.write_verified(*address, values[i]) {
+                    for (address, value) in addresses.iter().zip(before) {
+                        let _ = ec.write_verified(*address, value);
+                    }
+                    return Err(error);
+                }
+            }
+            Ok(())
         })
     }
 
@@ -410,7 +472,11 @@ impl HardwareHal for WindowsHal {
     }
 
     fn set_battery_mode(&self, mode: BatteryMode) -> HalResult<()> {
-        self.set_battery_limit(match mode { BatteryMode::LongLife => 60, BatteryMode::Balanced => 80, BatteryMode::Workstation => 100 })
+        self.set_battery_limit(match mode {
+            BatteryMode::LongLife => 60,
+            BatteryMode::Balanced => 80,
+            BatteryMode::Workstation => 100,
+        })
     }
 
     fn battery_health_percent(&self) -> HalResult<Option<f64>> {
@@ -422,14 +488,11 @@ impl HardwareHal for WindowsHal {
             // Prefer the firmware design capacity; fall back to the WMI value
             // only when the FADT field is not implemented.
             let design = winapi::battery_design_capacity_mwh().or_else(|| {
-                winapi::Wmi::first_row(
-                    "ROOT\\CIMV2",
-                    "SELECT DesignedCapacity FROM Win32_Battery",
-                )
-                .ok()
-                .flatten()
-                .and_then(|row| row.u64_of("DesignedCapacity"))
-                .filter(|capacity| *capacity > 0)
+                winapi::Wmi::first_row("ROOT\\CIMV2", "SELECT DesignedCapacity FROM Win32_Battery")
+                    .ok()
+                    .flatten()
+                    .and_then(|row| row.u64_of("DesignedCapacity"))
+                    .filter(|capacity| *capacity > 0)
             });
 
             let Some(design) = design else {
@@ -444,7 +507,7 @@ impl HardwareHal for WindowsHal {
             if !(1.0..=200.0).contains(&health) {
                 return Ok(None);
             }
-            return Ok(Some((health * 10.0).round() / 10.0));
+            Ok(Some((health * 10.0).round() / 10.0))
         }
 
         #[cfg(not(windows))]
@@ -503,17 +566,19 @@ impl HardwareHal for WindowsHal {
                 )));
             }
 
-            crate::core::services::logging::info(&format!(
+            crate::core::services::logging::info(format!(
                 "refresh rate set to {hz} Hz on {}",
                 changed.join(", ")
             ));
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(not(windows))]
         {
             let _ = hz;
-            Err(HalError::unavailable("refresh-rate switching requires Windows"))
+            Err(HalError::unavailable(
+                "refresh-rate switching requires Windows",
+            ))
         }
     }
 
@@ -525,7 +590,9 @@ impl HardwareHal for WindowsHal {
         #[cfg(not(windows))]
         {
             let _ = (device_name, hz);
-            Err(HalError::unavailable("refresh-rate switching requires Windows"))
+            Err(HalError::unavailable(
+                "refresh-rate switching requires Windows",
+            ))
         }
     }
 
@@ -565,7 +632,7 @@ impl HardwareHal for WindowsHal {
                 winapi::set_gamma_ramp(1.0, 1.0, 1.0)?;
             }
         }
-        crate::core::services::logging::info(&format!(
+        crate::core::services::logging::info(format!(
             "display colour tuning {}",
             if enabled { "enabled" } else { "disabled" }
         ));
@@ -594,14 +661,18 @@ impl HardwareHal for WindowsHal {
         {
             winapi::set_gamma_ramp(red, green, blue)?;
             self.display_tuning.store(true, Ordering::Relaxed);
-            crate::core::services::logging::info(&format!("display colour preset '{preset}' applied"));
-            return Ok(());
+            crate::core::services::logging::info(format!(
+                "display colour preset '{preset}' applied"
+            ));
+            Ok(())
         }
 
         #[cfg(not(windows))]
         {
             let _ = (red, green, blue);
-            Err(HalError::unavailable("display colour tuning requires Windows"))
+            Err(HalError::unavailable(
+                "display colour tuning requires Windows",
+            ))
         }
     }
 
@@ -621,9 +692,15 @@ impl HardwareHal for WindowsHal {
 
     fn lighting_runtime_status(&self) -> HalResult<LightingRuntimeStatus> {
         let state = self.lighting_state()?;
-        Ok(LightingRuntimeStatus { engine: "EC RGB".into(), effect: 0,
-            brightness: state.kb_brightness, color: state.kb_color, fps: 0,
-            sleep_minutes: 0, welcome_active: false })
+        Ok(LightingRuntimeStatus {
+            engine: "EC RGB".into(),
+            effect: 0,
+            brightness: state.kb_brightness,
+            color: state.kb_color,
+            fps: 0,
+            sleep_minutes: 0,
+            welcome_active: false,
+        })
     }
 
     fn apply_keyboard_lighting(&self, state: &LightingState) -> HalResult<()> {
@@ -661,10 +738,12 @@ impl HardwareHal for WindowsHal {
 
     fn keyboard_hardware_info(&self) -> HalResult<serde_json::Value> {
         let supported = crate::core::driver::keyboard::supported(&self.acpi);
-        Ok(serde_json::json!({ "controller": "UniWill EC RGB", "backend": "ACPIDriver",
+        Ok(
+            serde_json::json!({ "controller": "UniWill EC RGB", "backend": "ACPIDriver",
             "protocol": "EC RGB / 0x766 bit 2", "effects": if supported { 1 } else { 0 },
             "supported": supported, "per_key": false, "four_zone": false,
-            "hardware_engine": supported, "reason": if supported { "" } else { "未检测到 EC RGB 通道" } }))
+            "hardware_engine": supported, "reason": if supported { "" } else { "未检测到 EC RGB 通道" } }),
+        )
     }
 
     fn detect_lighting_support(&self) -> HalResult<SupportFlags> {
@@ -686,7 +765,11 @@ impl HardwareHal for WindowsHal {
         self.vendor_feature("the water cooler")
     }
 
-    fn apply_cooler_strategy(&self, strategy: CoolerStrategy, points: &[CurvePoint]) -> HalResult<()> {
+    fn apply_cooler_strategy(
+        &self,
+        strategy: CoolerStrategy,
+        points: &[CurvePoint],
+    ) -> HalResult<()> {
         let _ = (strategy, points);
         self.vendor_feature("water cooler strategies")
     }
@@ -732,7 +815,9 @@ impl HardwareHal for WindowsHal {
     }
 
     fn bios_advanced_menu_status(&self) -> HalResult<bool> {
-        Err(self.acpi.protocol_unsupported("the BIOS advanced menu status"))
+        Err(self
+            .acpi
+            .protocol_unsupported("the BIOS advanced menu status"))
     }
 
     // ----------------------------------------------------------- system info
@@ -743,15 +828,15 @@ impl HardwareHal for WindowsHal {
             let (active_guid, _) = winapi::active_power_scheme()?;
             let mut out = Vec::new();
             for guid in winapi::power_schemes()? {
-                let name = winapi::power_scheme_name(&guid)
-                    .unwrap_or_else(|| winapi::guid_string(&guid));
+                let name =
+                    winapi::power_scheme_name(&guid).unwrap_or_else(|| winapi::guid_string(&guid));
                 out.push(PowerScheme {
                     guid: winapi::guid_string(&guid),
                     name,
                     active: guid == active_guid,
                 });
             }
-            return Ok(out);
+            Ok(out)
         }
 
         #[cfg(not(windows))]
@@ -765,8 +850,8 @@ impl HardwareHal for WindowsHal {
         {
             let parsed = winapi::parse_guid(guid)?;
             winapi::set_active_power_scheme(&parsed)?;
-            crate::core::services::logging::info(&format!("active power scheme set to {guid}"));
-            return Ok(());
+            crate::core::services::logging::info(format!("active power scheme set to {guid}"));
+            Ok(())
         }
         #[cfg(not(windows))]
         {
@@ -791,7 +876,7 @@ impl HardwareHal for WindowsHal {
         #[cfg(windows)]
         {
             let displays = winapi::displays()?;
-            return Ok(displays
+            Ok(displays
                 .into_iter()
                 .map(|display| DisplayInfo {
                     device_name: display.device_name,
@@ -799,12 +884,14 @@ impl HardwareHal for WindowsHal {
                     current_hz: display.current_hz,
                     available_hz: display.available_hz,
                 })
-                .collect());
+                .collect())
         }
 
         #[cfg(not(windows))]
         {
-            Err(HalError::unavailable("display enumeration requires Windows"))
+            Err(HalError::unavailable(
+                "display enumeration requires Windows",
+            ))
         }
     }
 
@@ -837,7 +924,10 @@ impl HardwareHal for WindowsHal {
 /// little tidier by dropping the legal suffixes drivers love.
 #[cfg(windows)]
 fn tidy_vendor_name(name: &str) -> String {
-    let mut out = name.replace("(R)", "").replace("(TM)", "").replace("(tm)", "");
+    let mut out = name
+        .replace("(R)", "")
+        .replace("(TM)", "")
+        .replace("(tm)", "");
     while out.contains("  ") {
         out = out.replace("  ", " ");
     }
@@ -902,12 +992,13 @@ fn best_video_adapter(rows: &[winapi::WmiRow]) -> Option<&winapi::WmiRow> {
         .collect();
     // If every adapter looks virtual we still report one rather than nothing —
     // an honest "this is all we can see" beats an empty card.
-    let pool = if real.is_empty() { rows.iter().collect() } else { real };
+    let pool = if real.is_empty() {
+        rows.iter().collect()
+    } else {
+        real
+    };
     pool.into_iter().max_by_key(|row| rank(row))
 }
-
-/// Human label for a power mode, used in log lines.
-
 
 /// Reads the first ACPI thermal zone and converts it to Celsius.
 ///
@@ -947,7 +1038,7 @@ fn acpi_thermal_zone_celsius() -> Option<f64> {
 
 #[cfg(windows)]
 mod cpu_load {
-        use windows::Win32::Foundation::FILETIME;
+    use windows::Win32::Foundation::FILETIME;
     use windows::Win32::System::Threading::GetSystemTimes;
 
     /// Previous (idle, kernel, user) sample.

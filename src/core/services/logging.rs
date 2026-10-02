@@ -16,7 +16,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// Runtime filter for the log, mirroring the recovered `set_log_filter` /
 /// `set_log_level` commands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum LogLevel {    Off = 0,
+pub enum LogLevel {
+    Off = 0,
     Error = 1,
     Warn = 2,
     Info = 3,
@@ -96,7 +97,10 @@ static FILTER: OnceLock<std::sync::Mutex<String>> = OnceLock::new();
 
 fn settings() -> &'static std::sync::Mutex<LogSettings> {
     SETTINGS.get_or_init(|| {
-        std::sync::Mutex::new(LogSettings { enabled: true, level: LogLevel::Info })
+        std::sync::Mutex::new(LogSettings {
+            enabled: true,
+            level: LogLevel::Info,
+        })
     })
 }
 
@@ -122,9 +126,9 @@ pub fn filter() -> String {
 /// True when `message` passes the filter.
 fn passes_filter(message: &str) -> bool {
     match filter_slot().lock() {
-        Ok(guard) if !guard.is_empty() => {
-            message.to_ascii_lowercase().contains(&guard.to_ascii_lowercase())
-        }
+        Ok(guard) if !guard.is_empty() => message
+            .to_ascii_lowercase()
+            .contains(&guard.to_ascii_lowercase()),
         _ => true,
     }
 }
@@ -151,7 +155,9 @@ pub fn path() -> std::path::PathBuf {
 }
 
 fn timestamp() -> String {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default();
     let secs = now.as_secs();
     let millis = now.subsec_millis();
     // Format as a local-ish ISO-8601 stamp. We deliberately avoid pulling in a
@@ -199,7 +205,11 @@ pub fn write(level: LogLevel, message: &str) {
         let _ = fs::create_dir_all(parent);
     }
     let line = format!("[{}] [{}] {}\n", timestamp(), level.tag(), message);
-    let _ = OpenOptions::new().create(true).append(true).open(&path).and_then(|mut f| f.write_all(line.as_bytes()));
+    let _ = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .and_then(|mut f| f.write_all(line.as_bytes()));
 }
 
 /// Truncates the log. Called once per process start so `boot.log` describes the
@@ -292,7 +302,9 @@ pub fn open_path(path: &Path) -> Result<(), crate::core::error::HalError> {
             .arg(path)
             .creation_flags(CREATE_NO_WINDOW)
             .spawn()
-            .map_err(|e| crate::core::error::HalError::io(format!("could not open {}: {e}", path.display())))?;
+            .map_err(|e| {
+                crate::core::error::HalError::io(format!("could not open {}: {e}", path.display()))
+            })?;
         Ok(())
     }
     #[cfg(not(windows))]

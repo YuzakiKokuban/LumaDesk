@@ -37,7 +37,10 @@ impl Lcg {
 
     fn next_u32(&mut self) -> u32 {
         // Numerical Recipes LCG constants.
-        self.0 = self.0.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+        self.0 = self
+            .0
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
         (self.0 >> 33) as u32
     }
 
@@ -145,7 +148,9 @@ impl MockHal {
         let limit = self.battery_limit.load(Ordering::Relaxed);
 
         let Ok(mut rng) = self.rng.lock() else { return };
-        let Ok(mut sim) = self.state.lock() else { return };
+        let Ok(mut sim) = self.state.lock() else {
+            return;
+        };
         let cfg = match self.cfg.lock() {
             Ok(c) => c.clone(),
             Err(p) => p.into_inner().clone(),
@@ -161,18 +166,25 @@ impl MockHal {
             _ => (15.0, 60.0),
         };
         sim.burst = (sim.burst * 0.92 + rng.range(-1.0, 1.0) * 0.08).clamp(-1.0, 1.0);
-        let target_load = (load_lo + (load_hi - load_lo) * (0.5 + 0.5 * sim.burst)).clamp(0.0, 100.0);
+        let target_load =
+            (load_lo + (load_hi - load_lo) * (0.5 + 0.5 * sim.burst)).clamp(0.0, 100.0);
         sim.cpu_load += (target_load - sim.cpu_load) * (dt / 1.5).min(1.0);
-        let gpu_target = if mode == 2 { rng.range(40.0, 88.0) } else { rng.range(0.0, 18.0) };
+        let gpu_target = if mode == 2 {
+            rng.range(40.0, 88.0)
+        } else {
+            rng.range(0.0, 18.0)
+        };
         sim.gpu_load += (gpu_target - sim.gpu_load) * (dt / 2.0).min(1.0);
 
         // ---- thermal model --------------------------------------------------
         // Ambient 26 °C, load heats the die, fans cool it.
         let air_flow = sim.fan_rpm / 4_500.0;
         let cpu_dissipation = 1.9 * (1.0 + air_flow * 3.2);
-        sim.cpu_temp += (26.0 + sim.cpu_load * 0.72 - sim.cpu_temp) * (cpu_dissipation * dt / 8.0).min(1.0);
+        sim.cpu_temp +=
+            (26.0 + sim.cpu_load * 0.72 - sim.cpu_temp) * (cpu_dissipation * dt / 8.0).min(1.0);
         let gpu_dissipation = 1.4 * (1.0 + air_flow * 3.0);
-        sim.gpu_temp += (26.0 + sim.gpu_load * 0.70 - sim.gpu_temp) * (gpu_dissipation * dt / 9.0).min(1.0);
+        sim.gpu_temp +=
+            (26.0 + sim.gpu_load * 0.70 - sim.gpu_temp) * (gpu_dissipation * dt / 9.0).min(1.0);
         sim.cpu_temp = sim.cpu_temp.clamp(28.0, 101.0);
         sim.gpu_temp = sim.gpu_temp.clamp(28.0, 101.0);
 
@@ -187,7 +199,11 @@ impl MockHal {
             duty = 100.0;
         }
         let target_rpm = duty / 100.0 * 5_200.0;
-        let ramp = if target_rpm > sim.fan_rpm { 1_400.0 } else { 700.0 };
+        let ramp = if target_rpm > sim.fan_rpm {
+            1_400.0
+        } else {
+            700.0
+        };
         let delta = (target_rpm - sim.fan_rpm).clamp(-ramp * dt, ramp * dt);
         sim.fan_rpm = (sim.fan_rpm + delta).clamp(0.0, 5_400.0);
         // The GPU fan lags the CPU fan slightly.
@@ -208,8 +224,7 @@ impl MockHal {
         if charging {
             sim.battery_percent = (sim.battery_percent + 30.0 * dt / 3600.0).min(limit as f64);
         } else {
-            sim.battery_percent =
-                (sim.battery_percent - drain_per_hour * dt / 3600.0).max(3.0);
+            sim.battery_percent = (sim.battery_percent - drain_per_hour * dt / 3600.0).max(3.0);
         }
 
         // ---- water cooler ---------------------------------------------------
@@ -241,7 +256,11 @@ fn curve_duty(points: &[CurvePoint], temp: f64) -> f64 {
         return 45.0;
     }
     let mut sorted: Vec<&CurvePoint> = points.iter().collect();
-    sorted.sort_by(|a, b| a.temp.partial_cmp(&b.temp).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.sort_by(|a, b| {
+        a.temp
+            .partial_cmp(&b.temp)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     if temp <= sorted[0].temp {
         return sorted[0].duty;
     }
@@ -307,8 +326,10 @@ impl HardwareHal for MockHal {
                 gpu_rpm: sim.gpu_fan_rpm.round() as u32,
             },
             battery: BatteryStatus {
+                on_ac: sim.on_ac,
                 percent: round1(sim.battery_percent),
-                charging: sim.on_ac && sim.battery_percent < self.battery_limit.load(Ordering::Relaxed) as f64,
+                charging: sim.on_ac
+                    && sim.battery_percent < self.battery_limit.load(Ordering::Relaxed) as f64,
                 limit: self.battery_limit.load(Ordering::Relaxed),
                 health_percent: Some(96.4),
             },
@@ -353,12 +374,17 @@ impl HardwareHal for MockHal {
 
     fn fan_status(&self) -> HalResult<FanStatus> {
         let sim = self.snapshot();
-        Ok(FanStatus { available: true, cpu_rpm: sim.fan_rpm.round() as u32, gpu_rpm: sim.gpu_fan_rpm.round() as u32 })
+        Ok(FanStatus {
+            available: true,
+            cpu_rpm: sim.fan_rpm.round() as u32,
+            gpu_rpm: sim.gpu_fan_rpm.round() as u32,
+        })
     }
 
     fn battery_status(&self, limit: u32) -> HalResult<BatteryStatus> {
         let sim = self.snapshot();
         Ok(BatteryStatus {
+            on_ac: sim.on_ac,
             percent: round1(sim.battery_percent),
             charging: sim.on_ac && sim.battery_percent < limit as f64,
             limit,
@@ -416,7 +442,11 @@ impl HardwareHal for MockHal {
         Ok(())
     }
 
-    fn toggle_fan_curve_control(&self, cpu_curve: &[CurvePoint], gpu_curve: &[CurvePoint]) -> HalResult<()> {
+    fn toggle_fan_curve_control(
+        &self,
+        cpu_curve: &[CurvePoint],
+        gpu_curve: &[CurvePoint],
+    ) -> HalResult<()> {
         sim_log(&format!(
             "toggle_fan_curve_control(cpu={} pts, gpu={} pts)",
             cpu_curve.len(),
@@ -430,7 +460,11 @@ impl HardwareHal for MockHal {
         Ok(())
     }
 
-    fn apply_fan_curve_live(&self, cpu_curve: &[CurvePoint], gpu_curve: &[CurvePoint]) -> HalResult<()> {
+    fn apply_fan_curve_live(
+        &self,
+        cpu_curve: &[CurvePoint],
+        gpu_curve: &[CurvePoint],
+    ) -> HalResult<()> {
         sim_log(&format!(
             "apply_fan_curve_live(cpu={} pts, gpu={} pts)",
             cpu_curve.len(),
@@ -468,13 +502,15 @@ impl HardwareHal for MockHal {
 
     fn set_battery_limit(&self, limit: u32) -> HalResult<()> {
         sim_log(&format!("set_battery_limit({limit})"));
-        self.battery_limit.store(limit.clamp(50, 100), Ordering::Relaxed);
+        self.battery_limit
+            .store(limit.clamp(50, 100), Ordering::Relaxed);
         Ok(())
     }
 
     fn set_battery_hardware_limit(&self, limit: u32) -> HalResult<()> {
         sim_log(&format!("set_battery_hardware_limit({limit})"));
-        self.battery_limit.store(limit.clamp(50, 100), Ordering::Relaxed);
+        self.battery_limit
+            .store(limit.clamp(50, 100), Ordering::Relaxed);
         Ok(())
     }
 
@@ -502,7 +538,9 @@ impl HardwareHal for MockHal {
     }
 
     fn set_display_monitor_refresh_rate(&self, device_name: &str, hz: u32) -> HalResult<()> {
-        sim_log(&format!("set_display_monitor_refresh_rate({device_name}, {hz})"));
+        sim_log(&format!(
+            "set_display_monitor_refresh_rate({device_name}, {hz})"
+        ));
         Ok(())
     }
 
@@ -564,10 +602,15 @@ impl HardwareHal for MockHal {
     }
 
     fn apply_keyboard_lighting(&self, state: &LightingState) -> HalResult<()> {
-        sim_log(&format!("apply_keyboard_lighting(effect={}, color={})", state.kb_effect, state.kb_color));
+        sim_log(&format!(
+            "apply_keyboard_lighting(effect={}, color={})",
+            state.kb_effect, state.kb_color
+        ));
         self.kb_effect.store(state.kb_effect, Ordering::Relaxed);
-        self.kb_brightness.store(state.kb_brightness, Ordering::Relaxed);
-        self.lighting_enabled.store(state.enabled, Ordering::Relaxed);
+        self.kb_brightness
+            .store(state.kb_brightness, Ordering::Relaxed);
+        self.lighting_enabled
+            .store(state.enabled, Ordering::Relaxed);
         if let Ok(mut guard) = self.lighting.lock() {
             *guard = state.clone();
         }
@@ -575,7 +618,10 @@ impl HardwareHal for MockHal {
     }
 
     fn apply_logo_lighting(&self, effect: u32, color: &str) -> HalResult<()> {
-        sim_log(&format!("apply_logo_lighting({effect}, {})", normalise_hex(color)));
+        sim_log(&format!(
+            "apply_logo_lighting({effect}, {})",
+            normalise_hex(color)
+        ));
         if let Ok(mut guard) = self.lighting.lock() {
             guard.logo_color = normalise_hex(color);
         }
@@ -583,7 +629,10 @@ impl HardwareHal for MockHal {
     }
 
     fn apply_hinge_lighting(&self, speed: u32, color: &str) -> HalResult<()> {
-        sim_log(&format!("apply_hinge_lighting({speed}, {})", normalise_hex(color)));
+        sim_log(&format!(
+            "apply_hinge_lighting({speed}, {})",
+            normalise_hex(color)
+        ));
         if let Ok(mut guard) = self.lighting.lock() {
             guard.hinge_color = normalise_hex(color);
         }
@@ -591,7 +640,10 @@ impl HardwareHal for MockHal {
     }
 
     fn apply_lightbar_lighting(&self, effect: u32, color: &str) -> HalResult<()> {
-        sim_log(&format!("apply_lightbar_lighting({effect}, {})", normalise_hex(color)));
+        sim_log(&format!(
+            "apply_lightbar_lighting({effect}, {})",
+            normalise_hex(color)
+        ));
         if let Ok(mut guard) = self.lighting.lock() {
             guard.lightbar_color = normalise_hex(color);
         }
@@ -641,15 +693,35 @@ impl HardwareHal for MockHal {
 
     fn water_cooler_status(&self) -> HalResult<WaterCoolerStatus> {
         let sim = self.snapshot();
-        let enabled = self.cfg.lock().map(|c| c.water_cooler_enabled).unwrap_or(false);
+        let enabled = self
+            .cfg
+            .lock()
+            .map(|c| c.water_cooler_enabled)
+            .unwrap_or(false);
         Ok(WaterCoolerStatus {
             connected: enabled,
-            mac: if enabled { Some("AA:BB:CC:DD:EE:FF".into()) } else { None },
-            water_temp: if enabled { Some(round1(sim.water_temp)) } else { None },
+            mac: if enabled {
+                Some("AA:BB:CC:DD:EE:FF".into())
+            } else {
+                None
+            },
+            water_temp: if enabled {
+                Some(round1(sim.water_temp))
+            } else {
+                None
+            },
             pump_volt: if enabled { Some(sim.pump_volt) } else { None },
-            fan_rpm: if enabled { Some(sim.fan_rpm.round() as u32) } else { None },
+            fan_rpm: if enabled {
+                Some(sim.fan_rpm.round() as u32)
+            } else {
+                None
+            },
             duty: round1(sim.fan_rpm / 52.0),
-            strategy: self.cfg.lock().map(|c| c.cooler_strategy).unwrap_or_default(),
+            strategy: self
+                .cfg
+                .lock()
+                .map(|c| c.cooler_strategy)
+                .unwrap_or_default(),
         })
     }
 
@@ -661,7 +733,11 @@ impl HardwareHal for MockHal {
         Ok(())
     }
 
-    fn apply_cooler_strategy(&self, strategy: CoolerStrategy, points: &[CurvePoint]) -> HalResult<()> {
+    fn apply_cooler_strategy(
+        &self,
+        strategy: CoolerStrategy,
+        points: &[CurvePoint],
+    ) -> HalResult<()> {
         sim_log(&format!(
             "apply_cooler_strategy({}, {} points)",
             strategy.as_str(),
@@ -682,7 +758,10 @@ impl HardwareHal for MockHal {
     }
 
     fn set_water_cooler_led(&self, color: &str, mode: u32) -> HalResult<()> {
-        sim_log(&format!("set_water_cooler_led({}, {mode})", normalise_hex(color)));
+        sim_log(&format!(
+            "set_water_cooler_led({}, {mode})",
+            normalise_hex(color)
+        ));
         Ok(())
     }
 
@@ -813,10 +892,30 @@ impl MockHal {
     /// backend resolves them from ACPI/registry while the simulator invents them.
     pub fn device_switches(&self) -> Vec<DeviceSwitch> {
         vec![
-            DeviceSwitch { id: "usb_charge".into(), name: "USB charging in sleep".into(), enabled: true, supported: true },
-            DeviceSwitch { id: "ac_recovery".into(), name: "AC power recovery".into(), enabled: true, supported: true },
-            DeviceSwitch { id: "fn_lock".into(), name: "Fn lock".into(), enabled: false, supported: true },
-            DeviceSwitch { id: "win_key_lock".into(), name: "Windows key lock".into(), enabled: false, supported: true },
+            DeviceSwitch {
+                id: "usb_charge".into(),
+                name: "USB charging in sleep".into(),
+                enabled: true,
+                supported: true,
+            },
+            DeviceSwitch {
+                id: "ac_recovery".into(),
+                name: "AC power recovery".into(),
+                enabled: true,
+                supported: true,
+            },
+            DeviceSwitch {
+                id: "fn_lock".into(),
+                name: "Fn lock".into(),
+                enabled: false,
+                supported: true,
+            },
+            DeviceSwitch {
+                id: "win_key_lock".into(),
+                name: "Windows key lock".into(),
+                enabled: false,
+                supported: true,
+            },
         ]
     }
 

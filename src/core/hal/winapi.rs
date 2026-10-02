@@ -13,8 +13,6 @@
 //!   * nothing panics — fallible calls come back as `Result` or `Option`,
 //!   * ASCII control characters never reach the log (paths can be poisoned).
 
-#![cfg(windows)]
-
 use crate::core::error::{HalError, HalResult};
 use std::collections::HashMap;
 use std::path::Path;
@@ -22,8 +20,8 @@ use windows::core::{BSTR, GUID, PCWSTR, PWSTR};
 use windows::Win32::Foundation::{CloseHandle, HANDLE, HWND, MAX_PATH};
 use windows::Win32::Graphics::Gdi::{
     ChangeDisplaySettingsExW, EnumDisplayDevicesW, EnumDisplaySettingsW, CDS_UPDATEREGISTRY,
-    DEVMODEW, DISPLAY_DEVICE_ACTIVE, DISP_CHANGE_SUCCESSFUL, DISPLAY_DEVICEW,
-    ENUM_CURRENT_SETTINGS, ENUM_DISPLAY_SETTINGS_MODE, DM_DISPLAYFREQUENCY,
+    DEVMODEW, DISPLAY_DEVICEW, DISPLAY_DEVICE_ACTIVE, DISP_CHANGE_SUCCESSFUL, DM_DISPLAYFREQUENCY,
+    ENUM_CURRENT_SETTINGS, ENUM_DISPLAY_SETTINGS_MODE,
 };
 use windows::Win32::Security::{GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY};
 use windows::Win32::Storage::FileSystem::{
@@ -31,56 +29,96 @@ use windows::Win32::Storage::FileSystem::{
 };
 use windows::Win32::System::Com::{
     CoCreateInstance, CoInitializeEx, CoInitializeSecurity, CoSetProxyBlanket, CoUninitialize,
-    SAFEARRAY, CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED, EOLE_AUTHENTICATION_CAPABILITIES,
-    RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE,
+    CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED, EOLE_AUTHENTICATION_CAPABILITIES,
+    RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, SAFEARRAY,
 };
-use windows::Win32::System::IO::DeviceIoControl;
 use windows::Win32::System::Ole::{SafeArrayGetElement, SafeArrayGetLBound, SafeArrayGetUBound};
 use windows::Win32::System::Power::{
     CallNtPowerInformation, GetSystemPowerStatus, PowerEnumerate, PowerGetActiveScheme,
-    PowerReadFriendlyName, PowerSetActiveScheme, SYSTEM_BATTERY_STATE, SYSTEM_POWER_STATUS,
-    POWER_DATA_ACCESSOR, POWER_INFORMATION_LEVEL,
+    PowerReadFriendlyName, PowerSetActiveScheme, POWER_DATA_ACCESSOR, POWER_INFORMATION_LEVEL,
+    SYSTEM_BATTERY_STATE, SYSTEM_POWER_STATUS,
 };
+use windows::Win32::System::IO::DeviceIoControl;
 
 // Windows 11 exposes separate user power-mode votes for AC and battery.
 // Resolve dynamically so older systems report an unsupported feature cleanly.
-fn user_power_mode_function(name: &'static [u8]) -> HalResult<unsafe extern "system" fn(*mut GUID) -> u32> {
+fn user_power_mode_function(
+    name: &'static [u8],
+) -> HalResult<unsafe extern "system" fn(*mut GUID) -> u32> {
     use std::sync::OnceLock;
-    use windows::Win32::System::LibraryLoader::{LoadLibraryW, GetProcAddress};
+    use windows::Win32::System::LibraryLoader::{GetProcAddress, LoadLibraryW};
     static MODULE: OnceLock<usize> = OnceLock::new();
     let module = *MODULE.get_or_init(|| {
         let path = Path::new(&std::env::var("SystemRoot").unwrap_or_else(|_| "C:\\Windows".into()))
             .join("System32\\powrprof.dll");
-        let wide: Vec<u16> = path.to_string_lossy().encode_utf16().chain(Some(0)).collect();
+        let wide: Vec<u16> = path
+            .to_string_lossy()
+            .encode_utf16()
+            .chain(Some(0))
+            .collect();
         // SAFETY: the absolute DLL path is terminated and remains alive during the call.
-        unsafe { LoadLibraryW(PCWSTR(wide.as_ptr())).map(|h| h.0 as usize).unwrap_or(0) }
+        unsafe {
+            LoadLibraryW(PCWSTR(wide.as_ptr()))
+                .map(|h| h.0 as usize)
+                .unwrap_or(0)
+        }
     });
-    if module == 0 { return Err(HalError::unavailable("无法加载 Windows 电源管理 API")); }
+    if module == 0 {
+        return Err(HalError::unavailable("无法加载 Windows 电源管理 API"));
+    }
     // SAFETY: cached module remains loaded; each name has a terminating NUL.
-    let address = unsafe { GetProcAddress(windows::Win32::Foundation::HMODULE(module as *mut _), windows::core::PCSTR(name.as_ptr())) }
-        .ok_or_else(|| HalError::unsupported("此 Windows 版本不提供电源模式 API"))?;
+    let address = unsafe {
+        GetProcAddress(
+            windows::Win32::Foundation::HMODULE(module as *mut _),
+            windows::core::PCSTR(name.as_ptr()),
+        )
+    }
+    .ok_or_else(|| HalError::unsupported("此 Windows 版本不提供电源模式 API"))?;
     // SAFETY: all four documented Power{Get,Set}UserConfigured{AC,DC}PowerMode
     // exports return DWORD and accept one GUID pointer (const for setters).
-    Ok(unsafe { std::mem::transmute(address) })
+    Ok(unsafe {
+        std::mem::transmute::<
+            unsafe extern "system" fn() -> isize,
+            unsafe extern "system" fn(*mut GUID) -> u32,
+        >(address)
+    })
 }
 
 fn on_ac_power() -> HalResult<bool> {
     let mut status = SYSTEM_POWER_STATUS::default();
     // SAFETY: valid output buffer.
-    unsafe { GetSystemPowerStatus(&mut status) }.map_err(|e| HalError::unavailable(e.to_string()))?;
-    match status.ACLineStatus { 1 => Ok(true), 0 => Ok(false), _ => Err(HalError::unavailable("无法确定当前供电方式")) }
+    unsafe { GetSystemPowerStatus(&mut status) }
+        .map_err(|e| HalError::unavailable(e.to_string()))?;
+    match status.ACLineStatus {
+        1 => Ok(true),
+        0 => Ok(false),
+        _ => Err(HalError::unavailable("无法确定当前供电方式")),
+    }
 }
 
 pub fn user_power_mode() -> HalResult<u8> {
-    let get = user_power_mode_function(if on_ac_power()? { b"PowerGetUserConfiguredACPowerMode\0" } else { b"PowerGetUserConfiguredDCPowerMode\0" })?;
+    let get = user_power_mode_function(if on_ac_power()? {
+        b"PowerGetUserConfiguredACPowerMode\0"
+    } else {
+        b"PowerGetUserConfiguredDCPowerMode\0"
+    })?;
     let mut guid = GUID::zeroed();
     // SAFETY: valid writable GUID buffer.
     let code = unsafe { get(&mut guid) };
-    if code != 0 { return Err(HalError::unavailable(format!("读取 Windows 电源模式失败：{code}"))); }
-    if guid == GUID::from_u128(0x961cc777_2547_4f9d_8174_7d86181b8a7a) { Ok(0) }
-    else if guid == GUID::from_u128(0xded574b5_45a0_4f42_8737_46345c09c238) { Ok(2) }
-    else if guid == GUID::zeroed() { Ok(1) }
-    else { Err(HalError::unsupported("Windows 返回了未知电源模式")) }
+    if code != 0 {
+        return Err(HalError::unavailable(format!(
+            "读取 Windows 电源模式失败：{code}"
+        )));
+    }
+    if guid == GUID::from_u128(0x961cc777_2547_4f9d_8174_7d86181b8a7a) {
+        Ok(0)
+    } else if guid == GUID::from_u128(0xded574b5_45a0_4f42_8737_46345c09c238) {
+        Ok(2)
+    } else if guid == GUID::zeroed() {
+        Ok(1)
+    } else {
+        Err(HalError::unsupported("Windows 返回了未知电源模式"))
+    }
 }
 
 pub fn set_user_power_mode(mode: u8) -> HalResult<()> {
@@ -90,22 +128,30 @@ pub fn set_user_power_mode(mode: u8) -> HalResult<()> {
         2 => GUID::from_u128(0xded574b5_45a0_4f42_8737_46345c09c238),
         _ => return Err(HalError::unsupported("尚未实现 OEM 自定义性能档位")),
     };
-    let set = user_power_mode_function(if on_ac_power()? { b"PowerSetUserConfiguredACPowerMode\0" } else { b"PowerSetUserConfiguredDCPowerMode\0" })?;
+    let set = user_power_mode_function(if on_ac_power()? {
+        b"PowerSetUserConfiguredACPowerMode\0"
+    } else {
+        b"PowerSetUserConfiguredDCPowerMode\0"
+    })?;
     // SAFETY: valid GUID input buffer, matching documented signature.
     let code = unsafe { set(&mut guid) };
-    if code != 0 { return Err(HalError::unavailable(format!("切换 Windows 电源模式失败：{code}"))); }
-    if user_power_mode()? != mode { return Err(HalError::unavailable("Windows 电源模式回读不一致")); }
+    if code != 0 {
+        return Err(HalError::unavailable(format!(
+            "切换 Windows 电源模式失败：{code}"
+        )));
+    }
+    if user_power_mode()? != mode {
+        return Err(HalError::unavailable("Windows 电源模式回读不一致"));
+    }
     Ok(())
 }
-use windows::Win32::System::SystemInformation::{
-    GetSystemFirmwareTable, FIRMWARE_TABLE_PROVIDER,
-};
+use windows::Win32::System::SystemInformation::{GetSystemFirmwareTable, FIRMWARE_TABLE_PROVIDER};
 use windows::Win32::System::Threading::{
     GetCurrentProcess, OpenProcessToken, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
 };
 use windows::Win32::System::Variant::{
-    VariantClear, VariantToDoubleWithDefault, VariantToInt32WithDefault, VariantToUInt32WithDefault,
-    VariantToUInt64WithDefault, VARIANT,
+    VariantClear, VariantToDoubleWithDefault, VariantToInt32WithDefault,
+    VariantToUInt32WithDefault, VariantToUInt64WithDefault, VARIANT,
 };
 use windows::Win32::System::Wmi::{
     IEnumWbemClassObject, IWbemClassObject, IWbemContext, IWbemLocator, IWbemServices, WbemLocator,
@@ -275,20 +321,19 @@ impl Wmi {
 
         // SAFETY: `WbemLocator` is a documented in-proc class and the returned
         // interface is only used through this module's wrappers.
-        let locator: IWbemLocator = match unsafe {
-            CoCreateInstance(&WbemLocator, None, CLSCTX_INPROC_SERVER)
-        } {
-            Ok(locator) => locator,
-            Err(err) => {
-                if own_com {
-                    // SAFETY: balances the successful `CoInitializeEx` above.
-                    unsafe { CoUninitialize() };
+        let locator: IWbemLocator =
+            match unsafe { CoCreateInstance(&WbemLocator, None, CLSCTX_INPROC_SERVER) } {
+                Ok(locator) => locator,
+                Err(err) => {
+                    if own_com {
+                        // SAFETY: balances the successful `CoInitializeEx` above.
+                        unsafe { CoUninitialize() };
+                    }
+                    return Err(HalError::unavailable(format!(
+                        "the WMI service is not available ({err})"
+                    )));
                 }
-                return Err(HalError::unavailable(format!(
-                    "the WMI service is not available ({err})"
-                )));
-            }
-        };
+            };
 
         let namespace_bstr = BSTR::from(namespace);
         // SAFETY: every `BSTR` lives until the end of the statement, the extra
@@ -334,13 +379,18 @@ impl Wmi {
             );
         }
 
-        Ok(Wmi { services: Some(services), own_com })
+        Ok(Wmi {
+            services: Some(services),
+            own_com,
+        })
     }
 
     /// Runs a WQL query and materialises every returned instance.
     pub fn query(&self, wql: &str) -> HalResult<Vec<WmiRow>> {
         let Some(services) = self.services.as_ref() else {
-            return Err(HalError::unavailable("the WMI connection has already been closed"));
+            return Err(HalError::unavailable(
+                "the WMI connection has already been closed",
+            ));
         };
         // SAFETY: the services pointer stays alive for the whole call, the
         // `BSTR`s live until the statement ends and the out-parameter is
@@ -420,7 +470,10 @@ unsafe fn read_object(object: &IWbemClassObject) -> WmiRow {
     const WBEM_FLAG_ALWAYS_RETURN_FULLY_POPULATED: i32 = 0x0000_0010;
     // SAFETY: `object` is a live interface. `BeginEnumeration` only rewinds the
     // object's property cursor and returns an HRESULT, not an enumerator.
-    if object.BeginEnumeration(WBEM_FLAG_ALWAYS_RETURN_FULLY_POPULATED).is_err() {
+    if object
+        .BeginEnumeration(WBEM_FLAG_ALWAYS_RETURN_FULLY_POPULATED)
+        .is_err()
+    {
         return row;
     }
 
@@ -447,14 +500,18 @@ unsafe fn read_object(object: &IWbemClassObject) -> WmiRow {
         }
         if name.is_empty() {
             // SAFETY: `value` was filled in by the call above.
-            unsafe { let _ = VariantClear(&mut value); }
+            unsafe {
+                let _ = VariantClear(&mut value);
+            }
             break;
         }
         let key = name.to_string();
         // SAFETY: `value` is an initialised VARIANT freshly written by WMI.
         row.0.insert(key, unsafe { read_variant(&value) });
         // SAFETY: releases any BSTR/SAFEARRAY the variant owns.
-        unsafe { let _ = VariantClear(&mut value); }
+        unsafe {
+            let _ = VariantClear(&mut value);
+        }
     }
     row
 }
@@ -522,13 +579,19 @@ unsafe fn read_array(value: &VARIANT) -> WmiValue {
         // SAFETY: `index` is inside the bounds reported by the API and
         // `element` is a valid out-pointer for the element copy.
         let copied = unsafe {
-            SafeArrayGetElement(array, &index as *const i32, &mut element as *mut VARIANT as *mut _)
+            SafeArrayGetElement(
+                array,
+                &index as *const i32,
+                &mut element as *mut VARIANT as *mut _,
+            )
         };
         if copied.is_ok() {
             // SAFETY: `element` is now an initialised VARIANT.
             out.push(unsafe { read_variant(&element) });
             // SAFETY: releases the element copy's payload.
-            unsafe { let _ = VariantClear(&mut element); }
+            unsafe {
+                let _ = VariantClear(&mut element);
+            }
         }
         index += 1;
     }
@@ -578,7 +641,12 @@ pub fn parse_guid(text: &str) -> HalResult<GUID> {
         *slot = u8::from_str_radix(&parts[4][index * 2..index * 2 + 2], 16)
             .map_err(|_| HalError::io(format!("'{text}' is not a GUID")))?;
     }
-    Ok(GUID { data1, data2, data3, data4 })
+    Ok(GUID {
+        data1,
+        data2,
+        data3,
+        data4,
+    })
 }
 
 // -------------------------------------------------------------- power schemes
@@ -604,9 +672,9 @@ pub fn active_power_scheme() -> HalResult<(GUID, String)> {
     // GUID with `LocalAlloc`; it is freed after the copy.
     let guid = unsafe {
         let copy = *raw;
-        let _ = windows::Win32::Foundation::LocalFree(Some(
-            windows::Win32::Foundation::HLOCAL(raw as *mut _),
-        ));
+        let _ = windows::Win32::Foundation::LocalFree(Some(windows::Win32::Foundation::HLOCAL(
+            raw as *mut _,
+        )));
         copy
     };
 
@@ -649,7 +717,8 @@ pub fn power_schemes() -> HalResult<Vec<GUID>> {
         let mut size: u32 = 0;
         // SAFETY: a null buffer is the documented sizing call and
         // `ACCESS_SCHEME` restricts the enumeration to top-level schemes.
-        let status = unsafe { PowerEnumerate(None, None, None, ACCESS_SCHEME, index, None, &mut size) };
+        let status =
+            unsafe { PowerEnumerate(None, None, None, ACCESS_SCHEME, index, None, &mut size) };
         // A null buffer is a sizing call: ERROR_MORE_DATA is expected.
         if (status.0 != 0 && status.0 != 234) || size < std::mem::size_of::<GUID>() as u32 {
             break;
@@ -734,8 +803,10 @@ pub fn displays() -> HalResult<Vec<DisplayMode>> {
     let mut out = Vec::new();
     let mut index = 0u32;
     loop {
-        let mut device = DISPLAY_DEVICEW::default();
-        device.cb = std::mem::size_of::<DISPLAY_DEVICEW>() as u32;
+        let mut device = DISPLAY_DEVICEW {
+            cb: std::mem::size_of::<DISPLAY_DEVICEW>() as u32,
+            ..Default::default()
+        };
         // SAFETY: `device.cb` was set to the struct size, which is the
         // documented contract, and `index` walks the adapter list.
         let adapter = unsafe { EnumDisplayDevicesW(PCWSTR::null(), index, &mut device, 0) };
@@ -771,8 +842,10 @@ pub fn displays() -> HalResult<Vec<DisplayMode>> {
 /// The refresh rate a display is currently running at.
 pub fn current_mode(device_name: &str) -> u32 {
     let name_z = wide_z(device_name);
-    let mut mode = DEVMODEW::default();
-    mode.dmSize = std::mem::size_of::<DEVMODEW>() as u16;
+    let mut mode = DEVMODEW {
+        dmSize: std::mem::size_of::<DEVMODEW>() as u16,
+        ..Default::default()
+    };
     // SAFETY: `dmSize` is set and `name_z` is NUL-terminated.
     if unsafe { EnumDisplaySettingsW(PCWSTR(name_z.as_ptr()), ENUM_CURRENT_SETTINGS, &mut mode) }
         .as_bool()
@@ -789,8 +862,10 @@ pub fn display_rates(device_name: &str) -> Vec<u32> {
     let mut rates = Vec::new();
     let mut index = 0u32;
     loop {
-        let mut mode = DEVMODEW::default();
-        mode.dmSize = std::mem::size_of::<DEVMODEW>() as u16;
+        let mut mode = DEVMODEW {
+            dmSize: std::mem::size_of::<DEVMODEW>() as u16,
+            ..Default::default()
+        };
         // SAFETY: `dmSize` is set and `name_z` is NUL-terminated.
         let ok = unsafe {
             EnumDisplaySettingsW(
@@ -819,11 +894,14 @@ pub fn display_rates(device_name: &str) -> Vec<u32> {
 /// instead of a black screen.
 pub fn set_refresh_rate(device_name: &str, hz: u32) -> HalResult<()> {
     let name_z = wide_z(device_name);
-    let mut current = DEVMODEW::default();
-    current.dmSize = std::mem::size_of::<DEVMODEW>() as u16;
+    let mut current = DEVMODEW {
+        dmSize: std::mem::size_of::<DEVMODEW>() as u16,
+        ..Default::default()
+    };
     // SAFETY: `dmSize` is set and `name_z` is NUL-terminated.
-    let readable =
-        unsafe { EnumDisplaySettingsW(PCWSTR(name_z.as_ptr()), ENUM_CURRENT_SETTINGS, &mut current) };
+    let readable = unsafe {
+        EnumDisplaySettingsW(PCWSTR(name_z.as_ptr()), ENUM_CURRENT_SETTINGS, &mut current)
+    };
     if !readable.as_bool() {
         return Err(HalError::unavailable(format!(
             "the current mode of {device_name} could not be read"
@@ -930,7 +1008,9 @@ pub fn lcd_brightness() -> HalResult<u32> {
         let _ = CloseHandle(handle);
     }
     result.map_err(|err| {
-        HalError::io(format!("the brightness query was rejected by the panel driver ({err})"))
+        HalError::io(format!(
+            "the brightness query was rejected by the panel driver ({err})"
+        ))
     })?;
     // `ucACBrightness` is the level in use while on mains power.
     Ok(u32::from(payload[1]))
@@ -962,7 +1042,9 @@ pub fn set_lcd_brightness(percent: u32) -> HalResult<()> {
         let _ = CloseHandle(handle);
     }
     result.map_err(|err| {
-        HalError::io(format!("the brightness change was rejected by the panel driver ({err})"))
+        HalError::io(format!(
+            "the brightness change was rejected by the panel driver ({err})"
+        ))
     })
 }
 
@@ -1029,12 +1111,13 @@ pub fn battery_design_capacity_mwh() -> Option<u64> {
     const ACPI_PROVIDER: FIRMWARE_TABLE_PROVIDER = FIRMWARE_TABLE_PROVIDER(0x4143_5049);
     // SAFETY: a null buffer is the documented sizing call.
     let size = unsafe { GetSystemFirmwareTable(ACPI_PROVIDER, FACP_SIGNATURE, None) };
-    if size < 64 || size > 1024 * 1024 {
+    if !(64..=1024 * 1024).contains(&size) {
         return None;
     }
     let mut buffer = vec![0u8; size as usize];
     // SAFETY: the buffer is exactly the size the API just reported.
-    let written = unsafe { GetSystemFirmwareTable(ACPI_PROVIDER, FACP_SIGNATURE, Some(&mut buffer)) };
+    let written =
+        unsafe { GetSystemFirmwareTable(ACPI_PROVIDER, FACP_SIGNATURE, Some(&mut buffer)) };
     if written < 64 || (written as usize) > buffer.len() || buffer[0..4] != *b"FACP" {
         return None;
     }
@@ -1147,10 +1230,17 @@ pub fn current_exe_path() -> HalResult<std::path::PathBuf> {
     // SAFETY: the buffer and its length are both valid and the buffer is large
     // enough for any realistic path; the pseudo-handle is always valid.
     unsafe {
-        QueryFullProcessImageNameW(GetCurrentProcess(), PROCESS_NAME_WIN32, PWSTR(buffer.as_mut_ptr()), &mut size)
+        QueryFullProcessImageNameW(
+            GetCurrentProcess(),
+            PROCESS_NAME_WIN32,
+            PWSTR(buffer.as_mut_ptr()),
+            &mut size,
+        )
     }
     .map_err(|err| HalError::io(format!("the executable path could not be read ({err})")))?;
-    Ok(std::path::PathBuf::from(wide_field_to_string(&buffer[..size as usize])))
+    Ok(std::path::PathBuf::from(wide_field_to_string(
+        &buffer[..size as usize],
+    )))
 }
 
 /// Renders a path for the log without letting control characters through.
@@ -1158,7 +1248,13 @@ pub fn safe_path(path: &Path) -> String {
     path.display()
         .to_string()
         .chars()
-        .map(|character| if character.is_control() { '?' } else { character })
+        .map(|character| {
+            if character.is_control() {
+                '?'
+            } else {
+                character
+            }
+        })
         .collect()
 }
 
@@ -1195,7 +1291,9 @@ pub fn set_gamma_ramp(red: f64, green: f64, blue: f64) -> HalResult<()> {
     // handled immediately below.
     let hdc = unsafe { windows::Win32::Graphics::Gdi::GetDC(None) };
     if hdc.is_invalid() {
-        return Err(HalError::unavailable("the screen device context is not available"));
+        return Err(HalError::unavailable(
+            "the screen device context is not available",
+        ));
     }
 
     let mut ramp = [[0u16; 256]; 3];
@@ -1208,7 +1306,10 @@ pub fn set_gamma_ramp(red: f64, green: f64, blue: f64) -> HalResult<()> {
     // SAFETY: `ramp` is a stack array of exactly 3 * 256 16-bit entries, which
     // is the layout `SetDeviceGammaRamp` documents, and `hdc` is a live DC.
     let ok = unsafe {
-        SetDeviceGammaRamp(hdc, &ramp as *const [[u16; 256]; 3] as *const core::ffi::c_void)
+        SetDeviceGammaRamp(
+            hdc,
+            &ramp as *const [[u16; 256]; 3] as *const core::ffi::c_void,
+        )
     };
     // SAFETY: releases the DC acquired above.
     unsafe {

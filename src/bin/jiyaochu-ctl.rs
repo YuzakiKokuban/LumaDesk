@@ -53,7 +53,11 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         "--version" | "-V" => {
-            println!("jiyaochu-ctl {} (abi {})", env!("CARGO_PKG_VERSION"), ffi::ABI_VERSION);
+            println!(
+                "jiyaochu-ctl {} (abi {})",
+                env!("CARGO_PKG_VERSION"),
+                ffi::ABI_VERSION
+            );
             ExitCode::SUCCESS
         }
         "--commands" => {
@@ -76,7 +80,9 @@ fn main() -> ExitCode {
                 eprintln!("jiyaochu-ctl: the command name contains a NUL byte");
                 return ExitCode::FAILURE;
             };
-            let payload_pointer = payload.as_ref().map_or(std::ptr::null(), |json| json.as_ptr());
+            let payload_pointer = payload
+                .as_ref()
+                .map_or(std::ptr::null(), |json| json.as_ptr());
             let raw = unsafe { ffi::lumadesk_call(command.as_ptr(), payload_pointer) };
             report(unsafe { copy_and_free(raw) })
         }
@@ -129,7 +135,10 @@ unsafe fn copy_and_free(raw: *mut std::os::raw::c_char) -> String {
 fn report(envelope: String) -> ExitCode {
     let parsed: Option<serde_json::Value> = serde_json::from_str(&envelope).ok();
     let succeeded = matches!(
-        parsed.as_ref().and_then(|value| value.get("ok")).and_then(serde_json::Value::as_bool),
+        parsed
+            .as_ref()
+            .and_then(|value| value.get("ok"))
+            .and_then(serde_json::Value::as_bool),
         Some(true)
     );
 

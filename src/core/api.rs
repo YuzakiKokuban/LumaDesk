@@ -76,13 +76,19 @@ fn powercfg(args: &[&str]) -> Result<String, String> {
 ///
 /// `hz = 0` means "the highest rate this panel advertises" and `hz = 1` means
 /// "the lowest rate", which is what the battery-saver toggle switches to.
-fn resolve_rate(state: &AppState, device: Option<&str>, hz: u32) -> Result<(String, u32), HalError> {
+fn resolve_rate(
+    state: &AppState,
+    device: Option<&str>,
+    hz: u32,
+) -> Result<(String, u32), HalError> {
     let displays = state.hal().display_list()?;
     let chosen = match device {
         Some(name) => displays
             .iter()
             .find(|display| display.device_name.eq_ignore_ascii_case(name))
-            .ok_or_else(|| HalError::unavailable(format!("no display named '{name}' is attached")))?,
+            .ok_or_else(|| {
+                HalError::unavailable(format!("no display named '{name}' is attached"))
+            })?,
         None => displays
             .first()
             .ok_or_else(|| HalError::unavailable("no display is attached"))?,
@@ -131,7 +137,8 @@ fn slug(name: &str) -> String {
     for character in name.chars() {
         if character.is_ascii_alphanumeric() {
             out.push(character.to_ascii_lowercase());
-        } else if (character == ' ' || character == '-' || character == '_') && !out.ends_with('_') {
+        } else if (character == ' ' || character == '-' || character == '_') && !out.ends_with('_')
+        {
             out.push('_');
         }
     }
@@ -266,8 +273,15 @@ impl Api {
     }
 
     pub fn set_windows_power_mode(&self, mode: u8) -> Result<(), String> {
-        #[cfg(windows)] { crate::core::hal::winapi::set_user_power_mode(mode).map_err(fail) }
-        #[cfg(not(windows))] { let _ = mode; Err("Windows 11 required".into()) }
+        #[cfg(windows)]
+        {
+            crate::core::hal::winapi::set_user_power_mode(mode).map_err(fail)
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = mode;
+            Err("Windows 11 required".into())
+        }
     }
 
     pub fn set_fan_boost(&self, enabled: bool) -> Result<(), String> {
@@ -282,7 +296,8 @@ impl Api {
     pub fn set_battery_limit(&self, limit: u32) -> Result<(), String> {
         let limit = limit.clamp(50, 100);
         self.state.hal().set_battery_limit(limit).map_err(fail)?;
-        self.state.with_config(|config| config.battery_limit = limit);
+        self.state
+            .with_config(|config| config.battery_limit = limit);
         self.state
             .update_config(|_| {})
             .map_err(|error| format!("the battery limit was applied but not saved: {error}"))?;
@@ -324,19 +339,38 @@ impl Api {
         if alias.is_empty() {
             return Err("a powercfg option alias is required".into());
         }
-        if !alias.chars().all(|character| character.is_ascii_alphanumeric()) {
+        if !alias
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric())
+        {
             return Err(format!("'{alias}' is not a valid powercfg alias"));
         }
 
         // `/setacvalueindex` resolves the alias against the *active* scheme;
         // find the GUID first and pass it explicitly so the call cannot
         // silently target a different scheme.
-        let scheme = self.state.hal().active_windows_power_scheme().map_err(fail)?;
+        let scheme = self
+            .state
+            .hal()
+            .active_windows_power_scheme()
+            .map_err(fail)?;
         let value = value.to_string();
 
         // `powercfg /setacvalueindex <scheme> SUB_NONE <alias> <value>`
-        let ac = powercfg(&["/setacvalueindex", &scheme, "SUB_NONE", alias, value.as_str()])?;
-        let dc = powercfg(&["/setdcvalueindex", &scheme, "SUB_NONE", alias, value.as_str()])?;
+        let ac = powercfg(&[
+            "/setacvalueindex",
+            &scheme,
+            "SUB_NONE",
+            alias,
+            value.as_str(),
+        ])?;
+        let dc = powercfg(&[
+            "/setdcvalueindex",
+            &scheme,
+            "SUB_NONE",
+            alias,
+            value.as_str(),
+        ])?;
         powercfg(&["/setactive", &scheme])?;
 
         crate::core::services::logging::info(format!(
@@ -371,7 +405,10 @@ impl Api {
             gpu_core_offset,
             gpu_mem_offset,
         };
-        self.state.hal().apply_live_custom_tweak(&tweak).map_err(fail)
+        self.state
+            .hal()
+            .apply_live_custom_tweak(&tweak)
+            .map_err(fail)
     }
 
     /// Verbose name preserved from the original wire surface: was
@@ -387,7 +424,10 @@ impl Api {
             gpu_core_offset: 0.0,
             gpu_mem_offset: 0.0,
         };
-        self.state.hal().apply_live_custom_tweak(&tweak).map_err(fail)
+        self.state
+            .hal()
+            .apply_live_custom_tweak(&tweak)
+            .map_err(fail)
     }
 
     /// Re-applies the stock GPU power limits after a driver reset.
@@ -411,7 +451,11 @@ impl Api {
                     _ => 0,
                 };
             }
-            curve.sort_by(|a, b| a.temp.partial_cmp(&b.temp).unwrap_or(std::cmp::Ordering::Equal));
+            curve.sort_by(|a, b| {
+                a.temp
+                    .partial_cmp(&b.temp)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
             curve
         };
         let cpu = clean(cpu_curve);
@@ -419,7 +463,10 @@ impl Api {
         if cpu.is_empty() || gpu.is_empty() {
             return Err("a fan curve needs at least one point".into());
         }
-        self.state.hal().apply_fan_curve_live(&cpu, &gpu).map_err(fail)
+        self.state
+            .hal()
+            .apply_fan_curve_live(&cpu, &gpu)
+            .map_err(fail)
     }
 
     pub fn toggle_fan_curve_control(&self, enabled: bool) -> Result<(), String> {
@@ -430,9 +477,15 @@ impl Api {
             .state
             .with_config(|config| config.cooler_curve_points.clone());
         if enabled {
-            self.state.hal().toggle_fan_curve_control(&cpu, &cpu).map_err(fail)
+            self.state
+                .hal()
+                .toggle_fan_curve_control(&cpu, &cpu)
+                .map_err(fail)
         } else {
-            self.state.hal().toggle_fan_curve_control(&[], &[]).map_err(fail)
+            self.state
+                .hal()
+                .toggle_fan_curve_control(&[], &[])
+                .map_err(fail)
         }
     }
 
@@ -466,7 +519,10 @@ impl Api {
     }
 
     pub fn get_gpu_mode_info(&self) -> Result<crate::core::driver::uefi::GpuModeInfo, String> {
-        self.state.hal().gpu_mode_info(&self.state.config()).map_err(fail)
+        self.state
+            .hal()
+            .gpu_mode_info(&self.state.config())
+            .map_err(fail)
     }
 
     /// Explicit user action only; saving a mode never reboots automatically.
@@ -474,15 +530,26 @@ impl Api {
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
-            let executable = std::env::var_os("SystemRoot").map(std::path::PathBuf::from)
+            let executable = std::env::var_os("SystemRoot")
+                .map(std::path::PathBuf::from)
                 .unwrap_or_else(|| std::path::PathBuf::from(r"C:\Windows"))
-                .join("System32").join("shutdown.exe");
-            let result = std::process::Command::new(executable).args(["/r", "/t", "30"])
-                .creation_flags(0x08000000).status().map_err(|e| e.to_string())?;
-            if result.success() { Ok(()) } else { Err("Windows 拒绝了重启请求".into()) }
+                .join("System32")
+                .join("shutdown.exe");
+            let result = std::process::Command::new(executable)
+                .args(["/r", "/t", "30"])
+                .creation_flags(0x08000000)
+                .status()
+                .map_err(|e| e.to_string())?;
+            if result.success() {
+                Ok(())
+            } else {
+                Err("Windows 拒绝了重启请求".into())
+            }
         }
         #[cfg(not(windows))]
-        { Err("系统重启需要 Windows".into()) }
+        {
+            Err("系统重启需要 Windows".into())
+        }
     }
 
     /* ------------------------------------------------------------ display */
@@ -612,9 +679,18 @@ impl Api {
 
     /// The persisted lighting configuration.
     pub fn get_lighting_state(&self) -> Result<LightingState, String> {
-        if self.state.hal().backend_name() == "mock" { return Ok(config_snapshot(&self.state).lighting); }
+        if self.state.hal().backend_name() == "mock" {
+            return Ok(config_snapshot(&self.state).lighting);
+        }
         let mut state = self.state.hal().lighting_state().map_err(fail)?;
-        if !state.enabled { let saved = config_snapshot(&self.state).lighting; state.kb_color = saved.kb_color; state.kb_brightness = saved.kb_brightness.max(1); }
+        let saved = config_snapshot(&self.state).lighting;
+        if !state.enabled {
+            state.kb_color = saved.kb_color;
+            state.kb_brightness = saved.kb_brightness.max(1);
+        } else if crate::core::driver::keyboard::readback_color(&saved.kb_color) == state.kb_color {
+            // Keep the selected palette entry despite the EC's 0..50 quantization.
+            state.kb_color = saved.kb_color;
+        }
         Ok(state)
     }
 
@@ -664,7 +740,10 @@ impl Api {
         let mut clean = lighting.clone();
         clean.firmware_managed = false;
         crate::core::config::sanitise_lighting(&mut clean);
-        self.state.hal().apply_keyboard_lighting(&clean).map_err(fail)?;
+        self.state
+            .hal()
+            .apply_keyboard_lighting(&clean)
+            .map_err(fail)?;
         self.state.with_config(|config| config.lighting = clean);
         self.state
             .update_config(|_| {})
@@ -782,7 +861,8 @@ impl Api {
                 ))
             }
         };
-        self.state.with_config(|config| config.lighting.kb_fps = fps);
+        self.state
+            .with_config(|config| config.lighting.kb_fps = fps);
         self.state
             .update_config(|_| {})
             .map_err(|error| format!("the streaming rate was not saved: {error}"))?;
@@ -814,7 +894,9 @@ impl Api {
         // loop reads it from the configuration. It has no dedicated config field
         // in the recovered schema, so it is recorded in the log and applied by
         // the loop's own battery checks.
-        crate::core::services::logging::info(format!("auto keyboard fallback on battery: {enabled}"));
+        crate::core::services::logging::info(format!(
+            "auto keyboard fallback on battery: {enabled}"
+        ));
         Ok(())
     }
 
@@ -886,8 +968,13 @@ impl Api {
             Err(HalError::Unsupported(reason)) => {
                 // A cooler that cannot be reached still has a configured
                 // strategy; report that rather than failing the whole page.
-                crate::core::services::logging::debug(format!("water cooler unavailable: {reason}"));
-                Ok(WaterCoolerStatus { strategy, ..WaterCoolerStatus::default() })
+                crate::core::services::logging::debug(format!(
+                    "water cooler unavailable: {reason}"
+                ));
+                Ok(WaterCoolerStatus {
+                    strategy,
+                    ..WaterCoolerStatus::default()
+                })
             }
             Err(error) => Err(fail(error)),
         }
@@ -919,7 +1006,11 @@ impl Api {
                 _ => 0,
             };
         }
-        points.sort_by(|a, b| a.temp.partial_cmp(&b.temp).unwrap_or(std::cmp::Ordering::Equal));
+        points.sort_by(|a, b| {
+            a.temp
+                .partial_cmp(&b.temp)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         self.state.with_config(|config| {
             config.cooler_strategy = strategy;
@@ -1097,7 +1188,10 @@ impl Api {
             .to_string());
         }
 
-        let renamed = ProfilePreset { name: new_name, ..existing.preset };
+        let renamed = ProfilePreset {
+            name: new_name,
+            ..existing.preset
+        };
         presets::save_profile(&renamed).map_err(fail)?;
         crate::core::services::logging::info(format!("profile preset '{id}' renamed"));
         Ok(())
@@ -1281,7 +1375,11 @@ impl Api {
         // `standby-timeout-ac/dc = 0` means "never"; anything else restores the
         // Windows default of 30 minutes.
         let (ac, dc) = if enabled { ("0", "0") } else { ("30", "30") };
-        let scheme = self.state.hal().active_windows_power_scheme().map_err(fail)?;
+        let scheme = self
+            .state
+            .hal()
+            .active_windows_power_scheme()
+            .map_err(fail)?;
         powercfg(&["/change", "standby-timeout-ac", ac])
             .map_err(|error| format!("{error} (scheme {scheme})"))?;
         powercfg(&["/change", "standby-timeout-dc", dc])
@@ -1328,7 +1426,7 @@ impl Api {
 
         // The authoritative read is the setting index itself; `powercfg /q`
         // output is localised, so parse the alias form we asked for instead.
-        let output = powercfg(&["/q", &query]);
+        let output = powercfg(&["/q", query]);
         let enabled = match output {
             Ok(text) => text
                 .lines()
@@ -1358,8 +1456,7 @@ impl Api {
     pub fn set_autostart(&self, enabled: bool) -> Result<(), String> {
         apply_autostart(enabled)?;
 
-        self.state
-            .with_config(|config| config.autostart = enabled);
+        self.state.with_config(|config| config.autostart = enabled);
         self.state
             .update_config(|_| {})
             .map_err(|error| format!("the autostart flag was not saved: {error}"))?;
@@ -1488,8 +1585,7 @@ impl Api {
 
     /// The position the overlay should use, straight from the config.
     fn osd_position(&self) -> String {
-        self.state
-            .with_config(|config| config.osd.position.clone())
+        self.state.with_config(|config| config.osd.position.clone())
     }
 
     /// Pushes the current OSD configuration to the overlay so it can restyle
@@ -1518,8 +1614,10 @@ impl Api {
         let schemes = self.state.hal().windows_power_schemes();
         let active = self.state.hal().active_windows_power_scheme();
 
-        #[cfg(windows)] let windows_mode = crate::core::hal::winapi::user_power_mode().ok();
-        #[cfg(not(windows))] let windows_mode: Option<u8> = None;
+        #[cfg(windows)]
+        let windows_mode = crate::core::hal::winapi::user_power_mode().ok();
+        #[cfg(not(windows))]
+        let windows_mode: Option<u8> = None;
         Ok(serde_json::json!({
             "windows_power_mode": windows_mode,
             "power_mode": self.state.hal().get_power_mode().map_err(fail)?,
@@ -1597,7 +1695,11 @@ impl Api {
         self.state.hal().set_battery_mode(parsed).map_err(fail)?;
         self.state.with_config(|config| {
             config.battery_mode = parsed;
-            config.battery_limit = match parsed { BatteryMode::LongLife => 60, BatteryMode::Balanced => 80, BatteryMode::Workstation => 100 };
+            config.battery_limit = match parsed {
+                BatteryMode::LongLife => 60,
+                BatteryMode::Balanced => 80,
+                BatteryMode::Workstation => 100,
+            };
         });
         self.state
             .update_config(|_| {})
@@ -1632,8 +1734,17 @@ impl Api {
         let report =
             crate::core::services::oem::takeover_oem(enable).map_err(|error| error.to_string())?;
         let optout = crate::core::config::data_dir().join("oem-auto-restore.optout");
-        if enable { if optout.exists() { std::fs::remove_file(&optout).map_err(|e| e.to_string())?; } }
-        else { std::fs::write(&optout, b"Automatic OEM takeover disabled by explicit restore").map_err(|e| e.to_string())?; }
+        if enable {
+            if optout.exists() {
+                std::fs::remove_file(&optout).map_err(|e| e.to_string())?;
+            }
+        } else {
+            std::fs::write(
+                &optout,
+                b"Automatic OEM takeover disabled by explicit restore",
+            )
+            .map_err(|e| e.to_string())?;
+        }
         self.state.set_oem_taken_over(enable);
         self.state
             .with_config(|config| config.takeover_oem = enable);

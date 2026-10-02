@@ -177,7 +177,8 @@ fn api() -> Result<&'static Api, String> {
     let (config, config_error) = crate::core::config::load_config();
     let state = AppState::new(config, create_hal(), AcpiDriver::new(), config_error);
     let _ = API.set(Api::new(state));
-    API.get().ok_or_else(|| "the backend could not be created".to_string())
+    API.get()
+        .ok_or_else(|| "the backend could not be created".to_string())
 }
 
 // -- serialisation helpers -------------------------------------------------
@@ -228,7 +229,11 @@ unsafe fn borrow(ptr: *const c_char) -> Option<String> {
     if ptr.is_null() {
         return None;
     }
-    Some(unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned())
+    Some(
+        unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned(),
+    )
 }
 
 // -- the command table -----------------------------------------------------
@@ -291,7 +296,9 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         "set_battery_limit" => cmd!(api, args, set_battery_limit, limit: u32),
         "set_battery_hardware_limit" => cmd!(api, args, set_battery_hardware_limit, limit: u32),
         "set_battery_mode" => cmd!(api, args, set_battery_mode, mode: String),
-        "set_active_windows_power_scheme" => cmd!(api, args, set_active_windows_power_scheme, guid: String),
+        "set_active_windows_power_scheme" => {
+            cmd!(api, args, set_active_windows_power_scheme, guid: String)
+        }
         "set_power_option" => cmd!(api, args, set_power_option, option: String, value: i64),
         "apply_live_custom_tweak" => cmd!(
             api, args, apply_live_custom_tweak,
@@ -335,16 +342,22 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
             device_name: String,
             hz: u32,
         ),
-        "set_auto_min_refresh_on_battery" => cmd!(api, args, set_auto_min_refresh_on_battery, enabled: bool),
+        "set_auto_min_refresh_on_battery" => {
+            cmd!(api, args, set_auto_min_refresh_on_battery, enabled: bool)
+        }
         "set_display_tuning_enabled" => cmd!(api, args, set_display_tuning_enabled, enabled: bool),
         "apply_display_color_preset" => cmd!(api, args, apply_display_color_preset, preset: String),
         "list_color_presets" => cmd!(api, args, list_color_presets),
-        "import_color_preset_content" => cmd!(api, args, import_color_preset_content, json_content: String),
+        "import_color_preset_content" => {
+            cmd!(api, args, import_color_preset_content, json_content: String)
+        }
         "get_display_brightness" => cmd!(api, args, get_display_brightness),
         "set_display_brightness" => cmd!(api, args, set_display_brightness, level: u32),
         "get_display_tuning_state" => cmd!(api, args, get_display_tuning_state),
         "get_color_calibration_state" => cmd!(api, args, get_color_calibration_state),
-        "set_color_calibration_enabled" => cmd!(api, args, set_color_calibration_enabled, enabled: bool),
+        "set_color_calibration_enabled" => {
+            cmd!(api, args, set_color_calibration_enabled, enabled: bool)
+        }
         "get_displays" => cmd!(api, args, get_displays),
         "get_display_settings" => cmd!(api, args, get_display_settings),
 
@@ -354,10 +367,14 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         "get_lighting_runtime_status" => cmd!(api, args, get_lighting_runtime_status),
         "get_lighting_runtime" => cmd!(api, args, get_lighting_runtime),
         "get_keyboard_hardware_info" => cmd!(api, args, get_keyboard_hardware_info),
-        "apply_keyboard_lighting" => cmd!(api, args, apply_keyboard_lighting, lighting: LightingState),
+        "apply_keyboard_lighting" => {
+            cmd!(api, args, apply_keyboard_lighting, lighting: LightingState)
+        }
         "apply_logo_lighting" => cmd!(api, args, apply_logo_lighting, effect: u32, color: String),
         "apply_hinge_lighting" => cmd!(api, args, apply_hinge_lighting, speed: u32, color: String),
-        "apply_lightbar_lighting" => cmd!(api, args, apply_lightbar_lighting, effect: u32, color: String),
+        "apply_lightbar_lighting" => {
+            cmd!(api, args, apply_lightbar_lighting, effect: u32, color: String)
+        }
         "apply_four_zone_colors" => cmd!(
             api, args, apply_four_zone_colors,
             zone1: String,
@@ -370,7 +387,9 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         "set_keyboard_engine" => cmd!(api, args, set_keyboard_engine, engine: String),
         "set_streamer_fps" => cmd!(api, args, set_streamer_fps, fps: u32),
         "set_custom_fx_text" => cmd!(api, args, set_custom_fx_text, text: String),
-        "set_auto_fallback_kb_on_battery" => cmd!(api, args, set_auto_fallback_kb_on_battery, enabled: bool),
+        "set_auto_fallback_kb_on_battery" => {
+            cmd!(api, args, set_auto_fallback_kb_on_battery, enabled: bool)
+        }
         "list_custom_brfx_scripts" => cmd!(api, args, list_custom_brfx_scripts),
         "get_custom_brfx_list" => cmd!(api, args, get_custom_brfx_list),
         "apply_custom_brfx_script" => cmd!(api, args, apply_custom_brfx_script, id: String),
@@ -388,17 +407,23 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         ),
         "set_water_cooler_speed" => cmd!(api, args, set_water_cooler_speed, duty: f64),
         "set_water_cooler_led" => cmd!(api, args, set_water_cooler_led, color: String, effect: u32),
-        "set_water_cooler_strategy" => cmd!(api, args, set_water_cooler_strategy, strategy: CoolerStrategy),
+        "set_water_cooler_strategy" => {
+            cmd!(api, args, set_water_cooler_strategy, strategy: CoolerStrategy)
+        }
         "reset_water_cooler" => cmd!(api, args, reset_water_cooler),
 
         // -- profiles ------------------------------------------------------
         "list_profile_presets" => cmd!(api, args, list_profile_presets),
         "get_profiles_list" => cmd!(api, args, get_profiles_list),
         "get_default_builtin_presets" => cmd!(api, args, get_default_builtin_presets),
-        "create_profile_preset" => cmd!(api, args, create_profile_preset, name: String, base_id: String),
+        "create_profile_preset" => {
+            cmd!(api, args, create_profile_preset, name: String, base_id: String)
+        }
         "save_profile_preset" => cmd!(api, args, save_profile_preset, preset: ProfilePreset),
         "delete_profile_preset" => cmd!(api, args, delete_profile_preset, id: String),
-        "rename_profile_preset" => cmd!(api, args, rename_profile_preset, id: String, new_name: String),
+        "rename_profile_preset" => {
+            cmd!(api, args, rename_profile_preset, id: String, new_name: String)
+        }
         "set_active_profile_id" => cmd!(api, args, set_active_profile_id, id: String),
         "get_active_profile_id" => cmd!(api, args, get_active_profile_id),
         "reset_profile_preset" => cmd!(api, args, reset_profile_preset, id: String),
@@ -478,7 +503,13 @@ pub extern "C" fn lumadesk_init() -> *mut c_char {
     let config_error = state.config_error();
     let backend = api
         .get_hardware_status()
-        .map(|status| if status.elevated { "windows (elevated)" } else { "windows" })
+        .map(|status| {
+            if status.elevated {
+                "windows (elevated)"
+            } else {
+                "windows"
+            }
+        })
         .unwrap_or("unavailable");
     respond(Ok(serde_json::json!({
         "config": config,
@@ -498,7 +529,10 @@ pub extern "C" fn lumadesk_init() -> *mut c_char {
 ///
 /// Both pointers must be `NULL` or valid NUL-terminated C strings.
 #[no_mangle]
-pub unsafe extern "C" fn lumadesk_call(command: *const c_char, payload: *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn lumadesk_call(
+    command: *const c_char,
+    payload: *const c_char,
+) -> *mut c_char {
     let Some(command) = (unsafe { borrow(command) }) else {
         return respond::<()>(Err("no command was given".to_string()));
     };
@@ -509,7 +543,9 @@ pub unsafe extern "C" fn lumadesk_call(command: *const c_char, payload: *const c
     let args = match unsafe { borrow(payload) } {
         Some(text) if !text.trim().is_empty() => match serde_json::from_str::<Value>(&text) {
             Ok(value) => value,
-            Err(error) => return respond::<()>(Err(format!("the arguments were not valid JSON: {error}"))),
+            Err(error) => {
+                return respond::<()>(Err(format!("the arguments were not valid JSON: {error}")))
+            }
         },
         _ => Value::Null,
     };
@@ -551,14 +587,20 @@ mod tests {
         let ok: u8 = take(&args, "mode").expect("mode is present");
         assert_eq!(ok, 3);
         let err = take::<u8>(&args, "hz").expect_err("hz is absent");
-        assert!(err.contains("hz"), "the message must name the argument: {err}");
+        assert!(
+            err.contains("hz"),
+            "the message must name the argument: {err}"
+        );
     }
 
     #[test]
     fn take_reports_the_argument_that_failed_to_parse() {
         let args = serde_json::json!({ "mode": "turbo" });
         let err = take::<u8>(&args, "mode").expect_err("a string is not a u8");
-        assert!(err.starts_with("argument `mode`"), "unexpected message: {err}");
+        assert!(
+            err.starts_with("argument `mode`"),
+            "unexpected message: {err}"
+        );
     }
 
     #[test]
@@ -636,7 +678,10 @@ mod tests {
         let value = envelope(c"no_such_command", None);
         assert_eq!(value["ok"], Value::Bool(false));
         let message = value["error"].as_str().unwrap_or_default();
-        assert!(message.contains("no_such_command"), "the error must echo the command: {message}");
+        assert!(
+            message.contains("no_such_command"),
+            "the error must echo the command: {message}"
+        );
     }
 
     #[test]
@@ -652,7 +697,10 @@ mod tests {
         let value = envelope(c"get_hardware_status", Some(c"{not json"));
         assert_eq!(value["ok"], Value::Bool(false));
         let message = value["error"].as_str().unwrap_or_default();
-        assert!(message.contains("not valid JSON"), "unexpected response: {message}");
+        assert!(
+            message.contains("not valid JSON"),
+            "unexpected response: {message}"
+        );
     }
 
     #[test]
@@ -670,7 +718,10 @@ mod tests {
         let value = envelope(c"set_power_mode", Some(c"{}"));
         assert_eq!(value["ok"], Value::Bool(false));
         let message = value["error"].as_str().unwrap_or_default();
-        assert!(message.contains("mode"), "the error must name the argument: {message}");
+        assert!(
+            message.contains("mode"),
+            "the error must name the argument: {message}"
+        );
     }
 
     #[test]
@@ -681,7 +732,7 @@ mod tests {
     #[test]
     fn the_abi_version_is_exported() {
         assert_eq!(lumadesk_abi_version(), ABI_VERSION);
-        assert!(ABI_VERSION >= 1);
+        assert!(lumadesk_abi_version() >= 1);
     }
 
     /// The published command list and the dispatcher must not drift apart.
@@ -706,7 +757,10 @@ mod tests {
             }
         }
 
-        assert!(unimplemented.is_empty(), "advertised but not dispatched: {unimplemented:?}");
+        assert!(
+            unimplemented.is_empty(),
+            "advertised but not dispatched: {unimplemented:?}"
+        );
     }
 
     /// Every advertised command must also survive a call with no arguments at
