@@ -1,10 +1,10 @@
 # 显卡 MUX 配置链
 
-更新：2026-10-02。原版 OpenRevo 0.8.5 的保存链已定位；机耀处完成独立实现和管理员读取，尚未执行实际模式写入、重启及物理路由验证。
+更新：2026-10-02。机耀处完成固件变量读写实现和本机管理员读取，实际模式切换、重启及物理路由尚未验证。
 
-## 原版调用链
+## 固件变量
 
-命令入口 0x14034F990 调用主逻辑 0x140307500。GetFirmwareEnvironmentVariableW / SetFirmwareEnvironmentVariableW 操作以下命名空间：
+GetFirmwareEnvironmentVariableW / SetFirmwareEnvironmentVariableW 操作以下命名空间：
 
 ```text
 GUID = {9F33F85C-13CA-4FD1-9C4A-96217722C593}
@@ -20,15 +20,15 @@ GPU mode = byte[0x62]
 | Intel | 1 | 2 | 4 |
 | AMD | 2 | 1 | 0 |
 
-这些编码与官方 .NET 常量相符。使用 OemMagicVariable 或 APVersion≥25 时写 OemMagicDoor=1。原版 Door 失败仅警告后继续写正式变量；机耀处当前在 Door 写失败时返回错误，避免静默继续。
+这些编码与官方 .NET 常量相符。使用 OemMagicVariable 或 APVersion≥25 时写 OemMagicDoor=1；写入失败时返回错误。
 
-原版保存后可调用 0x1403072A0 执行 shutdown /r /t 0，再更新配置或发事件。机耀处将保存与重启拆开，确认后才安排 30 秒延迟重启。通知不证明物理 MUX 已切换。
+保存与重启分别操作，确认重启后安排 30 秒延迟。物理 MUX 状态需重启后检查。
 
 ## 官方 DLL 对照
 
 UEFI_Firmware.dll ReadUefi 0x180002190 使用相同 GUID、变量和 512 字节容量。WriteUefi 0x180002330 读取后修改指定区间，并保持原长度写回；ReadUefiGPU 0x1800022C0 读 OemDgpuPresent。
 
-官方元数据包含 GetFwVarsGPU、SetFwVarsForModeSwitchChange 和模式常量，但受保护方法体未恢复。当前 DLL 导出 6 项；C# 声明 ReadSwitchUefi/WriteSwitchUefi 不证明当前 DLL 提供这些函数。不能宣称官方业务层与原版 0x62/Door 分支完全等同。
+官方元数据包含 GetFwVarsGPU、SetFwVarsForModeSwitchChange 和模式常量，受保护方法体未恢复。当前 DLL 导出 6 项；C# 的 ReadSwitchUefi/WriteSwitchUefi 声明未在当前 DLL 的导出中找到。
 
 ## 本机状态
 

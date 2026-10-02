@@ -85,9 +85,13 @@ def main():
             assert archive.testzip() is None, "Archive CRC failed"
             names = {name.casefold() for name in archive.namelist()}
             required = {"机耀处.exe", "机耀处.pri", "jiyaochu_core.dll", "jiyaochu-ctl.exe",
-                        "hostfxr.dll", "Microsoft.UI.Xaml.dll", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"}
+                        "Microsoft.WindowsAppRuntime.Bootstrap.dll", "机耀处.runtimeconfig.json",
+                        "RUNTIMES.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"}
             required = {name.casefold() for name in required}
             assert required <= names, f"Missing files: {required - names}"
+            assert not ({"coreclr.dll", "hostfxr.dll", "microsoft.ui.xaml.dll"} & names), "Shared runtimes were bundled"
+            runtime = json.loads(archive.read("机耀处.runtimeconfig.json"))
+            assert runtime["runtimeOptions"]["framework"]["name"] == "Microsoft.NETCore.App"
             assert len({name.casefold() for name in archive.namelist()}) == len(archive.namelist()), "Duplicate Windows paths"
             for filename in ["机耀处.exe", "jiyaochu-ctl.exe"]:
                 embedded = resources(archive.read(filename))

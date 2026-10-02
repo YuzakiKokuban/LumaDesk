@@ -14,10 +14,12 @@ dotnet build app/JiYaoChu.csproj -c Debug --no-restore
 
 ```powershell
 ./scripts/build.ps1
-python scripts/verify-package.py --archive artifacts/LumaDesk-0.1.2-win-x64.zip
+python scripts/verify-package.py --archive artifacts/LumaDesk-0.2.0-beta.1-win-x64.zip
 ```
 
-发布脚本从 Cargo.toml 读取版本，检查前端版本一致后构建完整便携目录、ZIP 和 SHA256 文件。完整目录包含 .NET、Windows App SDK、Rust DLL、CLI、文档与许可证。验证脚本检查压缩包、应用与 CLI 的嵌入图标、管理员清单，以及模拟后端 CLI/FFI。
+发布脚本从 Cargo.toml 读取版本，检查前端版本一致后构建便携 ZIP、Inno Setup 安装 EXE 和各自的 SHA256 文件。安装器编译器固定为 Inno Setup 7.1.0，并校验下载哈希与签名。应用共用系统 .NET 与 Windows App SDK 运行时，依赖下载见 [RUNTIMES.md](RUNTIMES.md)。
+
+验证脚本检查压缩包、应用与 CLI 的嵌入图标、管理员清单及模拟后端 CLI/FFI。`scripts/verify-installer.ps1` 在空目录执行安装、已安装 CLI、界面启动及卸载测试。
 
 ## CI/CD
 
@@ -26,9 +28,9 @@ python scripts/verify-package.py --archive artifacts/LumaDesk-0.1.2-win-x64.zip
 1. Rust 格式、Clippy、单元与 FFI 测试。
 2. Python EC/MUX 离线测试。
 3. 锁定依赖还原、WinUI Debug 编译。
-4. Release 发布、便携包验证和构建产物上传。
+4. Release 发布、便携包与安装器验证、构建产物上传。
 
-推送与源码版本相同的 `v*` 标签后，发布任务将已验证的 ZIP 与 SHA256 上传至 GitHub Releases。发布任务依赖所有检查通过。工作流使用模拟后端，不访问开发者机器的 OEM 服务或 EC。
+推送与源码版本相同的 `v*` 标签后，发布任务将已验证的 ZIP、安装 EXE 与 SHA256 上传至 GitHub Releases。带 `-beta` 等版本后缀的标签自动标为预发布。发布任务依赖所有检查通过，说明取自 `docs/releases/<version>.md`。工作流使用模拟后端，不访问开发者机器的 OEM 服务或 EC。
 
 ## 实机验证
 

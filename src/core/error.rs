@@ -1,10 +1,4 @@
-﻿//! Error handling for the JiYaoChu backend.
-//!
-//! Every `#[tauri::command]` returns `Result<T, String>` because that is what
-//! Tauri can serialise back to the frontend. All internal code works with
-//! [`HalError`] and converts at the command boundary, which keeps the
-//! "this feature is genuinely unavailable" cases distinguishable from real
-//! failures (see [`HalError::Unsupported`]).
+//! Typed hardware errors converted into messages at the command boundary.
 
 use std::fmt;
 

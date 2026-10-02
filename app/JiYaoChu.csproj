@@ -23,13 +23,13 @@
     <DisableMsixProjectCapabilityAddedByProject>true</DisableMsixProjectCapabilityAddedByProject>
     <DisableHasPackageAndPublishMenuAddedByProject>true</DisableHasPackageAndPublishMenuAddedByProject>
 
-    <!-- Self-contained: no separate Windows App SDK or .NET runtime to install. -->
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <SelfContained>true</SelfContained>
+    <!-- Share the system .NET and Windows App SDK runtimes. -->
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <SelfContained>false</SelfContained>
 
     <AssemblyName>机耀处</AssemblyName>
-    <Version>0.1.2</Version>
-    <FileVersion>0.1.2.0</FileVersion>
+    <Version>0.2.0-beta.1</Version>
+    <FileVersion>0.2.0.0</FileVersion>
     <Product>机耀处 · LumaDesk</Product>
     <Company>JiYaoChu</Company>
     <Copyright>MIT</Copyright>
@@ -86,14 +86,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
-    <!--
-      Microsoft.Windows.SDK.BuildTools.WinApp adds first-class support for
-      `dotnet run` on packaged apps: it hooks the .NET CLI Run target to
-      register a debug identity via the winapp CLI and launch the app with
-      package identity (AUMID).
-    -->
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.7.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.5.1" />
     <PackageReference Include="Microsoft.UI.Reactor" Version="0.1.0-preview.16" />
   </ItemGroup>
 
@@ -121,7 +116,9 @@
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">False</PublishReadyToRun>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+    <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
     <!--
       Trimming stays OFF. The model records are deserialised by reflection, and
       the trimmer cannot see the properties it must keep, so a trimmed build

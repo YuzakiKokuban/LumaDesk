@@ -35,7 +35,7 @@ def read_addresses(addresses):
     try:
         for address in addresses:
             if not 0 <= address <= 0xFFFF:
-                raise ValueError("EC addresses in the recovered OpenRevo signature are u16")
+                raise ValueError("EC addresses must fit in u16")
             argument, output, returned = wintypes.DWORD(address), wintypes.DWORD(0), wintypes.DWORD(0)
             ctypes.set_last_error(0)
             start = time.perf_counter()

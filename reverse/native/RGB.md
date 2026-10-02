@@ -18,6 +18,6 @@
 
 此前 7AB 亮度判断来自另一条键盘路径；EC RGB 支持位存在时该路径不适用于本机。键盘控制现在不写 7AB，因此不会与机身档位字段冲突。
 
-[亮度分支](evidence/key-disassembly/rgb-intensity-140364920.asm) 与 [颜色分支](evidence/key-disassembly/rgb-color-14029c940.asm) 保留相关调用片段。[实机报告](evidence/control-validation.json) 包含关闭、四档亮度、八种颜色，以及每次灯光修改后的三档性能切换检查。寄存器与 API 读回通过，实际灯光观察另行确认。
+[官方常量](evidence/oem-metadata-constants.json) 保留地址定义。[实机报告](evidence/control-validation.json) 包含关闭、四档亮度、八种颜色，以及每次灯光修改后的三档性能切换检查。寄存器与 API 读回通过，实际灯光观察另行确认。
 
 当前界面提供单色常亮，动态效果、单键与分区未接入。

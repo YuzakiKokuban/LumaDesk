@@ -1,21 +1,7 @@
-//! Hardware abstraction layer.
-//!
-//! Everything the UI can ask the machine to do goes through [`HardwareHal`].
-//! Two implementations exist:
-//!
-//!   * [`mock::MockHal`] — a complete simulator, used when the app runs on a
-//!     machine that is not a UniWill/Mechrevo laptop and when
-//!     `JIYAOCHU_FORCE_MOCK=1` is set. It makes the whole UI usable (and
-//!     testable) with no hardware at all.
-//!   * [`windows::WindowsHal`] — the real implementation. It uses only
-//!     documented Windows APIs, so it is honest about what works: anything
-//!     that requires the unrecovered `\\.\ACPIH` driver protocol returns
-//!     [`crate::core::error::HalError::Unsupported`] instead of pretending.
-//!
-//! The trait is deliberately synchronous and `Send + Sync`: every method is a
-//! short-lived device/registry/API call, and the blocking ones are executed
-//! from Tauri's command threads.
+//! Synchronous hardware interface shared by Windows and mock backends.
+//! The WinUI shell executes blocking calls on its backend worker.
 
+mod cache;
 pub mod mock;
 // The real backend: the safe wrappers are Windows-only, while `WindowsHal` and
 // the elevation helper compile everywhere so that the mock and the UI can call

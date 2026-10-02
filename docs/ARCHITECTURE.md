@@ -32,6 +32,6 @@ Core.cs 管理指针；Backend.cs 将阻塞调用放在线程池；MachineStore 
 
 ## 数据
 
-`%APPDATA%\JiYaoChu` 首次复制旧 OpenRevo 文件，跳过链接、不覆盖目标文件，完成后写迁移标记。JIYAOCHU_DATA_DIR 隔离开发数据。无效配置保留 .bad 副本。
+设置保存在 `%APPDATA%\JiYaoChu`。JIYAOCHU_DATA_DIR 可隔离开发数据；无效配置保留 .bad 副本。
 
 未实现的硬件路径返回 Unsupported。保留的文件/事件接口仍需逐项审计，不能因返回成功就宣称对应设备功能完成。

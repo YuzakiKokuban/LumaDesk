@@ -1,6 +1,6 @@
-# 官方接口与 OpenRevo 协议分析
+# 机械革命官方接口分析
 
-更新：2026-10-02。用于机耀处 · LumaDesk 的独立实现。分析对象包括原版 OpenRevo 0.8.5、官方 DLL、安装的 UniWill 驱动与受保护 .NET 元数据；不是完整源码恢复。
+更新：2026-10-02。当前适配耀世 15 Air，EC 项目代号 0x1A。协议资料来自本机官方控制中心、UniWill 驱动及接口调用核对。
 
 ## 结论与实机
 
@@ -12,7 +12,6 @@ EC 使用 `\\.\ACPIDriver`。早期将原版入口描述为 ACPIH 的结论已�
 
 | 样本 | SHA256 |
 | --- | --- |
-| OpenRevo 0.8.5 | 3e3b9d2297e36a0361d56c0f6357afdd9ebc8b201b943546c5cf8002cfabda09 |
 | UWACPIDriver.sys | 6e360ee4a0c42b2a4eaf46208c1592c87f8cd71aca2a6c52831a2ad356e61235 |
 | ACPIDriverDll.dll | 97d7115943600c2a09951440859f9bd75fd0d8bff9db49c296c868b49df8c8c6 |
 | UEFI_Firmware.dll | 4cfe064827dad6da7bf6fb9fc07dc00b4032f1881331d59bfa8d5937a6d534be |
@@ -21,10 +20,10 @@ EC 使用 `\\.\ACPIDriver`。早期将原版入口描述为 ACPIH 的结论已�
 
 ## EC 封包
 
-| 操作 | IOCTL | 输入 | 输出 | OpenRevo 入口 |
-| --- | --- | --- | --- | --- |
-| 读 | 0x9C40A488 | DWORD 地址，4 字节小端 | DWORD，取低字节 | 0x14030C030 |
-| 写 | 0x9C40A48C | DWORD 地址 + DWORD 值，8 字节 | DWORD，4 字节 | 0x14030C6E0 |
+| 操作 | IOCTL | 输入 | 输出 |
+| --- | --- | --- | --- |
+| 读 | 0x9C40A488 | DWORD 地址，4 字节小端 | DWORD，取低字节 |
+| 写 | 0x9C40A48C | DWORD 地址 + DWORD 值，8 字节 | DWORD，4 字节 |
 
 原版使用 u16 地址和 u8 数值，扩展成 DWORD。设备为读写打开、共享读写。官方 DLL ReadEC/WriteEC 位于 0x180003410/0x1800034F0，代码一致但传入 4 MiB 缓冲区；重建无需复制这个尺寸。
 

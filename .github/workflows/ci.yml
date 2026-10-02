@@ -58,6 +58,15 @@ jobs:
           exit $LASTEXITCODE
       - name: Protocol tests
         run: python -m unittest discover -s reverse/native -p 'test_*.py'
+      - name: Source identity check
+        run: python scripts/verify-source.py
+      - name: Install shared WinUI runtime for application tests
+        run: |
+          Invoke-WebRequest 'https://aka.ms/windowsappsdk/2.5/2.5.1/windowsappruntimeinstall-x64.exe' -OutFile "$env:RUNNER_TEMP\WinUI-runtime.exe"
+          $signature = Get-AuthenticodeSignature "$env:RUNNER_TEMP\WinUI-runtime.exe"
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'WinUI runtime publisher verification failed' }
+          $runtime = Start-Process "$env:RUNNER_TEMP\WinUI-runtime.exe" -ArgumentList '--quiet' -WindowStyle Hidden -Wait -PassThru
+          if ($runtime.ExitCode -ne 0) { throw "Runtime installation failed: $($runtime.ExitCode)" }
       - name: Restore and build WinUI
         run: |
           dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Debug
@@ -66,16 +75,20 @@ jobs:
           exit $LASTEXITCODE
       - name: Restore release dependencies
         run: dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Release
-      - name: Build portable package
+      - name: Build portable and installer packages
         run: ./scripts/build.ps1 -NoRestore
       - name: Verify package
         run: python scripts/verify-package.py --archive (Get-ChildItem artifacts/LumaDesk-*-win-x64.zip).FullName
+      - name: Verify installation and uninstallation
+        run: ./scripts/verify-installer.ps1 -Installer (Get-ChildItem artifacts/LumaDesk-*-Setup.exe).FullName -Directory "$env:RUNNER_TEMP\LumaDesk-installed"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: LumaDesk-win-x64
           path: |
             artifacts/LumaDesk-*-win-x64.zip
             artifacts/LumaDesk-*-win-x64.zip.sha256
+            artifacts/LumaDesk-*-win-x64-Setup.exe
+            artifacts/LumaDesk-*-win-x64-Setup.exe.sha256
           if-no-files-found: error
           retention-days: 14
 
@@ -102,5 +115,7 @@ jobs:
           gh run download $env:RUN_ID -n LumaDesk-win-x64 -D release-files
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           $assets = (Get-ChildItem release-files -File).FullName
-          gh release create $env:RELEASE_TAG @assets --verify-tag --generate-notes --title "LumaDesk $version"
+          $releaseArgs = @('release','create',$env:RELEASE_TAG) + $assets + @('--verify-tag','--notes-file',"docs/releases/$version.md",'--title',"LumaDesk $version")
+          if ($version.Contains('-')) { $releaseArgs += '--prerelease' }
+          gh @releaseArgs
           exit $LASTEXITCODE

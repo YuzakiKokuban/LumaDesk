@@ -1,35 +1,3 @@
-//! The C ABI the WinUI front end calls into.
-//!
-//! The front end is C#; this crate is Rust. Rather than reimplement eight
-//! thousand lines of WMI, device-IOCTL and registry work in C#, the two talk
-//! over one narrow, stringly typed boundary: a command name plus a JSON object
-//! in, a JSON envelope out.
-//!
-//! # Calling convention
-//!
-//! * [`lumadesk_init`] must be called once before anything else. It builds the
-//!   single process-wide [`Api`] and returns the bootstrap payload.
-//! * [`lumadesk_call`] runs one command. Arguments are a JSON **object** whose
-//!   keys are the parameter names of the matching [`Api`] method; the return
-//!   value is serialised into the envelope.
-//! * [`lumadesk_drain_events`] empties the backend's event queue.
-//!
-//! Every function returns a NUL-terminated UTF-8 JSON envelope:
-//!
-//! ```json
-//! {"ok": true,  "data": <whatever the command returned>}
-//! {"ok": false, "error": "the message the Tauri build would have thrown"}
-//! ```
-//!
-//! The returned pointer is owned by Rust and must be handed back to
-//! [`lumadesk_free`] exactly once. Passing `NULL` to [`lumadesk_free`] is a
-//! no-op. No function ever returns a pointer the caller may `free()` itself.
-//!
-//! On the panics: this ABI is built with `panic = "abort"` for release, so a
-//! panic here takes the whole process down rather than unwinding across the FFI
-//! boundary. The core is written without `unwrap` on runtime data for exactly
-//! that reason.
-
 use std::ffi::{c_char, CStr, CString};
 use std::sync::OnceLock;
 
@@ -40,9 +8,6 @@ use crate::core::config::{AppConfig, CoolerStrategy, CurvePoint, LightingState, 
 use crate::core::hal::ProfilePreset;
 use crate::core::{create_hal, AcpiDriver, Api, AppState};
 
-/// Incremented whenever the envelope or the argument convention changes in a
-/// way the front end must know about. `OpenRevo.Backend` refuses to run against
-/// a version it does not understand.
 pub const ABI_VERSION: u32 = 1;
 
 /// Every command [`lumadesk_call`] accepts, as `(name, argument names)`.

@@ -150,13 +150,6 @@ fn slug(name: &str) -> String {
     }
 }
 
-/// Applies an autostart change with the original build's error strings.
-///
-/// The Tauri build wrapped `tauri-plugin-autostart` failures itself
-/// ("autostart could not be enabled: —"), so the same wrapping is reproduced
-/// here. The one exception is a platform that has no autostart at all: that
-/// typed `not supported on this build:` error is passed through untouched,
-/// because the UI keys off that exact prefix.
 fn apply_autostart(enabled: bool) -> Result<(), String> {
     crate::core::autostart::set_enabled(enabled).map_err(|error| {
         if error.starts_with("not supported on this build:") {
@@ -1390,7 +1383,6 @@ impl Api {
         Ok(())
     }
 
-    /// Keeps the machine awake while OpenRevo is running.
     pub fn set_master_sleep_guard(&self, enabled: bool) -> Result<(), String> {
         self.state
             .hal()
@@ -1443,12 +1435,6 @@ impl Api {
 
     /* ------------------------------------------------------------- autostart */
 
-    /// Whether OpenRevo is registered to start with Windows.
-    ///
-    /// This reads the per-user `Run` value that `tauri-plugin-autostart` used to
-    /// manage (see [`crate::core::autostart`]). The original build used a
-    /// scheduled task pointed at the Downloads folder, which broke as soon as
-    /// the file moved; that is deliberately not reproduced.
     pub fn get_autostart(&self) -> Result<bool, String> {
         Ok(crate::core::autostart::is_enabled())
     }
@@ -1588,11 +1574,6 @@ impl Api {
         self.state.with_config(|config| config.osd.position.clone())
     }
 
-    /// Pushes the current OSD configuration to the overlay so it can restyle
-    /// itself.
-    ///
-    /// Same event name and payload as the Tauri build's
-    /// `crate::osd::broadcast_config` / `emit_to("osd", "osd://config", …)`.
     fn broadcast_osd_config(&self, config: &OsdConfig) {
         let payload = serde_json::json!({
             "enabled": config.enabled,
@@ -1767,11 +1748,6 @@ impl Api {
 
     /* ------------------------------------------------------------- misc info */
 
-    /// Opens the small always-available drawer near the tray.
-    ///
-    /// The drawer is a window, so this queues `shell://mini-drawer` for the
-    /// shell instead of touching a webview; on the Tauri build the same call
-    /// showed and focused the `main` window.
     pub fn open_mini_drawer(&self) -> Result<(), String> {
         self.state.push_event(Event::bare("shell://mini-drawer"));
         Ok(())

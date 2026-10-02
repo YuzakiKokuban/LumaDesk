@@ -4,7 +4,7 @@
 
 ## 自动检查
 
-Rust 单元与 FFI 测试 28 项，Python EC/MUX 离线测试 9 项。Clippy 开启警告即失败；WinUI 构建与便携包验证纳入 [CI](../.github/workflows/ci.yml)。发布包检查包含 ZIP 完整性、七种尺寸图标、管理员清单、CLI 与 FFI。
+Rust 单元与 FFI 测试 30 项，Python EC/MUX 离线测试 9 项。Clippy 开启警告即失败；WinUI 构建与发布包验证纳入 [CI](../.github/workflows/ci.yml)。发布包检查包含 ZIP 完整性、七种尺寸图标、管理员清单、CLI、FFI，以及不内置系统运行时。
 
 ## 实机控制
 

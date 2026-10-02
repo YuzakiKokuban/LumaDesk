@@ -1,4 +1,4 @@
-"""Pure encoders recovered from OpenRevo 0.8.5 and the sampled UniWill driver.
+"""Offline encoders for the UniWill EC transport.
 
 These helpers construct bytes only. Firmware writes are not performed here.
 """
@@ -27,7 +27,7 @@ def decode_read(payload):
 
 
 def fan_rpm(high, low):
-    """OpenRevo polling function 0x1400DE180 combines MSB then LSB."""
+    """Combine the high and low tachometer bytes."""
     if not 0 <= high <= 255 or not 0 <= low <= 255:
         raise ValueError("fan bytes must be u8")
     return (high << 8) | low

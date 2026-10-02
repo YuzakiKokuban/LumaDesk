@@ -1,8 +1,3 @@
-//! UniWill EC transport recovered from the installed OEM driver and OpenRevo 0.8.5.
-//! Device: \\.\ACPIDriver. Read: 0x9C40A488; write: 0x9C40A48C.
-//! Requests contain little-endian DWORDs. Writes are read back and checked.
-//! See reverse/native/REPORT.md for evidence and firmware limitations.
-
 use crate::core::error::{HalError, HalResult};
 use std::fs::OpenOptions;
 use std::io::Write;

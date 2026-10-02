@@ -18,15 +18,15 @@
 
 ## 安装与使用
 
-1. 从 [Releases](https://github.com/YuzakiKokuban/LumaDesk/releases) 下载 Windows x64 便携包，解压到固定目录。开发构建可从 [Actions](https://github.com/YuzakiKokuban/LumaDesk/actions/workflows/ci.yml) 下载。
+1. 从 [Releases](https://github.com/YuzakiKokuban/LumaDesk/releases) 下载 `Setup.exe` 安装版，或将 Windows x64 便携 ZIP 解压到固定目录。
 2. 打开 `机耀处.exe`，允许管理员权限。
 3. 在左侧选择页面，调整对应设置。
 
-运行环境为 Windows 11 x64，需要本机已安装机械革命控制中心的 UWACPIDriver。便携包自带运行组件。
+运行环境为 Windows 11 x64，需要 .NET 10 与 Windows App SDK Runtime 2.5.1，以及原厂控制中心安装的 UWACPIDriver。[运行组件下载](https://github.com/YuzakiKokuban/LumaDesk/blob/main/docs/RUNTIMES.md)。
 
 首次启动会接管官方控制中心。需要切回官方软件时，在“系统设置”中选择“还原官方控制中心”。显卡模式保存后需要重启，其他常用设置立即生效。
 
-启用自启动后，请保留程序所在目录。配置与日志位于 `%APPDATA%\JiYaoChu`。
+启用自启动后，请保留程序所在目录。配置与日志位于 `%APPDATA%\JiYaoChu`。安装版提供开始菜单快捷方式；卸载时还原官方控制中心，保留个人设置。
 
 ## 项目资料
 

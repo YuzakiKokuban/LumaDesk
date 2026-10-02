@@ -1,4 +1,4 @@
-"""Recovered OpenRevo MUX encodings and offline buffer transformation.
+"""UEFI GPU-mode encodings and offline buffer transformation.
 
 This module has no operating system or hardware access.
 """

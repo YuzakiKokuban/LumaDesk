@@ -126,17 +126,7 @@ public static class MachineStore
     /// <summary>Sleeps for the poll cadence, unless a writer nudges us first.</summary>
     private static async Task WaitForTickAsync(int milliseconds)
     {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(Stopping.Token);
-        deadline.CancelAfter(milliseconds);
-
-        try
-        {
-            await Nudge.WaitAsync(deadline.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            // Either the cadence elapsed or the application is closing.
-        }
+        await Nudge.WaitAsync(milliseconds, Stopping.Token).ConfigureAwait(false);
     }
 
     private static async Task PollAsync()
@@ -149,11 +139,6 @@ public static class MachineStore
                 try
                 {
                     var bootstrap = await Backend.InitializeAsync().ConfigureAwait(false);
-                    Publish(state => state with
-                    {
-                        Backend = bootstrap.Backend,
-                        ConfigError = bootstrap.ConfigError,
-                    });
                     var status = await Backend.CallAsync<HardwareStatus>("get_hardware_status")
                         .ConfigureAwait(false);
                     var events = await Backend.DrainEventsAsync().ConfigureAwait(false);
@@ -163,6 +148,8 @@ public static class MachineStore
                         Status = status,
                         Error = null,
                         Loading = false,
+                        Backend = bootstrap.Backend,
+                        ConfigError = bootstrap.ConfigError,
                     });
 
                     foreach (var raised in events)

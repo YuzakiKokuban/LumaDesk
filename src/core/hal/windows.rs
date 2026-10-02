@@ -5,6 +5,7 @@
 
 #![allow(clippy::too_many_arguments)]
 
+use super::cache::ReadCache;
 use crate::core::config::{
     AppConfig, BatteryMode, BatteryStatus, CoolerStrategy, CpuStatus, CurvePoint, DeviceStatus,
     FanStatus, GpuMode, GpuStatus, HardwareStatus, LightingState, PowerModeId, SupportFlags,
@@ -15,6 +16,7 @@ use crate::core::hal::{
     DisplayInfo, HardwareHal, LightingRuntimeStatus, PowerScheme, WaterCoolerStatus,
 };
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 #[cfg(windows)]
 use crate::core::hal::winapi;
@@ -23,6 +25,10 @@ pub struct WindowsHal {
     /// The vendor driver probe. Every unrecoverable feature asks it first.
     acpi: AcpiDriver,
     display_tuning: AtomicBool,
+    device_cache: ReadCache<DeviceStatus>,
+    battery_health_cache: ReadCache<Option<f64>>,
+    #[cfg(windows)]
+    clock_cache: ReadCache<f64>,
 }
 
 impl Default for WindowsHal {
@@ -37,6 +43,10 @@ impl WindowsHal {
         WindowsHal {
             acpi: AcpiDriver::new(),
             display_tuning: AtomicBool::new(false),
+            device_cache: ReadCache::default(),
+            battery_health_cache: ReadCache::default(),
+            #[cfg(windows)]
+            clock_cache: ReadCache::default(),
         }
     }
 
@@ -45,6 +55,10 @@ impl WindowsHal {
         WindowsHal {
             acpi,
             display_tuning: AtomicBool::new(false),
+            device_cache: ReadCache::default(),
+            battery_health_cache: ReadCache::default(),
+            #[cfg(windows)]
+            clock_cache: ReadCache::default(),
         }
     }
 
@@ -135,20 +149,16 @@ impl HardwareHal for WindowsHal {
             // `Win32_Processor` gives us the rated and current clocks; the
             // temperature comes from the ACPI thermal zone, which the platform
             // exposes on most laptops and on almost no desktops.
-            let processor = winapi::Wmi::first_row(
-                "ROOT\\CIMV2",
-                "SELECT CurrentClockSpeed, MaxClockSpeed FROM Win32_Processor",
-            )
-            .ok()
-            .flatten();
-
-            let (freq_mhz, _max_mhz) = match processor {
-                Some(row) => (
-                    row.f64_of("CurrentClockSpeed").unwrap_or(0.0),
-                    row.f64_of("MaxClockSpeed").unwrap_or(0.0),
-                ),
-                None => (0.0, 0.0),
-            };
+            let freq_mhz = self.clock_cache.read(Duration::from_secs(5), || {
+                Ok(winapi::Wmi::first_row(
+                    "ROOT\\CIMV2",
+                    "SELECT CurrentClockSpeed FROM Win32_Processor",
+                )
+                .ok()
+                .flatten()
+                .and_then(|row| row.f64_of("CurrentClockSpeed"))
+                .unwrap_or(0.0))
+            })?;
 
             let temp = acpi_thermal_zone_celsius();
 
@@ -228,7 +238,6 @@ impl HardwareHal for WindowsHal {
     }
 
     fn fan_status(&self) -> HalResult<FanStatus> {
-        // Tachometer byte order follows the recovered OpenRevo call sites.
         let result = self.acpi.transaction(|ec| {
             let cpu_rpm = u32::from(u16::from_be_bytes([ec.read(0x464)?, ec.read(0x465)?]));
             let gpu_rpm = u32::from(u16::from_be_bytes([ec.read(0x46C)?, ec.read(0x46B)?]));
@@ -274,67 +283,69 @@ impl HardwareHal for WindowsHal {
     }
 
     fn device_status(&self) -> HalResult<DeviceStatus> {
-        #[cfg(windows)]
-        {
-            let product = winapi::Wmi::first_row(
-                "ROOT\\CIMV2",
-                "SELECT Vendor, Name, IdentifyingNumber FROM Win32_ComputerSystemProduct",
-            )
-            .ok()
-            .flatten();
-            let bios = winapi::Wmi::first_row(
-                "ROOT\\CIMV2",
-                "SELECT SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS",
-            )
-            .ok()
-            .flatten();
+        self.device_cache.read(Duration::from_secs(300), || {
+            #[cfg(windows)]
+            {
+                let product = winapi::Wmi::first_row(
+                    "ROOT\\CIMV2",
+                    "SELECT Vendor, Name, IdentifyingNumber FROM Win32_ComputerSystemProduct",
+                )
+                .ok()
+                .flatten();
+                let bios = winapi::Wmi::first_row(
+                    "ROOT\\CIMV2",
+                    "SELECT SMBIOSBIOSVersion, ReleaseDate FROM Win32_BIOS",
+                )
+                .ok()
+                .flatten();
 
-            let vendor = product
-                .as_ref()
-                .and_then(|row| row.str_of("Vendor"))
-                .unwrap_or_default();
-            let product_name = product
-                .as_ref()
-                .and_then(|row| row.str_of("Name"))
-                .unwrap_or_default();
-            let serial = product
-                .as_ref()
-                .and_then(|row| row.str_of("IdentifyingNumber"))
-                .unwrap_or_default();
-            let bios_version = bios
-                .as_ref()
-                .and_then(|row| row.str_of("SMBIOSBIOSVersion"))
-                .unwrap_or_default();
+                let vendor = product
+                    .as_ref()
+                    .and_then(|row| row.str_of("Vendor"))
+                    .unwrap_or_default();
+                let product_name = product
+                    .as_ref()
+                    .and_then(|row| row.str_of("Name"))
+                    .unwrap_or_default();
+                let serial = product
+                    .as_ref()
+                    .and_then(|row| row.str_of("IdentifyingNumber"))
+                    .unwrap_or_default();
+                let bios_version = bios
+                    .as_ref()
+                    .and_then(|row| row.str_of("SMBIOSBIOSVersion"))
+                    .unwrap_or_default();
 
-            // The "model" line in the UI is the physical machine name that the
-            // model catalogue keys off, so a missing vendor would be worse than
-            // a plain fallback.
-            let model = match (vendor.is_empty(), product_name.is_empty()) {
-                (false, false) => format!("{vendor} {product_name}"),
-                (true, false) => product_name.clone(),
-                (false, true) => vendor.clone(),
-                (true, true) => "Unknown".to_string(),
-            };
+                // The "model" line in the UI is the physical machine name that the
+                // model catalogue keys off, so a missing vendor would be worse than
+                // a plain fallback.
+                let model = match (vendor.is_empty(), product_name.is_empty()) {
+                    (false, false) => format!("{vendor} {product_name}"),
+                    (true, false) => product_name.clone(),
+                    (false, true) => vendor.clone(),
+                    (true, true) => "Unknown".to_string(),
+                };
 
-            Ok(DeviceStatus {
-                model,
-                // "Project" and "EC version" are UniWill-specific fields that
-                // only the driver knows. Left empty on purpose.
-                project: self
-                    .acpi
-                    .read_ec(0x740)
-                    .map(|v| format!("0x{v:02X}"))
-                    .unwrap_or_default(),
-                bios: bios_version,
-                ec: String::new(),
-                serial,
-            })
-        }
+                Ok(DeviceStatus {
+                    model,
+                    // "Project" and "EC version" are UniWill-specific fields that
+                    // only the driver knows. Left empty on purpose.
+                    project: self
+                        .acpi
+                        .read_ec(0x740)
+                        .map(|v| format!("0x{v:02X}"))
+                        .unwrap_or_default(),
+                    bios: bios_version,
+                    ec: String::new(),
+                    serial,
+                })
+            }
 
-        #[cfg(not(windows))]
-        {
-            Ok(DeviceStatus::default())
-        }
+            #[cfg(not(windows))]
+            {
+                Ok(DeviceStatus::default())
+            }
+        })
     }
 
     fn support_flags(&self) -> HalResult<SupportFlags> {
@@ -480,40 +491,45 @@ impl HardwareHal for WindowsHal {
     }
 
     fn battery_health_percent(&self) -> HalResult<Option<f64>> {
-        #[cfg(windows)]
-        {
-            let Some(full) = winapi::battery_full_capacity_mwh() else {
-                return Ok(None);
-            };
-            // Prefer the firmware design capacity; fall back to the WMI value
-            // only when the FADT field is not implemented.
-            let design = winapi::battery_design_capacity_mwh().or_else(|| {
-                winapi::Wmi::first_row("ROOT\\CIMV2", "SELECT DesignedCapacity FROM Win32_Battery")
+        self.battery_health_cache.read(Duration::from_secs(60), || {
+            #[cfg(windows)]
+            {
+                let Some(full) = winapi::battery_full_capacity_mwh() else {
+                    return Ok(None);
+                };
+                // Prefer the firmware design capacity; fall back to the WMI value
+                // only when the FADT field is not implemented.
+                let design = winapi::battery_design_capacity_mwh().or_else(|| {
+                    winapi::Wmi::first_row(
+                        "ROOT\\CIMV2",
+                        "SELECT DesignedCapacity FROM Win32_Battery",
+                    )
                     .ok()
                     .flatten()
                     .and_then(|row| row.u64_of("DesignedCapacity"))
                     .filter(|capacity| *capacity > 0)
-            });
+                });
 
-            let Some(design) = design else {
-                return Ok(None);
-            };
-            if design == 0 {
-                return Ok(None);
+                let Some(design) = design else {
+                    return Ok(None);
+                };
+                if design == 0 {
+                    return Ok(None);
+                }
+                let health = (full as f64 / design as f64) * 100.0;
+                // A wildly out-of-range ratio means we read the wrong field; report
+                // "unknown" rather than a nonsense percentage.
+                if !(1.0..=200.0).contains(&health) {
+                    return Ok(None);
+                }
+                Ok(Some((health * 10.0).round() / 10.0))
             }
-            let health = (full as f64 / design as f64) * 100.0;
-            // A wildly out-of-range ratio means we read the wrong field; report
-            // "unknown" rather than a nonsense percentage.
-            if !(1.0..=200.0).contains(&health) {
-                return Ok(None);
-            }
-            Ok(Some((health * 10.0).round() / 10.0))
-        }
 
-        #[cfg(not(windows))]
-        {
-            Ok(None)
-        }
+            #[cfg(not(windows))]
+            {
+                Ok(None)
+            }
+        })
     }
 
     // ------------------------------------------------------------------- gpu

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+using System.Collections.Concurrent;
 
 namespace JiYaoChu.Interop;
 
@@ -18,6 +19,7 @@ namespace JiYaoChu.Interop;
 /// </remarks>
 internal static class Payload
 {
+    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> Properties = new();
     /// <summary>Fills in the nulls on a freshly deserialised payload.</summary>
     public static T Repair<T>(T value)
     {
@@ -38,7 +40,8 @@ internal static class Payload
             return;
         }
 
-        foreach (var property in instance.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        foreach (var property in Properties.GetOrAdd(instance.GetType(), type =>
+            type.GetProperties(BindingFlags.Public | BindingFlags.Instance)))
         {
             if (property.GetIndexParameters().Length > 0 || property.SetMethod is null)
             {

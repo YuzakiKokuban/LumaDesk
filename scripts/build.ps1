@@ -8,7 +8,7 @@ if (!$Version) { $Version = $sourceVersion }
 if ($Version -ne $sourceVersion) { throw "Requested version $Version differs from source $sourceVersion" }
 [xml]$appProject = Get-Content -LiteralPath (Join-Path $projectRoot 'app/JiYaoChu.csproj') -Raw
 if ($appProject.SelectSingleNode('/Project/PropertyGroup/Version').InnerText -ne $sourceVersion) { throw 'Rust and application versions differ' }
-$publishDir = Join-Path $projectRoot "artifacts\LumaDesk-$Version-win-x64"
+$publishDir = Join-Path $projectRoot ("artifacts\publish-" + [guid]::NewGuid().ToString('N'))
 Push-Location $projectRoot
 try {
     cargo build --locked --release
@@ -19,17 +19,20 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'WinUI publish failed' }
     Copy-Item -LiteralPath 'target\release\jiyaochu-ctl.exe' -Destination $publishDir
     Copy-Item -LiteralPath 'README.md','README_en.md','LICENSE' -Destination $publishDir
-    Copy-Item -LiteralPath 'docs' -Destination $publishDir -Recurse -Force
-    $protocolDir = Join-Path $publishDir 'reverse/native'
-    New-Item -ItemType Directory -Path $protocolDir -Force | Out-Null
-    Copy-Item -LiteralPath 'reverse/native/REPORT.md','reverse/native/MUX.md','reverse/native/RGB.md','reverse/native/PERFORMANCE.md' -Destination $protocolDir
-    Copy-Item -LiteralPath 'reverse/native/evidence' -Destination $protocolDir -Recurse -Force
     Copy-Item -LiteralPath 'THIRD_PARTY_NOTICES.md' -Destination $publishDir
+    Copy-Item -LiteralPath 'docs/RUNTIMES.md' -Destination $publishDir
     $archivePath = Join-Path $projectRoot "artifacts\LumaDesk-$Version-win-x64.zip"
     Compress-Archive -Path (Join-Path $publishDir '*') -DestinationPath $archivePath -Force
     $hash = Get-FileHash -LiteralPath $archivePath -Algorithm SHA256
     [IO.File]::WriteAllText(($archivePath + '.sha256'), ($hash.Hash.ToLowerInvariant() + '  ' + [IO.Path]::GetFileName($archivePath) + "`n"), [Text.UTF8Encoding]::new($false))
     $hash
+    $compiler = & (Join-Path $PSScriptRoot 'ensure-inno.ps1')
+    & $compiler '/Q' "/DAppVersion=$Version" "/DPublishDir=$publishDir" (Join-Path $projectRoot 'installer/LumaDesk.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+    $installer = Join-Path $projectRoot "artifacts\LumaDesk-$Version-win-x64-Setup.exe"
+    $installerHash = Get-FileHash -LiteralPath $installer -Algorithm SHA256
+    [IO.File]::WriteAllText(($installer + '.sha256'), ($installerHash.Hash.ToLowerInvariant() + '  ' + [IO.Path]::GetFileName($installer) + "`n"), [Text.UTF8Encoding]::new($false))
+    $installerHash
 } finally {
     Pop-Location
 }

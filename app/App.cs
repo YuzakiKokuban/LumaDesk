@@ -1,6 +1,7 @@
 using Microsoft.UI.Reactor;
 using Microsoft.UI.Reactor.Core;
 using Microsoft.UI.Reactor.Layout;
+using Microsoft.UI.Reactor.Navigation;
 using Microsoft.UI.Xaml.Controls;
 using JiYaoChu.Interop;
 using JiYaoChu.Pages;
@@ -90,7 +91,7 @@ static class WindowMetrics
 }
 
 /// <summary>
-/// The seven pages of the control centre, in the order the original shipped them.
+/// The application pages.
 /// </summary>
 enum AppRoute
 {
@@ -131,12 +132,6 @@ class App : Component
         _ => Component<OverviewPage>(),
     };
 
-    /// <summary>
-    /// Subscribes to only the water-cooler flag, so the shell is not rebuilt on
-    /// every one-second poll: Reactor re-renders only when this bool flips.
-    /// </summary>
-    static bool HasWaterCooler()
-        => MachineStore.Snapshot.Status?.SupportFlags.WaterCooler ?? false;
 
     public override Element Render()
     {
@@ -166,13 +161,23 @@ class App : Component
         // WithNavigation is what keeps the pane's selection and the route in
         // step; setting SelectedTag by hand races the pane's own initial
         // selection and the app can come up on an arbitrary page.
-        var navView = (NavigationView([.. items], NavigationHost(nav, RouteToPage)) with
+        var host = NavigationHost(nav, RouteToPage) with
+        {
+            Transition = NavigationTransition.Fade(TimeSpan.FromMilliseconds(160)),
+            CacheMode = NavigationCacheMode.Disabled,
+        };
+        var navView = (NavigationView([.. items], host) with
         {
             IsSettingsVisible = false,
             IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed,
             IsPaneToggleButtonVisible = false,
         })
         .WithNavigation(nav, RouteToTag, TagToRoute)
+        .SelectedTagChanged(tag =>
+        {
+            var route = TagToRoute(tag);
+            if (route != nav.CurrentRoute) nav.Replace(route);
+        })
         .IsPaneOpen(isPaneOpen, setIsPaneOpen)
         .Flex(grow: 1, basis: 0);
 

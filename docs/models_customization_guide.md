@@ -45,4 +45,4 @@
 
 解析器边界：PL1 15–220、PL2 15–250、PL4 60–250、温度偏移 0–30。这些是文件格式边界，**不是本机硬件推荐或允许范围**。
 
-编辑前复制文件。无效 JSON 保留为 models.json.bad 并使用内置数据。旧 OpenRevo 文件只复制不删除。使用 JIYAOCHU_DATA_DIR 可隔离开发数据。
+编辑前复制文件。无效 JSON 保留为 models.json.bad 并使用内置数据。使用 JIYAOCHU_DATA_DIR 可隔离开发数据。

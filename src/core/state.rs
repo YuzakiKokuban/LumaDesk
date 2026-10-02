@@ -6,10 +6,6 @@ use crate::core::events::Event;
 use crate::core::hal::HardwareHal;
 use std::sync::{Arc, Mutex, RwLock};
 
-/// Everything [`crate::core::api::Api`] needs.
-///
-/// On the Tauri build this type was handed to `tauri::Manager::manage`; it is
-/// now owned by the [`crate::core::api::Api`] facade.
 pub struct AppState {
     /// Persisted configuration.
     config: Mutex<AppConfig>,
@@ -125,9 +121,6 @@ impl AppState {
         }
     }
 
-    /// Queues a notification for the shell.
-    ///
-    /// Replaces every `app.emit(...)` / `app.emit_to(...)` the Tauri build did.
     pub fn push_event(&self, ev: Event) {
         match self.events.lock() {
             Ok(mut queue) => queue.push(ev),

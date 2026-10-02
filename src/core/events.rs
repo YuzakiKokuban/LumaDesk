@@ -1,18 +1,8 @@
-//! The event queue that replaces Tauri's `emit`.
-//!
-//! On the Tauri build, anything the backend wanted to tell the window went out
-//! through `AppHandle::emit` / `emit_to` and was delivered straight into the
-//! webview. A native build has no webview and no Tauri runtime, so the backend
-//! now *queues* the same notifications and the shell drains them
-//! ([`crate::core::state::AppState::drain_events`]) from whatever loop it runs.
-//!
-//! The names are kept identical to the Tauri event names (`osd://config`,
-//! `osd://preview`, ...) so the UI can keep listening for the same strings.
+//! Notifications queued by backend commands and drained by the WinUI shell.
 
 /// One queued notification.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Event {
-    /// Event name, exactly as it was emitted on the Tauri build.
     pub name: String,
     /// JSON payload, `Value::Null` when the event carries nothing.
     pub payload: serde_json::Value,

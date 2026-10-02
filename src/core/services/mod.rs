@@ -1,4 +1,4 @@
-﻿//! Application services: the pieces of behaviour that are not hardware access
+//! Application services: the pieces of behaviour that are not hardware access
 //! and not command plumbing.
 
 pub mod logging;

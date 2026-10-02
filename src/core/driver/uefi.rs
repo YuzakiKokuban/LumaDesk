@@ -1,5 +1,3 @@
-//! UEFI MUX configuration recovered from OpenRevo 0.8.5 and the OEM DLL.
-//! Evidence and preferred-image addresses: reverse/native/MUX.md.
 use crate::core::config::GpuMode;
 use crate::core::error::{HalError, HalResult};
 use serde::{Deserialize, Serialize};

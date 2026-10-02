@@ -1,15 +1,5 @@
-//! Application configuration.
-//!
-//! The shape of [`AppConfig`] is a byte-for-byte mirror of the `AppConfig`
-//! interface declared in `src/lib/bridge.ts` (which is the frozen contract) and
-//! of the JSON the recovered OpenRevo v0.8.5 wrote to
-//! `%APPDATA%\OpenRevo\config.json`.
-//!
-//! Forward compatibility rules:
-//!   * unknown keys in the file are ignored (serde's default behaviour),
-//!   * missing keys fall back to [`Default`] (every field is `#[serde(default)]`),
-//!   * a corrupt file is *never* fatal — the caller falls back to the defaults
-//!     and the previous file is kept aside as `config.json.bad`.
+//! Application settings stored in `%APPDATA%\JiYaoChu`.
+//! Missing keys use defaults; invalid JSON is preserved as config.json.bad.
 
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -617,45 +607,6 @@ pub fn data_dir() -> PathBuf {
         .join("JiYaoChu")
 }
 
-/// Copies the old configuration once, retaining the original directory.
-/// Existing destination files are never overwritten; links are skipped.
-fn migrate_legacy_data() -> std::io::Result<()> {
-    if std::env::var_os("JIYAOCHU_DATA_DIR").is_some() {
-        return Ok(());
-    }
-    let Some(base) = dirs::config_dir() else {
-        return Ok(());
-    };
-    let target = data_dir();
-    let marker = target.join("migration-from-openrevo.done");
-    if marker.exists() {
-        return Ok(());
-    }
-    fn copy_tree(source: &Path, target: &Path) -> std::io::Result<()> {
-        std::fs::create_dir_all(target)?;
-        for entry in std::fs::read_dir(source)? {
-            let entry = entry?;
-            let kind = entry.file_type()?;
-            let dest = target.join(entry.file_name());
-            if kind.is_dir() {
-                copy_tree(&entry.path(), &dest)?;
-            } else if kind.is_file() && !dest.exists() {
-                std::fs::copy(entry.path(), dest)?;
-            }
-        }
-        Ok(())
-    }
-    let source = base.join("OpenRevo");
-    if source.is_dir() {
-        copy_tree(&source, &target)?;
-    }
-    std::fs::create_dir_all(&target)?;
-    std::fs::write(
-        marker,
-        "Legacy files copied without replacing existing files.\n",
-    )
-}
-
 /// `%APPDATA%\JiYaoChu\config.json`
 pub fn config_path() -> PathBuf {
     data_dir().join("config.json")
@@ -692,12 +643,6 @@ pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
 /// A file that exists but does not parse is preserved as `config.json.bad` so
 /// the user can recover hand-edited values.
 pub fn load_config() -> (AppConfig, Option<String>) {
-    if let Err(error) = migrate_legacy_data() {
-        return (
-            AppConfig::default(),
-            Some(format!("旧配置复制失败：{error}")),
-        );
-    }
     let path = config_path();
     match std::fs::read_to_string(&path) {
         Ok(text) => match serde_json::from_str::<AppConfig>(&text) {
