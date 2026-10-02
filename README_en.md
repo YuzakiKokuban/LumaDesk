@@ -1,15 +1,33 @@
+<img src="assets/LumaDesk.png" width="96" alt="LumaDesk logo">
+
 # LumaDesk · 机耀处
 
-A Windows control center for Mechrevo laptops, focused on the Yaoshi 15 Air (EC project 0x1A). Version 0.1.1 uses C# WinUI 3 and a Rust hardware backend.
+[![Build](https://github.com/YuzakiKokuban/LumaDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/YuzakiKokuban/LumaDesk/actions/workflows/ci.yml)
 
-Repository: [YuzakiKokuban/LumaDesk](https://github.com/YuzakiKokuban/LumaDesk). This repository has independent history and new branding.
+A control center for Mechrevo laptops, currently adapted for the **Yaoshi 15 Air**. Manage performance, keyboard backlighting, charging limits and GPU output, with live CPU, GPU and fan readings.
 
-Extract the complete portable ZIP and run `机耀处.exe` with administrator privileges. It uses the installed UniWill driver; no vendor binaries or kernel driver are distributed. Startup automatically takes over the OEM control center. The System page restores backed-up service/task state and opts out of automatic takeover.
+## Features
 
-OEM chassis profiles and Windows power modes are separate. Three chassis profiles, three Windows modes, and EC RGB colors/brightness passed register/API readback tests. Fan boost and OEM takeover/restore passed reversible tests. NVIDIA telemetry uses NVML. MUX reading works; rebooted display routing, charging cutoff behavior, and physical key-lock behavior remain unverified.
+- Office, Balanced and Beast profiles; fan boost and fan speeds.
+- Keyboard backlight toggle, four intensity levels and eight solid colors.
+- 60%, 80% and 100% charging limits; battery and AC power status.
+- Hybrid, discrete and integrated GPU output, applied after a restart.
+- Windows power modes and plans, Windows key lock, elevated startup, and OEM control center takeover and restoration.
 
-Dynamic RGB, per-key lighting, custom fan curves, GPU power tuning, several firmware switches and standalone OSD remain unfinished. The UI offers implemented controls and identifies missing capabilities. Recent responsive layout changes compile successfully but need live visual verification.
+See [feature support](docs/FEATURES.md) and [local verification](docs/VALIDATION.md) for details.
 
-Build: `cargo build`, `cargo test`, `dotnet build app/JiYaoChu.csproj`, or `./scripts/build.ps1` for the complete portable package. See [Build](docs/BUILD.md), [Features](docs/FEATURES.md), [Validation](docs/VALIDATION.md), and [Protocol provenance](docs/PROVENANCE.md).
+## Getting started
 
-MIT licensed. Preserve [third-party notices](THIRD_PARTY_NOTICES.md). This is an independent implementation based on recovered protocol evidence, not the vendor's complete source code.
+1. Download the Windows x64 portable archive from [Releases](https://github.com/YuzakiKokuban/LumaDesk/releases) and extract it to a permanent location. Development builds are available in [Actions](https://github.com/YuzakiKokuban/LumaDesk/actions/workflows/ci.yml).
+2. Open `机耀处.exe` and accept the administrator prompt.
+3. Select a page in the sidebar and adjust your settings.
+
+Requires Windows 11 x64 and the UWACPIDriver installed with the OEM control center. The archive includes the application runtimes.
+
+LumaDesk takes over the OEM control center at first launch. To switch back, choose the restore option in System settings. GPU changes require a restart; other common settings apply immediately.
+
+Keep the application directory in place when automatic startup is enabled. Configuration and logs are stored in `%APPDATA%\JiYaoChu`.
+
+[Build and release](docs/BUILD.md) · [Architecture](docs/ARCHITECTURE.md) · [Protocol notes](reverse/native/REPORT.md) · [中文](README.md)
+
+[MIT License](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)

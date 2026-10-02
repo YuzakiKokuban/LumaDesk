@@ -1,9 +1,12 @@
 {
-  "captured_utc": "2026-10-02T00:15:44.715947+00:00",
-  "restore": {
-    "data": null,
-    "ok": true
+  "captured_utc": "2026-10-02T05:57:30.428529+00:00",
+  "passed": true,
+  "expected": {
+    "StartMode": "Auto",
+    "State": "Stopped"
   },
+  "official_task_count": 0,
+  "restore_exit_code": 0,
   "restored_service": {
     "State": "Stopped",
     "StartMode": "Auto"

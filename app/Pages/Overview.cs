@@ -131,7 +131,7 @@ public sealed class OverviewPage : Component
     private static string BatteryNote(BatteryStatus battery)
     {
         var parts = new List<string>(3);
-        parts.Add(battery.Charging ? "正在充电" : "使用电池");
+        parts.Add(battery.Charging ? "正在充电" : battery.OnAc ? "已连接电源" : "使用电池");
         parts.Add($"充电上限 {battery.Limit} %");
         parts.Add(battery.HealthPercent is { } health
             ? $"电池健康 {Chrome.Number(health)} %"

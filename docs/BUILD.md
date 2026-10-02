@@ -1,55 +1,47 @@
 # 构建与发布
 
-适用于 Windows x64。实机开发环境为 Rust MSVC 工具链、.NET SDK 10.0.401。需要 Visual Studio C++ 构建工具和 Windows SDK。前端目标 `net10.0-windows10.0.26100.0`，优先在本机 Windows 11 验证；声明的较低系统版本尚未实测。
+Windows x64，Rust 1.92.0 MSVC、.NET SDK 10.0.401、Visual Studio C++ 构建工具和 Windows SDK。工具链由 `rust-toolchain.toml`、`global.json` 固定。依赖由 Cargo.lock 及 Debug/Release 各自的 NuGet 锁文件固定。
 
-## 依赖
-
-Rust 依赖由 Cargo.lock 固定。前端使用 Windows App SDK 2.5.1、SDK BuildTools 10.0.28000.2705、WinApp 0.7.0、Reactor 0.1.0-preview.16，项目文件已固定版本。Reactor 是预览依赖，编译通过不能替代运行验证。
-
-## 调试
+## 本地构建
 
 ```powershell
-cargo build
-cargo test --lib
-dotnet build app/JiYaoChu.csproj -c Debug
+cargo build --locked
+dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Debug
+dotnet build app/JiYaoChu.csproj -c Debug --no-restore
 ```
 
-先构建 Rust，再构建前端。后端输出 `target/debug/jiyaochu_core.dll` 和 `jiyaochu-ctl.exe`，前端自动复制 DLL。启动 `app/bin/Debug/net10.0-windows10.0.26100.0/win-x64/机耀处.exe`。
-
-## 发布
+先构建 Rust DLL，再构建 WinUI。调试入口：`app/bin/Debug/net10.0-windows10.0.26100.0/win-x64/机耀处.exe`。
 
 ```powershell
 ./scripts/build.ps1
+python scripts/verify-package.py --archive artifacts/LumaDesk-0.1.2-win-x64.zip
 ```
 
-脚本生成 `artifacts/LumaDesk-0.1.1-win-x64/` 和 `artifacts/LumaDesk-0.1.1-win-x64.zip`，加入 CLI、文档、许可证。手动发布命令：
+发布脚本从 Cargo.toml 读取版本，检查前端版本一致后构建完整便携目录、ZIP 和 SHA256 文件。完整目录包含 .NET、Windows App SDK、Rust DLL、CLI、文档与许可证。验证脚本检查压缩包、应用与 CLI 的嵌入图标、管理员清单，以及模拟后端 CLI/FFI。
 
-```powershell
-cargo build --release
-dotnet publish app/JiYaoChu.csproj -c Release -r win-x64 -o artifacts/LumaDesk-0.1.1-win-x64
-```
+## CI/CD
 
-这是完整目录形式的便携包，不是单文件 EXE。包含 .NET 和 Windows App SDK 运行依赖；设备驱动、NVIDIA 驱动由系统安装环境提供。构建不接管服务、不切换 MUX、不重启。
+[Build and release](../.github/workflows/ci.yml) 在 main 推送、PR、手动运行时执行：
 
-## 测试
+1. Rust 格式、Clippy、单元与 FFI 测试。
+2. Python EC/MUX 离线测试。
+3. 锁定依赖还原、WinUI Debug 编译。
+4. Release 发布、便携包验证和构建产物上传。
 
-```powershell
-cargo test --lib
-python -m unittest discover -s reverse/native -p 'test_*.py'
-```
+推送与源码版本相同的 `v*` 标签后，发布任务将已验证的 ZIP 与 SHA256 上传至 GitHub Releases。发布任务依赖所有检查通过。工作流使用模拟后端，不访问开发者机器的 OEM 服务或 EC。
 
-FFI 测试使用模拟后端。管理员实机诊断：
+## 实机验证
 
 ```powershell
 python scripts/verify-hardware.py --library target/debug/jiyaochu_core.dll --output artifacts/hardware-validation.json
+python scripts/verify-controls.py --library target/release/jiyaochu_core.dll --hold 6
+python scripts/verify-oem-restore.py
 ```
 
-诊断读取固件和状态，临时翻转强冷位并在 finally 中恢复，只恢复自己修改的位。检查 `write_verified`、`restore_verified` 和错误字段；进程退出本身不算成功。脚本不修改 MUX、不重启、不接管服务。
+控制脚本需要管理员权限，临时切换档位、Windows 模式、背光、充电上限、Win 键锁和强冷，完成后恢复原设置；按本机使用要求保留 OEM 接管。`--hold` 设置每档灯光的观察时间。MUX 验证脚本只读取，不自动切换或重启。
 
-启动失败检查 `%APPDATA%\JiYaoChu\ui-errors.log` 与 Windows 应用事件日志。写入需同时验证读回和实际行为。
+## 图标
 
-管理员控制验证：`python scripts/verify-controls.py` 会暂时切换 OEM/Windows 模式和 RGB，最终恢复原 EC/Windows 状态；按用户要求保留官方服务接管。恢复测试：`python scripts/verify-oem-restore.py` 恢复原服务后再次接管。测试脚本不能当作日常启动程序。
+`assets/LumaDesk.svg` 保留用户提供的原文件。`scripts/generate-icons.ps1` 生成 PNG 和七种尺寸 ICO，并同步应用图标；生成图标使用白色圆角矩形底衬，方便在深色任务栏辨认。
 
-## Logo
-
-assets/LumaDesk.svg 是用户提供的原始 Logo。运行 ./scripts/generate-icons.ps1 可从该源图生成透明 PNG 和多尺寸 ICO，并同步 app/Assets/AppIcon.ico；脚本不重新设计图形。
+配置与日志位于 `%APPDATA%\JiYaoChu`，启动错误记录于 `ui-errors.log`。

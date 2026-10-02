@@ -48,7 +48,7 @@ public static class MachineStore
     private static readonly CancellationTokenSource Stopping = new();
 
     /// <summary>Lets a writer cut the poll's sleep short so the UI updates at once.</summary>
-    private static readonly SemaphoreSlim Nudge = new(0);
+    private static readonly SemaphoreSlim Nudge = new(0, 1);
 
     private static MachineState _snapshot = new();
     private static int _started;
@@ -143,18 +143,17 @@ public static class MachineStore
     {
         try
         {
-            var bootstrap = await Backend.InitializeAsync().ConfigureAwait(false);
-            Publish(state => state with
-            {
-                Backend = bootstrap.Backend,
-                ConfigError = bootstrap.ConfigError,
-            });
-
             while (!Stopping.IsCancellationRequested)
             {
                 var started = Environment.TickCount64;
                 try
                 {
+                    var bootstrap = await Backend.InitializeAsync().ConfigureAwait(false);
+                    Publish(state => state with
+                    {
+                        Backend = bootstrap.Backend,
+                        ConfigError = bootstrap.ConfigError,
+                    });
                     var status = await Backend.CallAsync<HardwareStatus>("get_hardware_status")
                         .ConfigureAwait(false);
                     var events = await Backend.DrainEventsAsync().ConfigureAwait(false);
@@ -171,7 +170,7 @@ public static class MachineStore
                         EventBus.Raise(raised);
                     }
                 }
-                catch (CoreException error)
+                catch (Exception error)
                 {
                     // A refused read is reportable, not fatal: keep the last good
                     // snapshot on screen and say why it is stale.

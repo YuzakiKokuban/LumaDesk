@@ -1,0 +1,18 @@
+﻿{
+    "captured_utc":  "2026-10-02T06:03:58.3813569Z",
+    "passed":  true,
+    "original_task_present":  false,
+    "task":  {
+                 "execute":  "C:\\Users\\10630\\.codex\\worktrees\\2d4c\\open-revo\\artifacts\\LumaDesk-0.1.2-win-x64\\机耀处.exe",
+                 "trigger":  "MSFT_TaskLogonTrigger",
+                 "run_level":  "Highest",
+                 "logon_type":  "Interactive"
+             },
+    "launched":  [
+                     {
+                         "running":  true,
+                         "pid":  18448
+                     }
+                 ],
+    "restored":  true
+}

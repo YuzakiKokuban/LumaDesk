@@ -48,7 +48,7 @@ public static class Backend
                 var data = Core.Initialize();
                 // First launch takes over by default. Explicit restore opts out.
                 var preference = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "JiYaoChu", "oem-auto-restore.optout");
-                if (!Environment.GetCommandLineArgs().Contains("--restore-oem") && !File.Exists(preference))
+                if (data["backend"]?.GetValue<string>() != "mock" && !Environment.GetCommandLineArgs().Any(argument => string.Equals(argument, "--restore-oem", StringComparison.OrdinalIgnoreCase)) && !File.Exists(preference))
                 {
                     try { Core.Call("toggle_oem_service", JsonSerializer.SerializeToNode(new { enable = true }, Core.Json)); }
                     catch (Exception error) {

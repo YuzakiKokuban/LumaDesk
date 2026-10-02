@@ -226,14 +226,14 @@ public static class Palettes
     /// <summary>The eight keyboard swatches.</summary>
     public static IReadOnlyList<(string Label, string Hex)> Keyboard { get; } =
     [
-        ("机械青", "#00ffff"),
-        ("电竞紫", "#6366f1"),
-        ("极光绿", "#10b981"),
-        ("烈焰红", "#ef4444"),
-        ("赛博金", "#f59e0b"),
-        ("幻影粉", "#ec4899"),
-        ("冰晶蓝", "#3b82f6"),
-        ("纯净白", "#ffffff"),
+        ("青色", "#00ffff"),
+        ("紫色", "#6366f1"),
+        ("绿色", "#10b981"),
+        ("红色", "#ef4444"),
+        ("橙色", "#f59e0b"),
+        ("粉色", "#ec4899"),
+        ("蓝色", "#3b82f6"),
+        ("白色", "#ffffff"),
     ];
 
     /// <summary>The six water-cooler LED swatches.</summary>

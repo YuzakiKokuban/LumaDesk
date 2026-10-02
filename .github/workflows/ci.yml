@@ -1,0 +1,105 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-2025
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      JIYAOCHU_FORCE_MOCK: '1'
+      JIYAOCHU_DATA_DIR: ${{ runner.temp }}\LumaDesk-test-config
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: app/packages.*.lock.json
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: windows-rust-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}-${{ hashFiles('src/**/*.rs', 'build.rs') }}
+          restore-keys: |
+            windows-rust-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}-
+      - name: Rust checks
+        run: |
+          cargo fmt --all --check
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo clippy --locked --all-targets -- -D warnings
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo test --locked --all-targets
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo build --locked
+          exit $LASTEXITCODE
+      - name: Protocol tests
+        run: python -m unittest discover -s reverse/native -p 'test_*.py'
+      - name: Restore and build WinUI
+        run: |
+          dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Debug
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet build app/JiYaoChu.csproj -c Debug --no-restore -warnaserror
+          exit $LASTEXITCODE
+      - name: Restore release dependencies
+        run: dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Release
+      - name: Build portable package
+        run: ./scripts/build.ps1 -NoRestore
+      - name: Verify package
+        run: python scripts/verify-package.py --archive (Get-ChildItem artifacts/LumaDesk-*-win-x64.zip).FullName
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: LumaDesk-win-x64
+          path: |
+            artifacts/LumaDesk-*-win-x64.zip
+            artifacts/LumaDesk-*-win-x64.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish release
+    needs: windows
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-2025
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Download verified package and publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          $manifest = Get-Content Cargo.toml -Raw
+          $version = [regex]::Match($manifest, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
+          if ($env:RELEASE_TAG -ne "v$version") { throw 'Release tag does not match package version' }
+          gh run download $env:RUN_ID -n LumaDesk-win-x64 -D release-files
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $assets = (Get-ChildItem release-files -File).FullName
+          gh release create $env:RELEASE_TAG @assets --verify-tag --generate-notes --title "LumaDesk $version"
+          exit $LASTEXITCODE

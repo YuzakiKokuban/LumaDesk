@@ -99,7 +99,7 @@ public sealed class TuningPage : Component
 
         return Chrome.SectionCard(
             "机械革命性能档位",
-            Body("通过 EC 切换机身档位，并读取本机固件提供的默认功耗值。")
+            Body("办公适合日常轻负载，均衡兼顾性能与噪声，狂暴用于高负载。")
                 .Foreground(Theme.SecondaryText),
             Chrome.ChoiceRow(cards));
     }
@@ -129,7 +129,7 @@ public sealed class TuningPage : Component
         return Chrome.SectionCard(
             "电池养护",
             Chrome.Field("当前电量", $"{Chrome.Number(battery?.Percent, "0.#")} %"
-                + (battery is null ? "" : battery.Charging ? " · 正在充电" : " · 使用电池")),
+                + (battery is null ? "" : battery.Charging ? " · 正在充电" : battery.OnAc ? " · 已连接电源" : " · 使用电池")),
             Chrome.Field("充电上限", battery is null ? "—" : $"{battery.Limit} %"),
             Chrome.Field("电池健康", battery?.HealthPercent is { } health
                 ? $"{Chrome.Number(health, "0.#")} %"

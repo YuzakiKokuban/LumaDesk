@@ -1,12 +1,12 @@
 {
-  "captured_utc": "2026-10-02T00:12:53.966137+00:00",
+  "captured_utc": "2026-10-02T05:32:35.126388+00:00",
+  "passed": true,
   "oem_takeover": {
-    "exit_code": 0,
-    "reply": "{\"data\":null,\"ok\":true}",
-    "error": ""
+    "data": null,
+    "ok": true
   },
   "before": {
-    "0x751": 16,
+    "0x751": 0,
     "0x7ab": 0,
     "0x783": 0,
     "0x784": 0,
@@ -18,51 +18,90 @@
     "0x769": 0,
     "0x76a": 50,
     "0x76b": 50,
-    "0x78c": 128
+    "0x78c": 0,
+    "0x7c5": 0,
+    "0x770": 255,
+    "0x7b9": 0,
+    "0x7d0": 0,
+    "0x7a6": 0,
+    "0x768": 0
   },
-  "power_schemes": [
-    {
-      "active": true,
-      "guid": "{381b4222-f694-41f0-9685-ff5bb260df2e}",
-      "name": "平衡"
-    }
-  ],
+  "telemetry": {
+    "battery": {
+      "charging": false,
+      "health_percent": null,
+      "limit": 100,
+      "on_ac": true,
+      "percent": 100.0
+    },
+    "cpu": {
+      "freq_mhz": 1900.0,
+      "load": 0.0,
+      "power_w": null,
+      "temp": 53.1
+    },
+    "device": {
+      "bios": "N.1.09MRO14",
+      "ec": "",
+      "model": "MECHREVO YAOSHI Series",
+      "project": "0x1A"
+    },
+    "elevated": true,
+    "fan_boost": false,
+    "fans": {
+      "available": true,
+      "cpu_rpm": 2291,
+      "gpu_rpm": 2334
+    },
+    "gpu": {
+      "freq_mhz": 180.0,
+      "load": 0.0,
+      "name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "present": true,
+      "temp": 46.0,
+      "vram_total_mb": 8151,
+      "vram_used_mb": 415
+    },
+    "gpu_mode": "hybrid",
+    "power_mode": 1,
+    "support_flags": {
+      "battery_limit": true,
+      "bios_advanced": false,
+      "display_tuning": true,
+      "fan_boost": true,
+      "fan_curve": false,
+      "four_zone": false,
+      "gpu_switching": true,
+      "hinge": false,
+      "lightbar": false,
+      "logo": false,
+      "water_cooler": false
+    },
+    "windows_power_scheme": "平衡"
+  },
+  "mux_read": {
+    "ap_version": 25,
+    "configured_mode": "hybrid",
+    "pending_reboot": false,
+    "platform": "intel",
+    "raw_mode": 4,
+    "reason": "",
+    "supported": true,
+    "supports_igpu": true,
+    "variable": "OemMagicVariable"
+  },
   "oem_modes": [
     {
       "requested": 0,
-      "actual": 0,
-      "registers": {
-        "0x751": 160,
-        "0x7ab": 0,
-        "0x783": 45,
-        "0x784": 45,
-        "0x785": 120,
-        "0x45b": 1
-      }
+      "actual": 0
     },
     {
       "requested": 1,
-      "actual": 1,
-      "registers": {
-        "0x751": 0,
-        "0x7ab": 0,
-        "0x783": 55,
-        "0x784": 55,
-        "0x785": 120,
-        "0x45b": 0
-      }
+      "actual": 1
     },
     {
       "requested": 2,
-      "actual": 2,
-      "registers": {
-        "0x751": 16,
-        "0x7ab": 16,
-        "0x783": 0,
-        "0x784": 0,
-        "0x785": 0,
-        "0x45b": 0
-      }
+      "actual": 2
     }
   ],
   "windows_modes": [
@@ -81,60 +120,484 @@
   ],
   "rgb": [
     {
-      "color": "#ff0000",
+      "color": "#ffffff",
+      "requested_brightness": 0,
+      "control_78c": 2,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        0,
+        0,
+        0
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": false,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 1,
+        "kb_color": "#ffffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#ffffff",
       "requested_brightness": 1,
-      "actual_brightness": 1,
+      "control_78c": 32,
+      "effect_7c5": 0,
       "rgb_raw": [
         50,
-        0,
-        0
-      ]
-    },
-    {
-      "color": "#00ff00",
-      "requested_brightness": 2,
-      "actual_brightness": 2,
-      "rgb_raw": [
-        0,
         50,
-        0
-      ]
-    },
-    {
-      "color": "#0000ff",
-      "requested_brightness": 3,
-      "actual_brightness": 3,
-      "rgb_raw": [
-        0,
-        0,
         50
-      ]
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 1,
+        "kb_color": "#ffffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#ffffff",
+      "requested_brightness": 2,
+      "control_78c": 64,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        50,
+        50,
+        50
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 2,
+        "kb_color": "#ffffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#ffffff",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        50,
+        50,
+        50
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#ffffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
     },
     {
       "color": "#ffffff",
       "requested_brightness": 4,
-      "actual_brightness": 4,
+      "control_78c": 128,
+      "effect_7c5": 0,
       "rgb_raw": [
         50,
         50,
         50
-      ]
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 4,
+        "kb_color": "#ffffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
     },
     {
-      "color": "#ffffff",
-      "requested_brightness": 0,
-      "actual_brightness": 0,
+      "color": "#00ffff",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
       "rgb_raw": [
         0,
         50,
         50
-      ]
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#00ffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#6366f1",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        19,
+        20,
+        47
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#6366f1",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#10b981",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        3,
+        36,
+        25
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#10b981",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#ef4444",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        46,
+        13,
+        13
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#ef4444",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#f59e0b",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        48,
+        30,
+        2
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#f59e0b",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#ec4899",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        46,
+        14,
+        30
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#ec4899",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#3b82f6",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        11,
+        25,
+        48
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#3b82f6",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
+    },
+    {
+      "color": "#ffffff",
+      "requested_brightness": 3,
+      "control_78c": 96,
+      "effect_7c5": 0,
+      "rgb_raw": [
+        50,
+        50,
+        50
+      ],
+      "state": {
+        "custom_script_id": null,
+        "enabled": true,
+        "firmware_managed": false,
+        "four_zone_colors": [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffffff"
+        ],
+        "hinge_color": "#00ffff",
+        "kb_brightness": 3,
+        "kb_color": "#ffffff",
+        "kb_effect": 0,
+        "kb_engine": "hardware",
+        "kb_fps": 30,
+        "lightbar_color": "#ff0000",
+        "logo_color": "#ff00ff",
+        "sleep_minutes": 0,
+        "streamer_effect": 0
+      }
     }
   ],
-  "passed": true,
+  "battery_limits": [
+    {
+      "limit": 60,
+      "registers": {
+        "0x770": 4,
+        "0x7b9": 60,
+        "0x7d0": 55,
+        "0x7a6": 33
+      }
+    },
+    {
+      "limit": 80,
+      "registers": {
+        "0x770": 4,
+        "0x7b9": 80,
+        "0x7d0": 75,
+        "0x7a6": 17
+      }
+    },
+    {
+      "limit": 100,
+      "registers": {
+        "0x770": 255,
+        "0x7b9": 100,
+        "0x7d0": 95,
+        "0x7a6": 1
+      }
+    }
+  ],
+  "win_key_lock": [
+    {
+      "requested": true,
+      "actual": true
+    },
+    {
+      "requested": false,
+      "actual": false
+    }
+  ],
+  "fan_boost": [
+    {
+      "requested": true,
+      "actual": true,
+      "fans": {
+        "available": true,
+        "cpu_rpm": 5659,
+        "gpu_rpm": 5411
+      }
+    },
+    {
+      "requested": false,
+      "actual": false,
+      "fans": {
+        "available": true,
+        "cpu_rpm": 2351,
+        "gpu_rpm": 2339
+      }
+    }
+  ],
   "restore_errors": [],
   "restored": {
-    "0x751": 16,
+    "0x751": 0,
     "0x7ab": 0,
     "0x783": 0,
     "0x784": 0,
@@ -142,11 +605,17 @@
     "0x45b": 0,
     "0x726": 0,
     "0x727": 128,
-    "0x767": 0,
+    "0x767": 32,
     "0x769": 0,
     "0x76a": 50,
     "0x76b": 50,
-    "0x78c": 128
+    "0x78c": 0,
+    "0x7c5": 0,
+    "0x770": 255,
+    "0x7b9": 0,
+    "0x7d0": 0,
+    "0x7a6": 0,
+    "0x768": 0
   },
   "ec_restored": true
 }

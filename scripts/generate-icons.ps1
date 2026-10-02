@@ -1,4 +1,4 @@
-# Rasterize the user-provided SVG without changing its artwork or background.
+# Rasterize the user-provided SVG with a white taskbar backing plate.
 # This dependency-free renderer supports the M/C/Z paths used by this asset;
 # unsupported SVG features fail explicitly instead of silently changing it.
 $ErrorActionPreference = 'Stop'
@@ -16,6 +16,17 @@ $bitmap = [Drawing.Bitmap]::new(2048, 2048, [Drawing.Imaging.PixelFormat]::Forma
 $graphics = [Drawing.Graphics]::FromImage($bitmap)
 $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $graphics.Clear([Drawing.Color]::Transparent)
+# Keep the SVG unchanged; only the Windows icon gets the requested white plate.
+$plate = [Drawing.Drawing2D.GraphicsPath]::new()
+try {
+    # 32 px inset and 64 px corner radius on the 512 px icon canvas.
+    $plate.AddArc(128, 128, 512, 512, 180, 90)
+    $plate.AddArc(1408, 128, 512, 512, 270, 90)
+    $plate.AddArc(1408, 1408, 512, 512, 0, 90)
+    $plate.AddArc(128, 1408, 512, 512, 90, 90)
+    $plate.CloseFigure()
+    $graphics.FillPath([Drawing.Brushes]::White, $plate)
+} finally { $plate.Dispose() }
 # SVG coordinates: x = x, y = 72 + 0.8*y; supersample by four.
 $matrix = [Drawing.Drawing2D.Matrix]::new(4, 0, 0, 3.2, 0, 288)
 $graphics.Transform = $matrix

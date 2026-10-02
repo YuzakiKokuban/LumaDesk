@@ -196,11 +196,11 @@ public sealed class SystemPage : Component
                 DeviceSwitches.Description(item.Id),
                 ToggleSwitch(
                     Optional<bool>.Of(item.Enabled),
-                    value => Act.Fire(
+                    value => { if (value == item.Enabled) return; Act.Fire(
                         $"set_device_switch {item.Id}",
                         () => Backend.CallAsync("set_device_switch", new { id = item.Id, enabled = value }),
                         settle,
-                        setBusy)(),
+                        setBusy)(); },
                     offContent: "关闭",
                     onContent: "开启")
                     .IsEnabled(item.Supported && !busy)));
@@ -301,7 +301,7 @@ public sealed class SystemPage : Component
         return Chrome.SettingRow(
             label,
             description,
-            ToggleSwitch(Optional<bool>.Of(value), next => fire(next)())
+            ToggleSwitch(Optional<bool>.Of(value), next => { if (next != value) fire(next)(); })
                 .IsEnabled(!busy));
     }
 
@@ -332,11 +332,11 @@ public sealed class SystemPage : Component
                 ComboBox(
                     levels,
                     Optional<int>.Of(SystemOptions.LogLevelIndex(log.Level)),
-                    index => Act.Fire(
+                    index => { if (index < 0 || index >= SystemOptions.LogLevels.Count || index == SystemOptions.LogLevelIndex(log.Level)) return; Act.Fire(
                         "set_log_level",
                         () => Backend.CallAsync("set_log_level", new { level = SystemOptions.LogLevels[index].Wire }),
                         settle,
-                        setBusy)())
+                        setBusy)(); })
                     .IsEnabled(!busy)),
             Chrome.Rule(),
             Chrome.SettingRow(
@@ -345,11 +345,11 @@ public sealed class SystemPage : Component
                 ComboBox(
                     filters,
                     Optional<int>.Of(SystemOptions.LogFilterIndex(log.Filter)),
-                    index => Act.Fire(
+                    index => { if (index < 0 || index >= SystemOptions.LogFilters.Count || index == SystemOptions.LogFilterIndex(log.Filter)) return; Act.Fire(
                         "set_log_filter",
                         () => Backend.CallAsync("set_log_filter", new { filter = SystemOptions.LogFilters[index].Wire }),
                         settle,
-                        setBusy)())
+                        setBusy)(); })
                     .IsEnabled(!busy)),
             Chrome.Rule(),
             Chrome.Field("日志文件", Blank(path)),

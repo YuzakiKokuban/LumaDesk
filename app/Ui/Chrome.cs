@@ -203,22 +203,24 @@ public static class Chrome
     public static Element Swatch(string hex, string? label, bool selected, bool enabled, Action onClick)
     {
         var color = Hex.Normalise(hex);
-        var body = new List<Element?>
-        {
-            Border(null)
-                .Height(26)
-                .CornerRadius(6)
-                .Background(color)
-                .WithBorder(selected ? Theme.Accent : Theme.CardStroke, selected ? 2 : 1),
-            label is null ? null : Caption(label).Foreground(Theme.SecondaryText),
-        };
-
-        return Button(VStack(6, [.. body.Where(part => part is not null).Select(part => part!)]), onClick)
-            .SubtleButton()
-            .Padding(6)
+        return Button(Border(Grid(
+                columns: [GridSize.Px(28), GridSize.Star(), GridSize.Px(18)], rows: [GridSize.Auto],
+                Border(null).Width(18).Height(18).CornerRadius(9).Background(color)
+                    .WithBorder(Theme.CardStroke, 1).Grid(0, 0).VAlign(VerticalAlignment.Center),
+                Caption(label ?? color).Grid(0, 1).VAlign(VerticalAlignment.Center),
+                Caption(selected ? "✓" : "").Foreground(Theme.Accent).Grid(0, 2).VAlign(VerticalAlignment.Center)))
+                .Padding(10, 8).CornerRadius(8).WithBorder(selected ? Theme.Accent : Theme.CardStroke, 1)
+                .Background(Theme.CardBackground), onClick)
+            .SubtleButton().Padding(0).Width(96).Height(40)
             .AutomationName(label is null ? "选择颜色" : $"颜色 {label}")
             .IsEnabled(enabled);
     }
+
+    public static Element CompactChoice(string label, bool selected, bool enabled, Action onClick)
+        => Button(Border(Caption(label).HAlign(HorizontalAlignment.Center).VAlign(VerticalAlignment.Center))
+                .CornerRadius(8).Padding(12, 8).Background(Theme.CardBackground)
+                .WithBorder(selected ? Theme.Accent : Theme.CardStroke, 1), onClick)
+            .SubtleButton().Padding(0).Width(68).Height(36).AutomationName($"亮度 {label}").IsEnabled(enabled);
 
     /// <summary>The colour a reading should take, given how hot it is.</summary>
     /// <param name="celsius">A temperature, or null when the sensor is unreadable.</param>

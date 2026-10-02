@@ -21,10 +21,8 @@ fn main() {
         res.set("InternalName", "jiyaochu");
         res.set("ProductVersion", env!("CARGO_PKG_VERSION"));
         res.set("FileVersion", env!("CARGO_PKG_VERSION"));
-        if let Err(e) = res.compile() {
-            // Do not fail the build on a missing resource compiler: the app is
-            // still perfectly usable, it just loses its icon and version block.
-            println!("cargo:warning=could not compile Windows resources: {e}");
-        }
+        res.compile().expect(
+            "Windows resource compilation failed; install the Windows SDK resource compiler",
+        );
     }
 }
