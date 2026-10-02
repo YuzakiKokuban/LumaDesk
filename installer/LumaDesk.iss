@@ -75,10 +75,10 @@ var
 begin
   Marker := ExpandConstant('{tmp}\LumaDesk-runtime-ready');
   Script := '$ErrorActionPreference=''Stop''; try { ' +
-    '$net=@(& (Join-Path $env:ProgramFiles ''dotnet\dotnet.exe'') --list-runtimes | Select-String ''^Microsoft.NETCore.App 10\.''); ' +
+    '$net=@(& (Join-Path $env:ProgramW6432 ''dotnet\dotnet.exe'') --list-runtimes | Select-String ''^Microsoft.NETCore.App 10\.''); ' +
     '$ui=@(Get-AppxPackage Microsoft.WindowsAppRuntime.2 | Where-Object { $_.Architecture -eq ''X64'' -and [version]$_.Version -ge [version]''2.5.1.0'' }); ' +
     'if ($net.Count -gt 0 -and $ui.Count -gt 0) { Set-Content -LiteralPath ''' + PSQuote(Marker) + ''' -Value ready } } catch { exit 1 }';
-  if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+  if not Exec(ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe'),
     '-NoProfile -NonInteractive -Command "' + Script + '"', '', SW_HIDE, ewWaitUntilTerminated, Code) then
     Result := CustomMessage('RuntimeRequired')
   else if (Code <> 0) or not FileExists(Marker) then
@@ -97,7 +97,7 @@ begin
     Script := '$t=Get-ScheduledTask -TaskName LumaDesk -TaskPath ''\'' -ErrorAction SilentlyContinue; ' +
       'if ($t -and ($t.Actions.Execute -contains ''' + PSQuote(ExpandConstant('{app}\{#AppExe}')) + ''')) { ' +
       'Unregister-ScheduledTask -TaskName LumaDesk -TaskPath ''\'' -Confirm:$false }';
-    Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    Exec(ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe'),
       '-NoProfile -NonInteractive -Command "' + Script + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
     // The application owns the OEM backup and performs the restoration.
     if FileExists(ExpandConstant('{userappdata}\JiYaoChu\oem_takeover.json')) then begin

@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Installer, [Parameter(Mandatory)][string]$Directory)
+﻿param([Parameter(Mandatory)][string]$Installer, [Parameter(Mandatory)][string]$Directory)
 $ErrorActionPreference = 'Stop'
 $destination = [IO.Path]::GetFullPath($Directory)
 if (Test-Path -LiteralPath $destination) { throw 'Installer test requires a new, empty destination' }
