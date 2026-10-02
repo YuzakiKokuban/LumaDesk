@@ -90,6 +90,7 @@ def main():
             required = {name.casefold() for name in required}
             assert required <= names, f"Missing files: {required - names}"
             assert not ({"coreclr.dll", "hostfxr.dll", "microsoft.ui.xaml.dll"} & names), "Shared runtimes were bundled"
+            assert not ({"microsoft.ui.reactor.devtools.dll", "reactor.devtools.dll"} & names), "Debug tooling was bundled"
             runtime = json.loads(archive.read("机耀处.runtimeconfig.json"))
             assert runtime["runtimeOptions"]["framework"]["name"] == "Microsoft.NETCore.App"
             assert len({name.casefold() for name in archive.namelist()}) == len(archive.namelist()), "Duplicate Windows paths"

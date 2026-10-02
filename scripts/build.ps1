@@ -8,6 +8,12 @@ if (!$Version) { $Version = $sourceVersion }
 if ($Version -ne $sourceVersion) { throw "Requested version $Version differs from source $sourceVersion" }
 [xml]$appProject = Get-Content -LiteralPath (Join-Path $projectRoot 'app/JiYaoChu.csproj') -Raw
 if ($appProject.SelectSingleNode('/Project/PropertyGroup/Version').InnerText -ne $sourceVersion) { throw 'Rust and application versions differ' }
+if ($NoRestore) {
+    $assets = Get-Content -LiteralPath (Join-Path $projectRoot 'app/obj/project.assets.json') -Raw | ConvertFrom-Json
+    if ($assets.libraries.PSObject.Properties.Name -match '^Microsoft.UI.Reactor.Devtools/') {
+        throw 'Debug dependencies are active. Restore with -p:Configuration=Release before publishing with -NoRestore.'
+    }
+}
 $publishDir = Join-Path $projectRoot ("artifacts\publish-" + [guid]::NewGuid().ToString('N'))
 Push-Location $projectRoot
 try {
