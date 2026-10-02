@@ -1,0 +1,42 @@
+[
+  {
+    "va": "0x180026000",
+    "text": "{9f33f85c-13ca-4fd1-9c4a-96217722c593}"
+  },
+  {
+    "va": "0x180026050",
+    "text": "OemMagicVariable"
+  },
+  {
+    "va": "0x180026080",
+    "text": "{9f33f85c-13ca-4fd1-9c4a-96217722c593}"
+  },
+  {
+    "va": "0x1800260d0",
+    "text": "UniWillVariable"
+  },
+  {
+    "va": "0x180026160",
+    "text": "{9f33f85c-13ca-4fd1-9c4a-96217722c593}"
+  },
+  {
+    "va": "0x1800261b0",
+    "text": "OemDgpuPresent"
+  },
+  {
+    "va": "0x1800261d0",
+    "text": "{9f33f85c-13ca-4fd1-9c4a-96217722c593}"
+  },
+  {
+    "va": "0x180026220",
+    "text": "OemMagicVariable"
+  },
+  {
+    "va": "0x180026250",
+    "text": "{9f33f85c-13ca-4fd1-9c4a-96217722c593}"
+  },
+  {
+    "va": "0x1800262a0",
+    "text": "UniWillVariable"
+  }
+]

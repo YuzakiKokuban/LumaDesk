@@ -1,0 +1,1 @@
+& 'C:/Users/10630/AppData/Local/Programs/Python/Python312/python.exe' (Join-Path $PSScriptRoot 'verify-controls.py')

@@ -1,0 +1,152 @@
+{
+  "captured_utc": "2026-10-02T00:12:53.966137+00:00",
+  "oem_takeover": {
+    "exit_code": 0,
+    "reply": "{\"data\":null,\"ok\":true}",
+    "error": ""
+  },
+  "before": {
+    "0x751": 16,
+    "0x7ab": 0,
+    "0x783": 0,
+    "0x784": 0,
+    "0x785": 0,
+    "0x45b": 0,
+    "0x726": 0,
+    "0x727": 128,
+    "0x767": 0,
+    "0x769": 0,
+    "0x76a": 50,
+    "0x76b": 50,
+    "0x78c": 128
+  },
+  "power_schemes": [
+    {
+      "active": true,
+      "guid": "{381b4222-f694-41f0-9685-ff5bb260df2e}",
+      "name": "平衡"
+    }
+  ],
+  "oem_modes": [
+    {
+      "requested": 0,
+      "actual": 0,
+      "registers": {
+        "0x751": 160,
+        "0x7ab": 0,
+        "0x783": 45,
+        "0x784": 45,
+        "0x785": 120,
+        "0x45b": 1
+      }
+    },
+    {
+      "requested": 1,
+      "actual": 1,
+      "registers": {
+        "0x751": 0,
+        "0x7ab": 0,
+        "0x783": 55,
+        "0x784": 55,
+        "0x785": 120,
+        "0x45b": 0
+      }
+    },
+    {
+      "requested": 2,
+      "actual": 2,
+      "registers": {
+        "0x751": 16,
+        "0x7ab": 16,
+        "0x783": 0,
+        "0x784": 0,
+        "0x785": 0,
+        "0x45b": 0
+      }
+    }
+  ],
+  "windows_modes": [
+    {
+      "requested": 0,
+      "actual": 0
+    },
+    {
+      "requested": 1,
+      "actual": 1
+    },
+    {
+      "requested": 2,
+      "actual": 2
+    }
+  ],
+  "rgb": [
+    {
+      "color": "#ff0000",
+      "requested_brightness": 1,
+      "actual_brightness": 1,
+      "rgb_raw": [
+        50,
+        0,
+        0
+      ]
+    },
+    {
+      "color": "#00ff00",
+      "requested_brightness": 2,
+      "actual_brightness": 2,
+      "rgb_raw": [
+        0,
+        50,
+        0
+      ]
+    },
+    {
+      "color": "#0000ff",
+      "requested_brightness": 3,
+      "actual_brightness": 3,
+      "rgb_raw": [
+        0,
+        0,
+        50
+      ]
+    },
+    {
+      "color": "#ffffff",
+      "requested_brightness": 4,
+      "actual_brightness": 4,
+      "rgb_raw": [
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "color": "#ffffff",
+      "requested_brightness": 0,
+      "actual_brightness": 0,
+      "rgb_raw": [
+        0,
+        50,
+        50
+      ]
+    }
+  ],
+  "passed": true,
+  "restore_errors": [],
+  "restored": {
+    "0x751": 16,
+    "0x7ab": 0,
+    "0x783": 0,
+    "0x784": 0,
+    "0x785": 0,
+    "0x45b": 0,
+    "0x726": 0,
+    "0x727": 128,
+    "0x767": 0,
+    "0x769": 0,
+    "0x76a": 50,
+    "0x76b": 50,
+    "0x78c": 128
+  },
+  "ec_restored": true
+}

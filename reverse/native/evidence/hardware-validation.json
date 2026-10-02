@@ -1,0 +1,149 @@
+{
+  "captured_utc": "2026-10-01T17:51:21.928284+00:00",
+  "gpu_mode": {
+    "data": {
+      "ap_version": 25,
+      "configured_mode": "hybrid",
+      "pending_reboot": false,
+      "platform": "intel",
+      "raw_mode": 4,
+      "reason": "",
+      "supported": true,
+      "supports_igpu": true,
+      "variable": "OemMagicVariable"
+    },
+    "ok": true
+  },
+  "hardware": {
+    "data": {
+      "battery": {
+        "charging": false,
+        "health_percent": null,
+        "limit": 100,
+        "percent": 100.0
+      },
+      "cpu": {
+        "freq_mhz": 1900.0,
+        "load": 0.0,
+        "power_w": null,
+        "temp": 53.1
+      },
+      "device": {
+        "bios": "N.1.09MRO14",
+        "ec": "",
+        "model": "MECHREVO YAOSHI Series",
+        "project": "0x1A"
+      },
+      "elevated": true,
+      "fan_boost": false,
+      "fans": {
+        "available": true,
+        "cpu_rpm": 2778,
+        "gpu_rpm": 2650
+      },
+      "gpu": {
+        "freq_mhz": 10237.0,
+        "load": 0.0,
+        "name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "present": true,
+        "temp": 42.0,
+        "vram_total_mb": 8151,
+        "vram_used_mb": 253
+      },
+      "gpu_mode": "hybrid",
+      "power_mode": 1,
+      "support_flags": {
+        "battery_limit": true,
+        "bios_advanced": false,
+        "display_tuning": true,
+        "fan_boost": true,
+        "fan_curve": false,
+        "four_zone": false,
+        "gpu_switching": true,
+        "hinge": false,
+        "lightbar": false,
+        "logo": false,
+        "water_cooler": false
+      },
+      "windows_power_scheme": "平衡"
+    },
+    "ok": true
+  },
+  "fan_boost_roundtrip": {
+    "original": 16,
+    "changed": 80,
+    "write_verified": true,
+    "restored": 16,
+    "restore_verified": true
+  },
+  "ec_snapshot": {
+    "device": "\\\\.\\ACPIDriver",
+    "opened": true,
+    "ioctl": "0x9c40a488",
+    "reads": [
+      {
+        "address": "0x740",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 26,
+        "byte": 26,
+        "duration_ms": 0.053
+      },
+      {
+        "address": "0x751",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 16,
+        "byte": 16,
+        "duration_ms": 0.046
+      },
+      {
+        "address": "0x768",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 0,
+        "byte": 0,
+        "duration_ms": 0.029
+      },
+      {
+        "address": "0x770",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 255,
+        "byte": 255,
+        "duration_ms": 0.03
+      },
+      {
+        "address": "0x7a6",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 9,
+        "byte": 9,
+        "duration_ms": 0.032
+      },
+      {
+        "address": "0x7b9",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 100,
+        "byte": 100,
+        "duration_ms": 0.03
+      },
+      {
+        "address": "0x7d0",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 95,
+        "byte": 95,
+        "duration_ms": 0.028
+      }
+    ]
+  }
+}

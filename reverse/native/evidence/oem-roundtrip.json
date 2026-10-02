@@ -1,0 +1,19 @@
+{
+  "captured_utc": "2026-10-02T00:15:44.715947+00:00",
+  "restore": {
+    "data": null,
+    "ok": true
+  },
+  "restored_service": {
+    "State": "Stopped",
+    "StartMode": "Auto"
+  },
+  "takeover": {
+    "data": null,
+    "ok": true
+  },
+  "taken_over_service": {
+    "State": "Stopped",
+    "StartMode": "Disabled"
+  }
+}

@@ -1,0 +1,192 @@
+[
+  {
+    "export": "ReadCMOS",
+    "export_va": "0x180003250",
+    "ioctl": "0x9c40a480",
+    "instruction_va": "0x1800032f1",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2336,
+    "method": 0
+  },
+  {
+    "export": "WriteCMOS",
+    "export_va": "0x180003330",
+    "ioctl": "0x9c40a484",
+    "instruction_va": "0x1800033d5",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2337,
+    "method": 0
+  },
+  {
+    "export": "ReadEC",
+    "export_va": "0x180003410",
+    "ioctl": "0x9c40a488",
+    "instruction_va": "0x1800034b1",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2338,
+    "method": 0
+  },
+  {
+    "export": "WriteEC",
+    "export_va": "0x1800034f0",
+    "ioctl": "0x9c40a48c",
+    "instruction_va": "0x180003595",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2339,
+    "method": 0
+  },
+  {
+    "export": "ReadMEMB",
+    "export_va": "0x1800035d0",
+    "ioctl": "0x9c40a490",
+    "instruction_va": "0x180003671",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2340,
+    "method": 0
+  },
+  {
+    "export": "WriteMEMB",
+    "export_va": "0x1800036b0",
+    "ioctl": "0x9c40a498",
+    "instruction_va": "0x180003755",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2342,
+    "method": 0
+  },
+  {
+    "export": "ReadPCI",
+    "export_va": "0x180003790",
+    "ioctl": "0x9c40a4a0",
+    "instruction_va": "0x180003831",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2344,
+    "method": 0
+  },
+  {
+    "export": "WritePCI",
+    "export_va": "0x180003870",
+    "ioctl": "0x9c40a4a4",
+    "instruction_va": "0x180003915",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2345,
+    "method": 0
+  },
+  {
+    "export": "ReadIO",
+    "export_va": "0x180003950",
+    "ioctl": "0x9c40a4c0",
+    "instruction_va": "0x1800039f1",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2352,
+    "method": 0
+  },
+  {
+    "export": "WriteIO",
+    "export_va": "0x180003a30",
+    "ioctl": "0x9c40a4c4",
+    "instruction_va": "0x180003ad5",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2353,
+    "method": 0
+  },
+  {
+    "export": "ReadIndexIO",
+    "export_va": "0x180003b10",
+    "ioctl": "0x9c40a4c8",
+    "instruction_va": "0x180003bb1",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2354,
+    "method": 0
+  },
+  {
+    "export": "WriteIndexIO",
+    "export_va": "0x180003bf0",
+    "ioctl": "0x9c40a4cc",
+    "instruction_va": "0x180003c9c",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2355,
+    "method": 0
+  },
+  {
+    "export": "TempRead1",
+    "export_va": "0x180003ce0",
+    "ioctl": "0x9c40a4d0",
+    "instruction_va": "0x180003d81",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2356,
+    "method": 0
+  },
+  {
+    "export": "TempRead2",
+    "export_va": "0x180003dc0",
+    "ioctl": "0x9c40a4d4",
+    "instruction_va": "0x180003e61",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2357,
+    "method": 0
+  },
+  {
+    "export": "TempRead3",
+    "export_va": "0x180003ea0",
+    "ioctl": "0x9c40a4d8",
+    "instruction_va": "0x180003f41",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2358,
+    "method": 0
+  },
+  {
+    "export": "TempWrite1",
+    "export_va": "0x180003f80",
+    "ioctl": "0x9c40a4dc",
+    "instruction_va": "0x18000402c",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2359,
+    "method": 0
+  },
+  {
+    "export": "TempWrite2",
+    "export_va": "0x180004070",
+    "ioctl": "0x9c40a4e0",
+    "instruction_va": "0x18000411c",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2360,
+    "method": 0
+  },
+  {
+    "export": "TempWrite3",
+    "export_va": "0x180004160",
+    "ioctl": "0x9c40a4e4",
+    "instruction_va": "0x1800041fa",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2361,
+    "method": 0
+  },
+  {
+    "export": "SMAPCTable",
+    "export_va": "0x180004230",
+    "ioctl": "0x9c40a500",
+    "instruction_va": "0x1800042ca",
+    "device_type": 40000,
+    "access": 2,
+    "function": 2368,
+    "method": 0
+  }
+]

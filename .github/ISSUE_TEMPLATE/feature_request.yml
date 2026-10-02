@@ -1,0 +1,9 @@
+name: 功能建议
+description: 提出机型支持或功能需求
+body:
+  - type: textarea
+    id: request
+    attributes:
+      label: 机型、需求与官方功能对应说明
+    validations:
+      required: true

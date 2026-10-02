@@ -1,0 +1,20 @@
+name: 错误反馈
+description: 报告 LumaDesk 界面或控制问题
+body:
+  - type: input
+    id: device
+    attributes:
+      label: 机型、BIOS 与版本
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤和实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志和截图
+      description: 提交前移除设备序列号与个人路径。

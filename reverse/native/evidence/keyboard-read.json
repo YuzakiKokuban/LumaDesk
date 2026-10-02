@@ -1,0 +1,115 @@
+{
+  "device": "\\\\.\\ACPIDriver",
+  "opened": true,
+  "ioctl": "0x9c40a488",
+  "reads": [
+    {
+      "address": "0x740",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 26,
+      "byte": 26,
+      "duration_ms": 0.104
+    },
+    {
+      "address": "0x765",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 161,
+      "byte": 161,
+      "duration_ms": 0.049
+    },
+    {
+      "address": "0x766",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 148,
+      "byte": 148,
+      "duration_ms": 0.029
+    },
+    {
+      "address": "0x767",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 0,
+      "byte": 0,
+      "duration_ms": 0.026
+    },
+    {
+      "address": "0x769",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 0,
+      "byte": 0,
+      "duration_ms": 0.026
+    },
+    {
+      "address": "0x76a",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 50,
+      "byte": 50,
+      "duration_ms": 0.026
+    },
+    {
+      "address": "0x76b",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 50,
+      "byte": 50,
+      "duration_ms": 0.025
+    },
+    {
+      "address": "0x76c",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 0,
+      "byte": 0,
+      "duration_ms": 0.026
+    },
+    {
+      "address": "0x76d",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 50,
+      "byte": 50,
+      "duration_ms": 0.025
+    },
+    {
+      "address": "0x76e",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 50,
+      "byte": 50,
+      "duration_ms": 0.025
+    },
+    {
+      "address": "0x78c",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 128,
+      "byte": 128,
+      "duration_ms": 0.025
+    },
+    {
+      "address": "0x78e",
+      "transport_ok": true,
+      "win32_error": 0,
+      "returned_bytes": 4,
+      "output_u32": 236,
+      "byte": 236,
+      "duration_ms": 0.025
+    }
+  ]
+}

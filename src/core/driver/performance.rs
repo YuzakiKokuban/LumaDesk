@@ -1,0 +1,47 @@
+//! OEM profile registers for the validated Yaoshi 15 Air / project 0x1A.
+//! Profile mode, default PL values and RGB brightness share the EC; preserve
+//! unrelated fields. Protocol evidence and implementation limits: PERFORMANCE.md.
+use super::AcpiDriver;
+use crate::core::error::{HalError, HalResult};
+const REGISTERS: [u16; 8] = [0x751, 0x7ab, 0x783, 0x784, 0x785, 0x45b, 0x726, 0x727];
+
+fn require_model(driver: &AcpiDriver) -> HalResult<()> {
+    if driver.read_ec(0x740)? != 0x1a { return Err(HalError::unsupported("OEM 性能档位当前仅适配耀世 15 Air / 0x1A")); }
+    Ok(())
+}
+pub fn read(driver: &AcpiDriver) -> HalResult<u8> {
+    require_model(driver)?;
+    let value = driver.read_ec(0x751)? & 0xb0;
+    match value {
+        0xa0 => Ok(0), 0 => Ok(1), 0x10 => Ok(2),
+        _ => Err(HalError::unavailable(format!("当前 EC 档位 {value:#x} 尚未解析"))),
+    }
+}
+pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
+    require_model(driver)?;
+    let value = match mode { 0 => 0xa0, 1 => 0, 2 => 0x10,
+        _ => return Err(HalError::unsupported("OEM 自定义档位尚未实现")) };
+    driver.transaction(|ec| {
+        let mut before = [0u8; 8];
+        for (i, address) in REGISTERS.iter().enumerate() { before[i] = ec.read(*address)?; }
+        let trigger = ec.read(0x767)?;
+        let base = if mode == 0 { 0x734 } else { 0x730 };
+        let limits = [ec.read(base)?, ec.read(base + 1)?, ec.read(base + 2)?];
+        if limits.iter().any(|v| *v == 0 || *v > 250) { return Err(HalError::unavailable("固件没有提供有效的默认功耗限制")); }
+        let result = (|| {
+            // Exit auxiliary profile overrides before choosing the OEM fan table.
+            ec.write_verified(0x726, before[6] & !0x80)?;
+            ec.write_verified(0x727, before[7] & !0x40)?;
+            for i in 0..3 { ec.write_verified(0x783 + i as u16, limits[i])?; }
+            ec.write_verified(0x7ab, (before[1] & !0x1e) | if mode == 2 { 0x10 } else { 0 })?;
+            ec.write_verified(0x45b, u8::from(mode == 0))?;
+            ec.write_verified(0x751, (before[0] & !0xb0) | value)?;
+            ec.write_command(0x767, (trigger & !0x08) | 0x20 | if mode == 0 { 8 } else { 0 })
+        })();
+        if result.is_err() {
+            for (i, address) in REGISTERS.iter().enumerate() { let _ = ec.write_verified(*address, before[i]); }
+            let _ = ec.write_command(0x767, trigger | 0x20);
+        }
+        result
+    })
+}

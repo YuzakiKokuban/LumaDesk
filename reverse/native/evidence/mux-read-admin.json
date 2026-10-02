@@ -1,0 +1,40 @@
+{
+  "captured_at_utc": "2026-10-01T17:23:26.967853+00:00",
+  "guid": "{9F33F85C-13CA-4FD1-9C4A-96217722C593}",
+  "cpu_platform": "intel",
+  "cpu_identifier": "Intel64 Family 6 Model 204 Stepping 2, GenuineIntel",
+  "token_privilege_stages": [
+    {
+      "stage": "AdjustTokenPrivileges",
+      "api_ok": true,
+      "win32_error": 0
+    }
+  ],
+  "variables": [
+    {
+      "name": "OemMagicVariable",
+      "read_ok": true,
+      "returned_bytes": 180,
+      "win32_error": 0,
+      "sha256": "469ea709260bd39350c912b858c00d4dbaf6147a8e11e75a6ff6921f592053b4",
+      "ap_version": 25,
+      "display_mode_byte": 4,
+      "configured_mode": "hybrid"
+    },
+    {
+      "name": "UniWillVariable",
+      "read_ok": false,
+      "returned_bytes": 0,
+      "win32_error": 203
+    },
+    {
+      "name": "OemDgpuPresent",
+      "read_ok": true,
+      "returned_bytes": 1,
+      "win32_error": 0,
+      "sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a",
+      "first_byte": 1
+    }
+  ],
+  "interpretation": "Configured NVRAM mode; this read alone does not prove active physical display routing."
+}

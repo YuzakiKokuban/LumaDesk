@@ -1,0 +1,3017 @@
+[
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 127,
+    "type": "ushort",
+    "name": "BIOSFuncReg",
+    "value": 1142,
+    "hex": "0x476",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 129,
+    "type": "ushort",
+    "name": "ecPowSource",
+    "value": 1168,
+    "hex": "0x490",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 131,
+    "type": "ushort",
+    "name": "ADDR_BIOS_INFO_3_BYTE",
+    "value": 1183,
+    "hex": "0x49f",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 133,
+    "type": "ushort",
+    "name": "ecBt1Temperature",
+    "value": 1186,
+    "hex": "0x4a2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 135,
+    "type": "ushort",
+    "name": "ecBt1RSOC",
+    "value": 1195,
+    "hex": "0x4ab",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 137,
+    "type": "uint",
+    "name": "FAN_MODE_NORMAL",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 139,
+    "type": "uint",
+    "name": "FAN_MODE_BOOST",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 141,
+    "type": "uint",
+    "name": "FAN_MODE_CUSTOMIZE",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 143,
+    "type": "uint",
+    "name": "FAN_CUSTOMIZEMODE_NORMAL",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 145,
+    "type": "uint",
+    "name": "FAN_CUSTOMIZEMODE_BASIC",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 147,
+    "type": "uint",
+    "name": "FAN_CUSTOMIZEMODE_HIGH",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 149,
+    "type": "uint",
+    "name": "FAN_GAMING_MODE",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 151,
+    "type": "uint",
+    "name": "FAN_OFFICE_MODE",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 153,
+    "type": "uint",
+    "name": "FAN_TURBO_MODE",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 155,
+    "type": "uint",
+    "name": "FAN_CUSTOM_MODE",
+    "value": 3,
+    "hex": "0x3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 157,
+    "type": "uint",
+    "name": "FAN_OFFICE_MODE_BASIC",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 159,
+    "type": "uint",
+    "name": "FAN_OFFICE_MODE_ADVANCED",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 161,
+    "type": "uint",
+    "name": "FAN_GAMING_MODE_SMART",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 163,
+    "type": "uint",
+    "name": "FAN_GAMING_MODE_PERFENHANCED",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 165,
+    "type": "uint",
+    "name": "POWER_SETTING_MODE_ECO",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 167,
+    "type": "uint",
+    "name": "POWER_SETTING_MODE_STD",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 169,
+    "type": "uint",
+    "name": "FAN_LEVEL_ZERO",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 171,
+    "type": "uint",
+    "name": "FAN_LEVEL_ONE",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 173,
+    "type": "uint",
+    "name": "FAN_LEVEL_TWO",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 175,
+    "type": "uint",
+    "name": "FAN_LEVEL_THREE",
+    "value": 3,
+    "hex": "0x3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 177,
+    "type": "uint",
+    "name": "FAN_LEVEL_FOUR",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 179,
+    "type": "uint",
+    "name": "FAN_LEVEL_FIVE",
+    "value": 5,
+    "hex": "0x5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 181,
+    "type": "uint",
+    "name": "TURBO_MODE_1",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 183,
+    "type": "uint",
+    "name": "TURBO_MODE_2",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 185,
+    "type": "uint",
+    "name": "TURBO_MODE_3",
+    "value": 3,
+    "hex": "0x3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 187,
+    "type": "uint",
+    "name": "TURBO_MODE_4",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 189,
+    "type": "uint",
+    "name": "TURBO_MODE_MIN",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 191,
+    "type": "uint",
+    "name": "TURBO_MODE_MAX",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 193,
+    "type": "uint",
+    "name": "TURBO_MODE_DEFAULT",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 195,
+    "type": "uint",
+    "name": "TURBO_MODE_CPUBOOST",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 197,
+    "type": "uint",
+    "name": "QKEY_MODESWITCH",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 199,
+    "type": "uint",
+    "name": "QKEY_FANBOOST",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 201,
+    "type": "ushort",
+    "name": "ADDR_EC_BIF_DC_BYTE1",
+    "value": 1026,
+    "hex": "0x402",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 203,
+    "type": "ushort",
+    "name": "ADDR_EC_BIF_DC_BYTE2",
+    "value": 1027,
+    "hex": "0x403",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 205,
+    "type": "ushort",
+    "name": "ADDR_EC_BIF_DV_BYTE1",
+    "value": 1032,
+    "hex": "0x408",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 207,
+    "type": "ushort",
+    "name": "ADDR_EC_BIF_DV_BYTE2",
+    "value": 1033,
+    "hex": "0x409",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 209,
+    "type": "ushort",
+    "name": "ADDR_EC_BST_BPR_BYTE1",
+    "value": 1076,
+    "hex": "0x434",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 211,
+    "type": "ushort",
+    "name": "ADDR_EC_BST_BPR_BYTE2",
+    "value": 1077,
+    "hex": "0x435",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 213,
+    "type": "ushort",
+    "name": "ADDR_EC_BST_BRC_BYTE1",
+    "value": 1078,
+    "hex": "0x436",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 215,
+    "type": "ushort",
+    "name": "ADDR_EC_BST_BRC_BYTE2",
+    "value": 1079,
+    "hex": "0x437",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 217,
+    "type": "ushort",
+    "name": "ADDR_EC_BST_BPV_BYTE1",
+    "value": 1080,
+    "hex": "0x438",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 219,
+    "type": "ushort",
+    "name": "ADDR_EC_BST_BPV_BYTE2",
+    "value": 1081,
+    "hex": "0x439",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 221,
+    "type": "ushort",
+    "name": "ADDR_EC_BT1CycleCount_BYTE1",
+    "value": 1190,
+    "hex": "0x4a6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 223,
+    "type": "ushort",
+    "name": "ADDR_EC_BT1CycleCount_BYTE2",
+    "value": 1191,
+    "hex": "0x4a7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 225,
+    "type": "ushort",
+    "name": "ADDR_EC_MAIN_FAN_RPM_BYTE1",
+    "value": 1124,
+    "hex": "0x464",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 227,
+    "type": "ushort",
+    "name": "ADDR_EC_MAIN_FAN_RPM_BYTE2",
+    "value": 1125,
+    "hex": "0x465",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 229,
+    "type": "ushort",
+    "name": "ADDR_EC_BIOS_INFO5",
+    "value": 1126,
+    "hex": "0x466",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 231,
+    "type": "ushort",
+    "name": "ADDR_EC_SECOND_FAN_RPM_BYTE1",
+    "value": 1132,
+    "hex": "0x46c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 233,
+    "type": "ushort",
+    "name": "ADDR_EC_SECOND_FAN_RPM_BYTE2",
+    "value": 1131,
+    "hex": "0x46b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 235,
+    "type": "ushort",
+    "name": "ADDR_AP_BIOS_CONTROL_BYTE",
+    "value": 1798,
+    "hex": "0x706",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 237,
+    "type": "ushort",
+    "name": "ADDR_MAFAN_CONTROL_BYTE",
+    "value": 1873,
+    "hex": "0x751",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 239,
+    "type": "ushort",
+    "name": "ADDR_CPU_VRM_CURRENT_LIMIT_BYTE",
+    "value": 1875,
+    "hex": "0x753",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 241,
+    "type": "ushort",
+    "name": "ADDR_CPU_VRM_MAXI_CURRENT_LIMIT_BYTE",
+    "value": 1876,
+    "hex": "0x754",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 243,
+    "type": "ushort",
+    "name": "ADDR_EC_MAIN_FAN_L_DUTY_BYTE",
+    "value": 1883,
+    "hex": "0x75b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 245,
+    "type": "ushort",
+    "name": "ADDR_EC_MAIN_FAN_R_DUTY_BYTE",
+    "value": 1884,
+    "hex": "0x75c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 247,
+    "type": "ushort",
+    "name": "ADDR_TRIGGER_BYTE2",
+    "value": 1885,
+    "hex": "0x75d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 249,
+    "type": "ushort",
+    "name": "ADDR_SUPPORT_BYTE1",
+    "value": 1893,
+    "hex": "0x765",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 251,
+    "type": "ushort",
+    "name": "ADDR_SUPPORT_BYTE2",
+    "value": 1894,
+    "hex": "0x766",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 253,
+    "type": "ushort",
+    "name": "ADDR_PROJECT_ID_BYTE",
+    "value": 1856,
+    "hex": "0x740",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 255,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE",
+    "value": 1857,
+    "hex": "0x741",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 257,
+    "type": "ushort",
+    "name": "ADDR_SUPPORT_BYTE5",
+    "value": 1858,
+    "hex": "0x742",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 259,
+    "type": "ushort",
+    "name": "ADDR_MYFAN2_L1_PWM",
+    "value": 1859,
+    "hex": "0x743",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 261,
+    "type": "ushort",
+    "name": "ADDR_MYFAN2_L2_PWM",
+    "value": 1860,
+    "hex": "0x744",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 263,
+    "type": "ushort",
+    "name": "ADDR_MYFAN2_L3_PWM",
+    "value": 1861,
+    "hex": "0x745",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 265,
+    "type": "ushort",
+    "name": "ADDR_MYFAN2_L4_PWM",
+    "value": 1862,
+    "hex": "0x746",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 267,
+    "type": "ushort",
+    "name": "ADDR_MYFAN2_L5_PWM",
+    "value": 1863,
+    "hex": "0x747",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 269,
+    "type": "ushort",
+    "name": "ADDR_ConfigurableTGP_DynamicBoost_CTRL_BYTE",
+    "value": 1859,
+    "hex": "0x743",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 271,
+    "type": "ushort",
+    "name": "ADDR_ConfigurableTGP_VALUE",
+    "value": 1860,
+    "hex": "0x744",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 273,
+    "type": "ushort",
+    "name": "ADDR_DynamicBoost_TotalProcessingPowerTarget_VALUE",
+    "value": 1861,
+    "hex": "0x745",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 275,
+    "type": "ushort",
+    "name": "ADDR_DynamicBoost_MaxinumTGP_VALUE",
+    "value": 1862,
+    "hex": "0x746",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 277,
+    "type": "ushort",
+    "name": "ADDR_L1_PWM_DEFAULT_MYFAN2",
+    "value": 1929,
+    "hex": "0x789",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 279,
+    "type": "ushort",
+    "name": "ADDR_L2_PWM_DEFAULT_MYFAN2",
+    "value": 1930,
+    "hex": "0x78a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 281,
+    "type": "ushort",
+    "name": "ADDR_L3_PWM_DEFAULT_MYFAN2",
+    "value": 1931,
+    "hex": "0x78b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 283,
+    "type": "ushort",
+    "name": "ADDR_L4_PWM_DEFAULT_MYFAN2",
+    "value": 1932,
+    "hex": "0x78c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 285,
+    "type": "ushort",
+    "name": "ADDR_L5_PWM_DEFAULT_MYFAN2",
+    "value": 1933,
+    "hex": "0x78d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 287,
+    "type": "ushort",
+    "name": "ADDR_BIOS_OEM_BYTE",
+    "value": 1870,
+    "hex": "0x74e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 289,
+    "type": "ushort",
+    "name": "ADDR_BIOS_OEM_BYTE2",
+    "value": 1922,
+    "hex": "0x782",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 291,
+    "type": "ushort",
+    "name": "ADDR_GAMING_PL1_DEFAULT_VALUE",
+    "value": 1840,
+    "hex": "0x730",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 293,
+    "type": "ushort",
+    "name": "ADDR_GAMING_PL2_DEFAULT_VALUE",
+    "value": 1841,
+    "hex": "0x731",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 295,
+    "type": "ushort",
+    "name": "ADDR_GAMING_PL4_DEFAULT_VALUE",
+    "value": 1842,
+    "hex": "0x732",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 297,
+    "type": "ushort",
+    "name": "ADDR_GAMING_D_DEFAULT_VALUE",
+    "value": 1843,
+    "hex": "0x733",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 299,
+    "type": "ushort",
+    "name": "ADDR_OFFICE_PL1_DEFAULT_VALUE",
+    "value": 1844,
+    "hex": "0x734",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 301,
+    "type": "ushort",
+    "name": "ADDR_OFFICE_PL2_DEFAULT_VALUE",
+    "value": 1845,
+    "hex": "0x735",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 303,
+    "type": "ushort",
+    "name": "ADDR_OFFICE_PL4_DEFAULT_VALUE",
+    "value": 1846,
+    "hex": "0x736",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 305,
+    "type": "ushort",
+    "name": "ADDR_OFFICE_D_DEFAULT_VALUE",
+    "value": 1847,
+    "hex": "0x737",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 307,
+    "type": "ushort",
+    "name": "ADDR_PL1_SETTING_VALUE",
+    "value": 1923,
+    "hex": "0x783",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 309,
+    "type": "ushort",
+    "name": "ADDR_PL2_SETTING_VALUE",
+    "value": 1924,
+    "hex": "0x784",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 311,
+    "type": "ushort",
+    "name": "ADDR_PL4_SETTING_VALUE",
+    "value": 1925,
+    "hex": "0x785",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 313,
+    "type": "ushort",
+    "name": "ADDR_L1_PWM_DEFAULT_MYFAN3",
+    "value": 1926,
+    "hex": "0x786",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 315,
+    "type": "ushort",
+    "name": "ADDR_L2_PWM_DEFAULT_MYFAN3",
+    "value": 1927,
+    "hex": "0x787",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 317,
+    "type": "ushort",
+    "name": "ADDR_L3_PWM_DEFAULT_MYFAN3",
+    "value": 1928,
+    "hex": "0x788",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 319,
+    "type": "ushort",
+    "name": "ADDR_L4_PWM_DEFAULT_MYFAN3",
+    "value": 1929,
+    "hex": "0x789",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 321,
+    "type": "ushort",
+    "name": "ADDR_L5_PWM_DEFAULT_MYFAN3",
+    "value": 1930,
+    "hex": "0x78a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 323,
+    "type": "ushort",
+    "name": "ADDR_SINGLEKBL_ENABLE",
+    "value": 1932,
+    "hex": "0x78c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 325,
+    "type": "ushort",
+    "name": "ADDR_SINGLEKBL_SUPPORTPOWER",
+    "value": 1934,
+    "hex": "0x78e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 327,
+    "type": "ushort",
+    "name": "ADDR_MYFAN3_CPU_TAU",
+    "value": 1848,
+    "hex": "0x738",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 329,
+    "type": "ushort",
+    "name": "ADDR_TRIGGER_BYTE",
+    "value": 1895,
+    "hex": "0x767",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 331,
+    "type": "ushort",
+    "name": "ADDR_STAUTS_BYTE",
+    "value": 1896,
+    "hex": "0x768",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 333,
+    "type": "ushort",
+    "name": "ADDR_LIGHTBAR_CONTROL_BYTE",
+    "value": 1864,
+    "hex": "0x748",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 335,
+    "type": "ushort",
+    "name": "ADDR_REDBAR_CONTROL_BYTE",
+    "value": 1865,
+    "hex": "0x749",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 337,
+    "type": "ushort",
+    "name": "ADDR_GREENBAR_CONTROL_BYTE",
+    "value": 1866,
+    "hex": "0x74a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 339,
+    "type": "ushort",
+    "name": "ADDR_BLUEBAR_CONTROL_BYTE",
+    "value": 1867,
+    "hex": "0x74b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 341,
+    "type": "ushort",
+    "name": "ADDR_OEMSERVICE_PROJECT_ID_BYTE",
+    "value": 1868,
+    "hex": "0x74c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 343,
+    "type": "ushort",
+    "name": "ADDR_OEMSERVICE_PROJECT_ID_BYTE_NEW",
+    "value": 1869,
+    "hex": "0x74d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 345,
+    "type": "ushort",
+    "name": "ADDR_BATTERY_ALERT_BYTE",
+    "value": 1172,
+    "hex": "0x494",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 347,
+    "type": "ushort",
+    "name": "ADDR_FAN_ALERT_BYTE",
+    "value": 1857,
+    "hex": "0x741",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 349,
+    "type": "ushort",
+    "name": "ADDR_SILENTMODE_STATUS_BYTE",
+    "value": 1115,
+    "hex": "0x45b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 351,
+    "type": "ushort",
+    "name": "ADDR_MYFAN3_GPU_SETTING",
+    "value": 1931,
+    "hex": "0x78b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 353,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE2",
+    "value": 1932,
+    "hex": "0x78c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 355,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE5",
+    "value": 1989,
+    "hex": "0x7c5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 357,
+    "type": "ushort",
+    "name": "ADDR_AP_EC_LOGO",
+    "value": 1963,
+    "hex": "0x7ab",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 359,
+    "type": "ushort",
+    "name": "ADDR_AP_EC_LOGO_R",
+    "value": 1897,
+    "hex": "0x769",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 361,
+    "type": "ushort",
+    "name": "ADDR_AP_EC_LOGO_G",
+    "value": 1898,
+    "hex": "0x76a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 363,
+    "type": "ushort",
+    "name": "ADDR_AP_EC_LOGO_B",
+    "value": 1899,
+    "hex": "0x76b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 365,
+    "type": "ushort",
+    "name": "ADDR_AP_EC_LOGO_CONFIRM",
+    "value": 1932,
+    "hex": "0x78c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 367,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_SingleZone",
+    "value": 3328,
+    "hex": "0xd00",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 369,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE6",
+    "value": 1990,
+    "hex": "0x7c6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 371,
+    "type": "ushort",
+    "name": "ADDR_SUPPORT_BYTE6",
+    "value": 1934,
+    "hex": "0x78e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 373,
+    "type": "ushort",
+    "name": "ADDR_MYFANI_MIN_SPEED",
+    "value": 1950,
+    "hex": "0x79e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 375,
+    "type": "ushort",
+    "name": "ADDR_MYFANI_MIN_TEMP",
+    "value": 1951,
+    "hex": "0x79f",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 377,
+    "type": "ushort",
+    "name": "ADDR_MYFANI_EXTRA_SPEED",
+    "value": 1952,
+    "hex": "0x7a0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 379,
+    "type": "ushort",
+    "name": "ADDR_BIOS_OEM_BYTE3",
+    "value": 1955,
+    "hex": "0x7a3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 381,
+    "type": "ushort",
+    "name": "ADDR_AP_BIOS_BYTE",
+    "value": 1956,
+    "hex": "0x7a4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 383,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE3",
+    "value": 1957,
+    "hex": "0x7a5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 385,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE4",
+    "value": 1958,
+    "hex": "0x7a6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 387,
+    "type": "ushort",
+    "name": "ADDR_BATTERYSAVER_PL1_DEFAULT_VALUE",
+    "value": 1959,
+    "hex": "0x7a7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 389,
+    "type": "ushort",
+    "name": "ADDR_BATTERYSAVER_PL2_DEFAULT_VALUE",
+    "value": 1960,
+    "hex": "0x7a8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 391,
+    "type": "ushort",
+    "name": "ADDR_BATTERYSAVER_PL4_DEFAULT_VALUE",
+    "value": 1961,
+    "hex": "0x7a9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 393,
+    "type": "ushort",
+    "name": "ADDR_BATTERYSAVER_D_DEFAULT_VALUE",
+    "value": 1962,
+    "hex": "0x7aa",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 395,
+    "type": "ushort",
+    "name": "ADDR_MyFanCCI_Mode_Index",
+    "value": 1963,
+    "hex": "0x7ab",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 397,
+    "type": "ushort",
+    "name": "ADDR_MyFanCCI_Mode_Profile1",
+    "value": 1968,
+    "hex": "0x7b0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 399,
+    "type": "ushort",
+    "name": "ADDR_MyFanCCI_Mode_Profile2",
+    "value": 1969,
+    "hex": "0x7b1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 401,
+    "type": "ushort",
+    "name": "ADDR_MyFanCCI_Mode_Profile3",
+    "value": 1970,
+    "hex": "0x7b2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 403,
+    "type": "ushort",
+    "name": "ADDR_BATTERY_CHARGE_LIMIT_UP",
+    "value": 1977,
+    "hex": "0x7b9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 405,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE7",
+    "value": 1991,
+    "hex": "0x7c7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 407,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE8",
+    "value": 1992,
+    "hex": "0x7c8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 409,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE9",
+    "value": 1830,
+    "hex": "0x726",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 411,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTE10_CUSTOM_LIGHT_TEST",
+    "value": 1831,
+    "hex": "0x727",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 413,
+    "type": "ushort",
+    "name": "ADDR_AP_OEM_BYTEB",
+    "value": 1832,
+    "hex": "0x728",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 415,
+    "type": "ushort",
+    "name": "ADDR_AP_MISCSWITCH2",
+    "value": 3407,
+    "hex": "0xd4f",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 417,
+    "type": "ushort",
+    "name": "ADDR_ESHUTTER_STATUS",
+    "value": 1831,
+    "hex": "0x727",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 419,
+    "type": "ushort",
+    "name": "ADDR_CPU_DOUBLE_FLAG_SUPPORT",
+    "value": 1831,
+    "hex": "0x727",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 421,
+    "type": "ushort",
+    "name": "ADDR_BIOS_OEM_BYTE8",
+    "value": 1994,
+    "hex": "0x7ca",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 423,
+    "type": "ushort",
+    "name": "ADDR_COMPLEX_POWER_STATUS",
+    "value": 1996,
+    "hex": "0x7cc",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 425,
+    "type": "ushort",
+    "name": "ADDR_BATTERY_CHARGE_LIMIT_DOWN",
+    "value": 2000,
+    "hex": "0x7d0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 427,
+    "type": "ushort",
+    "name": "ADDR_ModuleID_GPU",
+    "value": 2002,
+    "hex": "0x7d2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 429,
+    "type": "ushort",
+    "name": "ADDR_GPU_STATUS",
+    "value": 1834,
+    "hex": "0x72a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 431,
+    "type": "ushort",
+    "name": "ADDR_ModuleID",
+    "value": 2003,
+    "hex": "0x7d3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 433,
+    "type": "ushort",
+    "name": "ADDR_GAMING_TCC_OFFSET_DEFAULT_VALUE",
+    "value": 2008,
+    "hex": "0x7d8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 435,
+    "type": "ushort",
+    "name": "ADDR_OFFICE_TCC_OFFSET_DEFAULT_VALUE",
+    "value": 2009,
+    "hex": "0x7d9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 437,
+    "type": "ushort",
+    "name": "ADDR_TURBO_TCC_OFFSET_DEFAULT_VALUE",
+    "value": 2010,
+    "hex": "0x7da",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 439,
+    "type": "ushort",
+    "name": "ADDR_LC_FAN_VALUE",
+    "value": 2022,
+    "hex": "0x7e6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 441,
+    "type": "ushort",
+    "name": "ADDR_LC_PUMP_VALUE",
+    "value": 2023,
+    "hex": "0x7e7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 443,
+    "type": "ushort",
+    "name": "ADDR_EC_DEFAULT_MODE",
+    "value": 2024,
+    "hex": "0x7e8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 445,
+    "type": "ushort",
+    "name": "ADDR_CHANGE_PORT_ID_WKD",
+    "value": 2043,
+    "hex": "0x7fb",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 447,
+    "type": "ushort",
+    "name": "ADDR_SystemID",
+    "value": 1110,
+    "hex": "0x456",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 449,
+    "type": "ushort",
+    "name": "ADDR_ROMID",
+    "value": 1905,
+    "hex": "0x771",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 451,
+    "type": "ushort",
+    "name": "ADDR_ROMID2",
+    "value": 1906,
+    "hex": "0x772",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 453,
+    "type": "ushort",
+    "name": "OSD_CAPSLOCK",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 455,
+    "type": "ushort",
+    "name": "OSD_NUMLOCK",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 457,
+    "type": "ushort",
+    "name": "OSD_SROLLOCK",
+    "value": 3,
+    "hex": "0x3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 459,
+    "type": "ushort",
+    "name": "OSD_TPON",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 461,
+    "type": "ushort",
+    "name": "OSD_TPOFF",
+    "value": 5,
+    "hex": "0x5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 463,
+    "type": "ushort",
+    "name": "OSD_SILENTON",
+    "value": 6,
+    "hex": "0x6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 465,
+    "type": "ushort",
+    "name": "OSD_SILENTOFF",
+    "value": 7,
+    "hex": "0x7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 467,
+    "type": "ushort",
+    "name": "OSD_WLANON",
+    "value": 8,
+    "hex": "0x8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 469,
+    "type": "ushort",
+    "name": "OSD_WLANOFF",
+    "value": 9,
+    "hex": "0x9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 471,
+    "type": "ushort",
+    "name": "OSD_WINMAXON",
+    "value": 10,
+    "hex": "0xa",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 473,
+    "type": "ushort",
+    "name": "OSD_WINMAXOFF",
+    "value": 11,
+    "hex": "0xb",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 475,
+    "type": "ushort",
+    "name": "OSD_BTON",
+    "value": 12,
+    "hex": "0xc",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 477,
+    "type": "ushort",
+    "name": "OSD_BTOFF",
+    "value": 13,
+    "hex": "0xd",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 479,
+    "type": "ushort",
+    "name": "OSD_RFON",
+    "value": 14,
+    "hex": "0xe",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 481,
+    "type": "ushort",
+    "name": "OSD_RFOFF",
+    "value": 15,
+    "hex": "0xf",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 483,
+    "type": "ushort",
+    "name": "OSD_3GON",
+    "value": 16,
+    "hex": "0x10",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 485,
+    "type": "ushort",
+    "name": "OSD_3GOFF",
+    "value": 17,
+    "hex": "0x11",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 487,
+    "type": "ushort",
+    "name": "OSD_WEBCAMON",
+    "value": 18,
+    "hex": "0x12",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 489,
+    "type": "ushort",
+    "name": "OSD_WEBCAMOFF",
+    "value": 19,
+    "hex": "0x13",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 491,
+    "type": "ushort",
+    "name": "OSD_BRIGHTNESSUP",
+    "value": 20,
+    "hex": "0x14",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 493,
+    "type": "ushort",
+    "name": "OSD_BRIGHTNESSDOWN",
+    "value": 21,
+    "hex": "0x15",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 495,
+    "type": "ushort",
+    "name": "OSD_RADIOON",
+    "value": 26,
+    "hex": "0x1a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 497,
+    "type": "ushort",
+    "name": "OSD_RADIOOFF",
+    "value": 27,
+    "hex": "0x1b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 499,
+    "type": "ushort",
+    "name": "OSD_POWERSAVEON",
+    "value": 49,
+    "hex": "0x31",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 501,
+    "type": "ushort",
+    "name": "OSD_POWERSAVEOFF",
+    "value": 50,
+    "hex": "0x32",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 503,
+    "type": "ushort",
+    "name": "OSD_MENU",
+    "value": 52,
+    "hex": "0x34",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 505,
+    "type": "ushort",
+    "name": "OSD_MUTE",
+    "value": 53,
+    "hex": "0x35",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 507,
+    "type": "ushort",
+    "name": "OSD_VOLUMEDOWN",
+    "value": 54,
+    "hex": "0x36",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 509,
+    "type": "ushort",
+    "name": "OSD_VOLUMEUP",
+    "value": 55,
+    "hex": "0x37",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 511,
+    "type": "ushort",
+    "name": "OSD_OSD_MENU_2",
+    "value": 56,
+    "hex": "0x38",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 513,
+    "type": "ushort",
+    "name": "OSD_BREATH_LED_ON",
+    "value": 57,
+    "hex": "0x39",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 515,
+    "type": "ushort",
+    "name": "OSD_BREATH_LED_OFF",
+    "value": 58,
+    "hex": "0x3a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 517,
+    "type": "ushort",
+    "name": "OSD_KB_LED_LEVEL0",
+    "value": 59,
+    "hex": "0x3b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 519,
+    "type": "ushort",
+    "name": "OSD_KB_LED_LEVEL1",
+    "value": 60,
+    "hex": "0x3c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 521,
+    "type": "ushort",
+    "name": "OSD_KB_LED_LEVEL2",
+    "value": 61,
+    "hex": "0x3d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 523,
+    "type": "ushort",
+    "name": "OSD_KB_LED_LEVEL3",
+    "value": 62,
+    "hex": "0x3e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 525,
+    "type": "ushort",
+    "name": "OSD_KB_LED_LEVEL4",
+    "value": 63,
+    "hex": "0x3f",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 527,
+    "type": "ushort",
+    "name": "OSD_WINKEY_LOCK",
+    "value": 64,
+    "hex": "0x40",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 529,
+    "type": "ushort",
+    "name": "OSD_WINKEY_UNLOCK",
+    "value": 65,
+    "hex": "0x41",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 531,
+    "type": "ushort",
+    "name": "OSD_MENU_JP",
+    "value": 66,
+    "hex": "0x42",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 533,
+    "type": "ushort",
+    "name": "OSD_CAMERAON",
+    "value": 144,
+    "hex": "0x90",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 535,
+    "type": "ushort",
+    "name": "OSD_CAMERAOFF",
+    "value": 145,
+    "hex": "0x91",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 537,
+    "type": "ushort",
+    "name": "OSD_AIRPLANEMODE",
+    "value": 164,
+    "hex": "0xa4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 539,
+    "type": "ushort",
+    "name": "OSD_FANBOOST_UPDATE",
+    "value": 167,
+    "hex": "0xa7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 541,
+    "type": "ushort",
+    "name": "OSD_LCD_SW",
+    "value": 169,
+    "hex": "0xa9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 543,
+    "type": "ushort",
+    "name": "PDWarning_Event",
+    "value": 199,
+    "hex": "0xc7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 545,
+    "type": "ushort",
+    "name": "TimAP_AC_Chg",
+    "value": 199,
+    "hex": "0xc7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 547,
+    "type": "ushort",
+    "name": "TimAP_MyFanOT",
+    "value": 170,
+    "hex": "0xaa",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 549,
+    "type": "ushort",
+    "name": "OSD_MyBat_ACUpdate",
+    "value": 171,
+    "hex": "0xab",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 551,
+    "type": "ushort",
+    "name": "TimAP_MyBat_HPOff",
+    "value": 172,
+    "hex": "0xac",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 553,
+    "type": "ushort",
+    "name": "TimAP_ReleaseUSM",
+    "value": 173,
+    "hex": "0xad",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 555,
+    "type": "ushort",
+    "name": "OSD_Battery_Alert",
+    "value": 174,
+    "hex": "0xae",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 557,
+    "type": "ushort",
+    "name": "TimAP_HaierLB_Sw",
+    "value": 175,
+    "hex": "0xaf",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 559,
+    "type": "ushort",
+    "name": "WinKey_Update",
+    "value": 165,
+    "hex": "0xa5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 561,
+    "type": "ushort",
+    "name": "OSD_FanModeSwitch",
+    "value": 176,
+    "hex": "0xb0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 563,
+    "type": "ushort",
+    "name": "BacklightLevelChange",
+    "value": 179,
+    "hex": "0xb3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 565,
+    "type": "ushort",
+    "name": "BacklightPowerChange",
+    "value": 180,
+    "hex": "0xb4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 567,
+    "type": "ushort",
+    "name": "TimAP_MicMute_Sw",
+    "value": 183,
+    "hex": "0xb7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 569,
+    "type": "ushort",
+    "name": "OSD_FnChange",
+    "value": 184,
+    "hex": "0xb8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 571,
+    "type": "ushort",
+    "name": "CallAP",
+    "value": 186,
+    "hex": "0xba",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 573,
+    "type": "ushort",
+    "name": "TimAP_HighTemp",
+    "value": 187,
+    "hex": "0xbb",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 575,
+    "type": "ushort",
+    "name": "TimAP_WhisperUpdate",
+    "value": 188,
+    "hex": "0xbc",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 577,
+    "type": "ushort",
+    "name": "SC_SwitchOC",
+    "value": 192,
+    "hex": "0xc0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 579,
+    "type": "ushort",
+    "name": "SC_PumpFanAuto",
+    "value": 193,
+    "hex": "0xc1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 581,
+    "type": "ushort",
+    "name": "TimAP_HWOCScanCode",
+    "value": 194,
+    "hex": "0xc2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 583,
+    "type": "ushort",
+    "name": "TimAP_LidClose",
+    "value": 195,
+    "hex": "0xc3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 585,
+    "type": "ushort",
+    "name": "TimAP_LidOpen",
+    "value": 196,
+    "hex": "0xc4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 587,
+    "type": "ushort",
+    "name": "SC_ThermalProtect",
+    "value": 200,
+    "hex": "0xc8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 589,
+    "type": "ushort",
+    "name": "PHxGPURule1",
+    "value": 203,
+    "hex": "0xcb",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 591,
+    "type": "ushort",
+    "name": "SC_CustomMode",
+    "value": 201,
+    "hex": "0xc9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 593,
+    "type": "ushort",
+    "name": "TimAP_ELU_Fn2",
+    "value": 205,
+    "hex": "0xcd",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 595,
+    "type": "ushort",
+    "name": "TimAP_ELU_Fn3",
+    "value": 206,
+    "hex": "0xce",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 597,
+    "type": "ushort",
+    "name": "TimAP_DISPLAY_In",
+    "value": 209,
+    "hex": "0xd1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 599,
+    "type": "ushort",
+    "name": "TimAP_NotifyEShutter",
+    "value": 207,
+    "hex": "0xcf",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 601,
+    "type": "ushort",
+    "name": "TimAP_NotifyFlipScreen",
+    "value": 208,
+    "hex": "0xd0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 603,
+    "type": "int",
+    "name": "OS_VK_CAPITAL",
+    "value": 20,
+    "hex": "0x14",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 605,
+    "type": "int",
+    "name": "OS_VK_NUMLOCK",
+    "value": 144,
+    "hex": "0x90",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 607,
+    "type": "int",
+    "name": "OS_VK_SCROLL",
+    "value": 145,
+    "hex": "0x91",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 609,
+    "type": "ushort",
+    "name": "Light_ChinaMode",
+    "value": 1894,
+    "hex": "0x766",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 611,
+    "type": "ushort",
+    "name": "Light_SetToChinaMode",
+    "value": 1922,
+    "hex": "0x782",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 613,
+    "type": "ushort",
+    "name": "ecOEM_EC_VER",
+    "value": 1108,
+    "hex": "0x454",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 615,
+    "type": "ushort",
+    "name": "ecOEM_SUB_VER2",
+    "value": 1149,
+    "hex": "0x47d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 617,
+    "type": "ushort",
+    "name": "AP_SSDTempr",
+    "value": 2001,
+    "hex": "0x7d1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 619,
+    "type": "ushort",
+    "name": "EC_Color_Calibration_Support",
+    "value": 3406,
+    "hex": "0xd4e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 621,
+    "type": "ushort",
+    "name": "BatteryLogoEnable",
+    "value": 1989,
+    "hex": "0x7c5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 623,
+    "type": "ushort",
+    "name": "SmartBalance",
+    "value": 1964,
+    "hex": "0x7ac",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 625,
+    "type": "ushort",
+    "name": "PowerLight_LEDPWM",
+    "value": 2040,
+    "hex": "0x7f8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 627,
+    "type": "uint",
+    "name": "APP_Normal_Mode",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 629,
+    "type": "uint",
+    "name": "APP_ImageProjectionLight_Mode",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 631,
+    "type": "uint",
+    "name": "APP_LightBar_Mode",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 633,
+    "type": "uint",
+    "name": "LEVEL_ZERO",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 635,
+    "type": "uint",
+    "name": "LEVEL_ONE",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 637,
+    "type": "uint",
+    "name": "LEVEL_TWO",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 639,
+    "type": "uint",
+    "name": "LEVEL_THREE",
+    "value": 3,
+    "hex": "0x3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 641,
+    "type": "uint",
+    "name": "LEVEL_FOUR",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 643,
+    "type": "uint",
+    "name": "LEVEL_FIVE",
+    "value": 5,
+    "hex": "0x5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 645,
+    "type": "uint",
+    "name": "LEVEL_SIX",
+    "value": 6,
+    "hex": "0x6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 647,
+    "type": "uint",
+    "name": "LEVEL_SEVEN",
+    "value": 7,
+    "hex": "0x7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 649,
+    "type": "uint",
+    "name": "LEVEL_EIGHT",
+    "value": 8,
+    "hex": "0x8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 651,
+    "type": "uint",
+    "name": "LEVEL_NINE",
+    "value": 9,
+    "hex": "0x9",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 653,
+    "type": "uint",
+    "name": "LEVEL_MAX",
+    "value": 100,
+    "hex": "0x64",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 655,
+    "type": "int",
+    "name": "Animation_OFF",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 657,
+    "type": "int",
+    "name": "Animation_ON",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 659,
+    "type": "byte",
+    "name": "Enable_RGB_Music",
+    "value": 254,
+    "hex": "0xfe",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 661,
+    "type": "byte",
+    "name": "Disable_RGB_Music",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 663,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_LEVEL_R",
+    "value": 1897,
+    "hex": "0x769",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 665,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_LEVEL_G",
+    "value": 1898,
+    "hex": "0x76a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 667,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_LEVEL_B",
+    "value": 1899,
+    "hex": "0x76b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 669,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_LEVEL_DEFAULT_R",
+    "value": 1900,
+    "hex": "0x76c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 671,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_LEVEL_DEFAULT_G",
+    "value": 1901,
+    "hex": "0x76d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 673,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_LEVEL_DEFAULT_B",
+    "value": 1902,
+    "hex": "0x76e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\ECSpec.cs",
+    "line": 675,
+    "type": "ushort",
+    "name": "ADDR_RGBKB_MUSIC_NO",
+    "value": 1903,
+    "hex": "0x76f",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1_ECSpec.cs",
+    "line": 5,
+    "type": "ushort",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_UP0",
+    "value": 3840,
+    "hex": "0xf00",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1_ECSpec.cs",
+    "line": 7,
+    "type": "ushort",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_DOWN0",
+    "value": 3856,
+    "hex": "0xf10",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1_ECSpec.cs",
+    "line": 9,
+    "type": "ushort",
+    "name": "ADDR_CPU_FAN_TABLE_DUTY0",
+    "value": 3872,
+    "hex": "0xf20",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1_ECSpec.cs",
+    "line": 11,
+    "type": "ushort",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_UP0",
+    "value": 3888,
+    "hex": "0xf30",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1_ECSpec.cs",
+    "line": 13,
+    "type": "ushort",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_DOWN0",
+    "value": 3904,
+    "hex": "0xf40",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1_ECSpec.cs",
+    "line": 15,
+    "type": "ushort",
+    "name": "ADDR_GPU_FAN_TABLE_DUTY0",
+    "value": 3920,
+    "hex": "0xf50",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 5,
+    "type": "ushort",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_UP0",
+    "value": 3840,
+    "hex": "0xf00",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 7,
+    "type": "ushort",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_DOWN0",
+    "value": 3856,
+    "hex": "0xf10",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 9,
+    "type": "ushort",
+    "name": "ADDR_CPU_FAN_TABLE_DUTY0",
+    "value": 3872,
+    "hex": "0xf20",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 11,
+    "type": "ushort",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_UP0",
+    "value": 3888,
+    "hex": "0xf30",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 13,
+    "type": "ushort",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_DOWN0",
+    "value": 3904,
+    "hex": "0xf40",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 15,
+    "type": "ushort",
+    "name": "ADDR_GPU_FAN_TABLE_DUTY0",
+    "value": 3920,
+    "hex": "0xf50",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 17,
+    "type": "ushort",
+    "name": "ADDR_RAMFAN1P5_TABLE_STATUS1",
+    "value": 3933,
+    "hex": "0xf5d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 19,
+    "type": "ushort",
+    "name": "ADDR_RAMFAN1P5_TABLE_STATUS2",
+    "value": 3934,
+    "hex": "0xf5e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 21,
+    "type": "ushort",
+    "name": "ADDR_RAMFAN1P5_TABLE_CTRL",
+    "value": 3935,
+    "hex": "0xf5f",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 23,
+    "type": "ushort",
+    "name": "ADDR_TimAP_TccOffset_Setting",
+    "value": 1926,
+    "hex": "0x786",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan1p5_ECSpec.cs",
+    "line": 25,
+    "type": "ushort",
+    "name": "ADDR_TimAP_FanSwitchSpeedT100mSec",
+    "value": 1927,
+    "hex": "0x787",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 5,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F1_CPU_TEMP_UP0",
+    "value": 3840,
+    "hex": "0xf00",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 7,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F1_CPU_TEMP_DOWN0",
+    "value": 3856,
+    "hex": "0xf10",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 9,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F1_DUTY0",
+    "value": 3872,
+    "hex": "0xf20",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 11,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F1_GPU_TEMP_UP0",
+    "value": 3888,
+    "hex": "0xf30",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 13,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F1_GPU_TEMP_DOWN0",
+    "value": 3904,
+    "hex": "0xf40",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 15,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F2_CPU_TEMP_UP0",
+    "value": 3920,
+    "hex": "0xf50",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 17,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F2_CPU_TEMP_DOWN0",
+    "value": 3936,
+    "hex": "0xf60",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 19,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F2_DUTY0",
+    "value": 3952,
+    "hex": "0xf70",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 21,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F2_GPU_TEMP_UP0",
+    "value": 3968,
+    "hex": "0xf80",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 23,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F2_GPU_TEMP_DOWN0",
+    "value": 3984,
+    "hex": "0xf90",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 25,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F3_CPU_TEMP_UP0",
+    "value": 4000,
+    "hex": "0xfa0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 27,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F3_CPU_TEMP_DOWN0",
+    "value": 4016,
+    "hex": "0xfb0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 29,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F3_DUTY0",
+    "value": 4032,
+    "hex": "0xfc0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 31,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F3_GPU_TEMP_UP0",
+    "value": 4048,
+    "hex": "0xfd0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "Define\\RamFan2_ECSpec.cs",
+    "line": 33,
+    "type": "ushort",
+    "name": "ADDR_TABLE_F3_GPU_TEMP_DOWN0",
+    "value": 4064,
+    "hex": "0xfe0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 7,
+    "type": "ulong",
+    "name": "EC_SUPPORT_BYTE2",
+    "value": 1894,
+    "hex": "0x766",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 9,
+    "type": "ulong",
+    "name": "EC_TRIGGER_BYTE",
+    "value": 1895,
+    "hex": "0x767",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 11,
+    "type": "ulong",
+    "name": "EC_RGBKB_LEVEL_R",
+    "value": 1897,
+    "hex": "0x769",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 13,
+    "type": "ulong",
+    "name": "EC_RGBKB_LEVEL_G",
+    "value": 1898,
+    "hex": "0x76a",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 15,
+    "type": "ulong",
+    "name": "EC_RGBKB_LEVEL_B",
+    "value": 1899,
+    "hex": "0x76b",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 17,
+    "type": "ulong",
+    "name": "EC_RGBKB_LEVEL_DEFAULT_R",
+    "value": 1900,
+    "hex": "0x76c",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 19,
+    "type": "ulong",
+    "name": "EC_RGBKB_LEVEL_DEFAULT_G",
+    "value": 1901,
+    "hex": "0x76d",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 21,
+    "type": "ulong",
+    "name": "EC_RGBKB_LEVEL_DEFAULT_B",
+    "value": 1902,
+    "hex": "0x76e",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 23,
+    "type": "byte",
+    "name": "EC_RGBKEYBOARD_SUPPORT_BIT",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 25,
+    "type": "byte",
+    "name": "EC_RGBKEYBOARD_TRIGGER_BIT",
+    "value": 32,
+    "hex": "0x20",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 27,
+    "type": "byte",
+    "name": "EC_RGBKEYBOARD_WELCOME_ON_BIT",
+    "value": 128,
+    "hex": "0x80",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 29,
+    "type": "ulong",
+    "name": "EC_PROJECT_ID_BYTE",
+    "value": 1856,
+    "hex": "0x740",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 31,
+    "type": "byte",
+    "name": "EC_PROJECT_LEGANCY",
+    "value": 0,
+    "hex": "0x0",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 33,
+    "type": "byte",
+    "name": "EC_PROJECT_GIxKN",
+    "value": 1,
+    "hex": "0x1",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 35,
+    "type": "byte",
+    "name": "EC_PROJECT_GJxKN",
+    "value": 2,
+    "hex": "0x2",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 37,
+    "type": "byte",
+    "name": "EC_PROJECT_GKxCN",
+    "value": 3,
+    "hex": "0x3",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 39,
+    "type": "byte",
+    "name": "EC_PROJECT_GIxCN",
+    "value": 4,
+    "hex": "0x4",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 41,
+    "type": "byte",
+    "name": "EC_PROJECT_GJxCN",
+    "value": 5,
+    "hex": "0x5",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 43,
+    "type": "byte",
+    "name": "EC_PROJECT_GK5CN_X",
+    "value": 6,
+    "hex": "0x6",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 45,
+    "type": "byte",
+    "name": "EC_PROJECT_GK7CN_S",
+    "value": 7,
+    "hex": "0x7",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 47,
+    "type": "byte",
+    "name": "EC_PROJECT_GK7CPCS_GK5CQ7Z",
+    "value": 8,
+    "hex": "0x8",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 49,
+    "type": "byte",
+    "name": "EC_PROJECT_IDP",
+    "value": 11,
+    "hex": "0xb",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 51,
+    "type": "byte",
+    "name": "EC_PROJECT_ID6Y",
+    "value": 12,
+    "hex": "0xc",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 53,
+    "type": "byte",
+    "name": "EC_PROJECT_ID7Y",
+    "value": 13,
+    "hex": "0xd",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 55,
+    "type": "byte",
+    "name": "EC_PROJECT_PF4MU_PF4MN_PF5MU",
+    "value": 14,
+    "hex": "0xe",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 57,
+    "type": "byte",
+    "name": "EC_PROJECT_CML_Gaming",
+    "value": 15,
+    "hex": "0xf",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 59,
+    "type": "byte",
+    "name": "EC_PROJECT_GK7NXXR",
+    "value": 16,
+    "hex": "0x10",
+    "evidence": "literal .NET constant field"
+  },
+  {
+    "file": "LightingModel\\EC_SPEC.cs",
+    "line": 61,
+    "type": "byte",
+    "name": "EC_PROJECT_GM5MU1Y",
+    "value": 17,
+    "hex": "0x11",
+    "evidence": "literal .NET constant field"
+  }
+]

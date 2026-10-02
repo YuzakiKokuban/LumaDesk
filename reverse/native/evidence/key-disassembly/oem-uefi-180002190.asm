@@ -1,0 +1,52 @@
+; oem-uefi.dll SHA256=4cfe064827dad6da7bf6fb9fc07dc00b4032f1881331d59bfa8d5937a6d534be
+; preferred image VA 0x180002190..0x180002250
+0000000180002190  sub      rsp, 0x28
+0000000180002194  call     0x180002f10 ; 
+0000000180002199  test     eax, eax
+000000018000219b  je       0x18000223e
+00000001800021a1  xor      edx, edx
+00000001800021a3  mov      qword ptr [rsp + 0x20], rdi
+00000001800021a8  mov      r8d, 0x200
+00000001800021ae  lea      rcx, [rip + 0x29cbb] ; [0x18002be70] 
+00000001800021b5  call     0x18001b550 ; 
+00000001800021ba  mov      r9d, 0x200
+00000001800021c0  lea      r8, [rip + 0x29ca9] ; [0x18002be70] 
+00000001800021c7  lea      rdx, [rip + 0x23e32] ; [0x180026000] 
+00000001800021ce  lea      rcx, [rip + 0x23e7b] ; [0x180026050] 
+00000001800021d5  call     qword ptr [rip + 0x1aeb5] ; [0x18001d090] KERNEL32.dll!GetFirmwareEnvironmentVariableW
+00000001800021db  xor      edi, edi
+00000001800021dd  lea      rcx, [rip + 0x29c8c] ; [0x18002be70] 
+00000001800021e4  test     eax, eax
+00000001800021e6  cmove    rcx, rdi
+00000001800021ea  test     rcx, rcx
+00000001800021ed  jne      0x180002231
+00000001800021ef  xor      edx, edx
+00000001800021f1  lea      rcx, [rip + 0x29c78] ; [0x18002be70] 
+00000001800021f8  mov      r8d, 0x200
+00000001800021fe  call     0x18001b550 ; 
+0000000180002203  mov      r9d, 0x200
+0000000180002209  lea      r8, [rip + 0x29c60] ; [0x18002be70] 
+0000000180002210  lea      rdx, [rip + 0x23e69] ; [0x180026080] 
+0000000180002217  lea      rcx, [rip + 0x23eb2] ; [0x1800260d0] 
+000000018000221e  call     qword ptr [rip + 0x1ae6c] ; [0x18001d090] KERNEL32.dll!GetFirmwareEnvironmentVariableW
+0000000180002224  test     eax, eax
+0000000180002226  lea      rcx, [rip + 0x29c43] ; [0x18002be70] 
+000000018000222d  cmove    rcx, rdi
+0000000180002231  mov      rdi, qword ptr [rsp + 0x20]
+0000000180002236  mov      rax, rcx
+0000000180002239  add      rsp, 0x28
+000000018000223d  ret      
+000000018000223e  xor      eax, eax
+0000000180002240  add      rsp, 0x28
+0000000180002244  ret      
+0000000180002245  int3     
+0000000180002246  int3     
+0000000180002247  int3     
+0000000180002248  int3     
+0000000180002249  int3     
+000000018000224a  int3     
+000000018000224b  int3     
+000000018000224c  int3     
+000000018000224d  int3     
+000000018000224e  int3     
+000000018000224f  int3     

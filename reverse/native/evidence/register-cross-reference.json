@@ -1,0 +1,891 @@
+{
+  "0x45b": {
+    "reads": [
+      "0x14026f96a",
+      "0x14036ea55",
+      "0x140370a93"
+    ],
+    "writes": [
+      "0x1403567c4",
+      "0x14036e568",
+      "0x14036e89b",
+      "0x14036ef2b",
+      "0x14036f42b"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_SILENTMODE_STATUS_BYTE"
+    ]
+  },
+  "0x706": {
+    "reads": [],
+    "writes": [
+      "0x14030c3dd"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_BIOS_CONTROL_BYTE"
+    ]
+  },
+  "0x726": {
+    "reads": [
+      "0x1400e2baa",
+      "0x1400e43ba",
+      "0x140329f85",
+      "0x140360220",
+      "0x1403608ca",
+      "0x14036e3ab",
+      "0x14036e6d6",
+      "0x14036ed32",
+      "0x14036ed6f",
+      "0x14036f96b"
+    ],
+    "writes": [
+      "0x1400e2bf5",
+      "0x1400e2c53",
+      "0x1400e4401",
+      "0x14036090b",
+      "0x14036e3db",
+      "0x14036e706",
+      "0x14036ed9f",
+      "0x14036f0c6",
+      "0x14036f99b"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE9"
+    ]
+  },
+  "0x727": {
+    "reads": [
+      "0x1400e2c6e",
+      "0x1400e3215",
+      "0x1400e4422",
+      "0x140174bdd",
+      "0x140329fb8",
+      "0x140348579",
+      "0x14036e3f6",
+      "0x14036e721",
+      "0x14036edba",
+      "0x14036f0e1",
+      "0x14036f9b6",
+      "0x14037662e"
+    ],
+    "writes": [
+      "0x1400e2cc6",
+      "0x1400e3245",
+      "0x1400e4452",
+      "0x140174c0d",
+      "0x140348597",
+      "0x14036e426",
+      "0x14036e751",
+      "0x14036edea",
+      "0x14036f139",
+      "0x14036f9e6"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE10_CUSTOM_LIGHT_TEST",
+      "Define\\ECSpec.cs:ADDR_CPU_DOUBLE_FLAG_SUPPORT",
+      "Define\\ECSpec.cs:ADDR_ESHUTTER_STATUS"
+    ]
+  },
+  "0x730": {
+    "reads": [
+      "0x14031fd20",
+      "0x14032a4ae",
+      "0x14034d609",
+      "0x140371cba"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_GAMING_PL1_DEFAULT_VALUE"
+    ]
+  },
+  "0x731": {
+    "reads": [
+      "0x14031fd32",
+      "0x14032a4c3",
+      "0x140371cd3"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_GAMING_PL2_DEFAULT_VALUE"
+    ]
+  },
+  "0x732": {
+    "reads": [
+      "0x14031fd44",
+      "0x14032a4da",
+      "0x140371ce9"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_GAMING_PL4_DEFAULT_VALUE"
+    ]
+  },
+  "0x734": {
+    "reads": [
+      "0x14031fcbe",
+      "0x14032a44c",
+      "0x14034d5f8",
+      "0x140371c75"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_OFFICE_PL1_DEFAULT_VALUE"
+    ]
+  },
+  "0x735": {
+    "reads": [
+      "0x14031fcda",
+      "0x14032a466",
+      "0x140371c93"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_OFFICE_PL2_DEFAULT_VALUE"
+    ]
+  },
+  "0x736": {
+    "reads": [
+      "0x14031fcf0",
+      "0x14032a47e",
+      "0x140371ca4"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_OFFICE_PL4_DEFAULT_VALUE"
+    ]
+  },
+  "0x740": {
+    "reads": [
+      "0x14031d359",
+      "0x14031e4f9",
+      "0x140329ce2",
+      "0x14032ab38",
+      "0x140348a06"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_PROJECT_ID_BYTE",
+      "LightingModel\\EC_SPEC.cs:EC_PROJECT_ID_BYTE",
+      "LightingModel\\ITE_SPEC.cs:EC_PROJECT_ID_BYTE"
+    ]
+  },
+  "0x741": {
+    "reads": [
+      "0x1400de463",
+      "0x1400e42e2",
+      "0x1402badf7",
+      "0x14036e0df",
+      "0x1403736e6",
+      "0x14037373e"
+    ],
+    "writes": [
+      "0x1400de498",
+      "0x1400e4318",
+      "0x1402bae38",
+      "0x14036e119",
+      "0x14037371c",
+      "0x14037376e"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE",
+      "Define\\ECSpec.cs:ADDR_FAN_ALERT_BYTE",
+      "LightingModel\\ITE_SPEC.cs:EC_AP_OEM_BYTE"
+    ]
+  },
+  "0x743": {
+    "reads": [
+      "0x14030b9b9",
+      "0x14030e1ef",
+      "0x14032a5a5",
+      "0x140356ea8",
+      "0x14036eabe",
+      "0x140370b01"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_ConfigurableTGP_DynamicBoost_CTRL_BYTE",
+      "Define\\ECSpec.cs:ADDR_MYFAN2_L1_PWM"
+    ]
+  },
+  "0x744": {
+    "reads": [
+      "0x14030b9ac",
+      "0x14030dea4",
+      "0x14030e1e2",
+      "0x14032a5bd",
+      "0x140356e9a",
+      "0x14036ead3",
+      "0x140370b17"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_ConfigurableTGP_VALUE",
+      "Define\\ECSpec.cs:ADDR_MYFAN2_L2_PWM"
+    ]
+  },
+  "0x746": {
+    "reads": [
+      "0x14026fb3a",
+      "0x14031bb0d",
+      "0x14031fdde",
+      "0x14032a5d5",
+      "0x14034d670",
+      "0x140356eb5",
+      "0x14036eae8",
+      "0x140370b2d",
+      "0x140371d3d"
+    ],
+    "writes": [
+      "0x14030b8ad",
+      "0x14030d7f0",
+      "0x14030e0fc"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_DynamicBoost_MaxinumTGP_VALUE",
+      "Define\\ECSpec.cs:ADDR_MYFAN2_L4_PWM"
+    ]
+  },
+  "0x748": {
+    "reads": [],
+    "writes": [
+      "0x14038d973",
+      "0x14038dbc9"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_LIGHTBAR_CONTROL_BYTE"
+    ]
+  },
+  "0x749": {
+    "reads": [],
+    "writes": [
+      "0x14038d9b2",
+      "0x14038dc09"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_REDBAR_CONTROL_BYTE"
+    ]
+  },
+  "0x74a": {
+    "reads": [],
+    "writes": [
+      "0x14038d9f0",
+      "0x14038dc49"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_GREENBAR_CONTROL_BYTE"
+    ]
+  },
+  "0x74b": {
+    "reads": [],
+    "writes": [
+      "0x14038da2e",
+      "0x14038dc89"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BLUEBAR_CONTROL_BYTE"
+    ]
+  },
+  "0x74e": {
+    "reads": [
+      "0x1400e32d9",
+      "0x140174862",
+      "0x14026cf31",
+      "0x14026dc6c",
+      "0x140329f93",
+      "0x14032c7a7",
+      "0x14032cdc2",
+      "0x140347939",
+      "0x140348f39"
+    ],
+    "writes": [
+      "0x1400e332d",
+      "0x1401748aa",
+      "0x14026cf75",
+      "0x14032c7cb",
+      "0x14032cde6",
+      "0x14034797b"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BIOS_OEM_BYTE"
+    ]
+  },
+  "0x751": {
+    "reads": [
+      "0x14026f93d",
+      "0x1402e00c1",
+      "0x14030d3e4",
+      "0x14030d53c",
+      "0x14030dc92",
+      "0x140356aed",
+      "0x14036e2d1",
+      "0x14036ea2b",
+      "0x14036f322",
+      "0x140370a7d",
+      "0x1403733d6"
+    ],
+    "writes": [
+      "0x14030d494",
+      "0x14030d578",
+      "0x14030dcdb",
+      "0x140356b60",
+      "0x140356c0c",
+      "0x14036e33c",
+      "0x14036e469",
+      "0x14036e794",
+      "0x14036ee2a",
+      "0x14036f37b"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_MAFAN_CONTROL_BYTE"
+    ]
+  },
+  "0x765": {
+    "reads": [
+      "0x1402d1a04"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_SUPPORT_BYTE1"
+    ]
+  },
+  "0x766": {
+    "reads": [
+      "0x14029cbc5",
+      "0x14029d973",
+      "0x14029f394",
+      "0x14029fc40",
+      "0x1402a064f",
+      "0x140329cbc",
+      "0x14035cfb6",
+      "0x14035d064",
+      "0x14035e51e",
+      "0x140364a0f"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_SUPPORT_BYTE2",
+      "LightingModel\\EC_SPEC.cs:EC_SUPPORT_BYTE2"
+    ]
+  },
+  "0x767": {
+    "reads": [
+      "0x1400dc8f6",
+      "0x1400e2ce1",
+      "0x1400e446d",
+      "0x14029ccbf",
+      "0x14029d9e0",
+      "0x14030bccc",
+      "0x140329f77",
+      "0x140356a64",
+      "0x14035d0cc",
+      "0x1403601b4",
+      "0x14036084f",
+      "0x14036507d",
+      "0x14036e4ef",
+      "0x14036e820",
+      "0x14036ea40",
+      "0x14036eeb0",
+      "0x14036f72f",
+      "0x140370a67",
+      "0x140373a87",
+      "0x14038da48",
+      "0x14038dca4"
+    ],
+    "writes": [
+      "0x1400dc92f",
+      "0x1400e2d20",
+      "0x1400e44a8",
+      "0x14029cee2",
+      "0x14029dbbf",
+      "0x14029dccd",
+      "0x14029dd62",
+      "0x14029df1e",
+      "0x14030bcf9",
+      "0x140356aa0",
+      "0x14035d2a9",
+      "0x140360336",
+      "0x140360894",
+      "0x14036525b",
+      "0x14036e52b",
+      "0x14036e85c",
+      "0x14036eeec",
+      "0x14036f76b",
+      "0x140373aba",
+      "0x14038da78",
+      "0x14038dcd4"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_TRIGGER_BYTE",
+      "LightingModel\\EC_SPEC.cs:EC_TRIGGER_BYTE"
+    ]
+  },
+  "0x768": {
+    "reads": [
+      "0x1400e2d3b",
+      "0x140174781",
+      "0x14026cf90",
+      "0x14026da6b",
+      "0x140329fa8",
+      "0x14032c7d4",
+      "0x14032cdef",
+      "0x140347aec",
+      "0x140348f5a",
+      "0x14034c9aa",
+      "0x14035f7c4"
+    ],
+    "writes": [
+      "0x1400e2d78",
+      "0x1401747b9",
+      "0x14026cfcd",
+      "0x14032c7fe",
+      "0x14032ce11",
+      "0x140347b1e",
+      "0x14035f7f2"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_STAUTS_BYTE"
+    ]
+  },
+  "0x769": {
+    "reads": [],
+    "writes": [
+      "0x1400dc860",
+      "0x14029cd0d",
+      "0x14029ce25",
+      "0x14029d22b",
+      "0x14029db03",
+      "0x14029ddf8",
+      "0x14035d118",
+      "0x14035d1e9",
+      "0x14035d803",
+      "0x1403650cd",
+      "0x14036519d",
+      "0x140365502"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_EC_LOGO_R",
+      "Define\\ECSpec.cs:ADDR_RGBKB_LEVEL_R",
+      "LightingModel\\EC_SPEC.cs:EC_RGBKB_LEVEL_R"
+    ]
+  },
+  "0x76a": {
+    "reads": [],
+    "writes": [
+      "0x1400dc89e",
+      "0x14029cd4a",
+      "0x14029ce62",
+      "0x14029d268",
+      "0x14029db41",
+      "0x14029de3e",
+      "0x14035d156",
+      "0x14035d227",
+      "0x14035d841",
+      "0x14036510b",
+      "0x1403651db",
+      "0x140365540"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_EC_LOGO_G",
+      "Define\\ECSpec.cs:ADDR_RGBKB_LEVEL_G",
+      "LightingModel\\EC_SPEC.cs:EC_RGBKB_LEVEL_G"
+    ]
+  },
+  "0x76b": {
+    "reads": [],
+    "writes": [
+      "0x1400dc8dc",
+      "0x14029cd87",
+      "0x14029ce9f",
+      "0x14029d2a5",
+      "0x14029db7f",
+      "0x14029de7e",
+      "0x14035d194",
+      "0x14035d265",
+      "0x14035d87f",
+      "0x140365149",
+      "0x140365219",
+      "0x14036557e"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_EC_LOGO_B",
+      "Define\\ECSpec.cs:ADDR_RGBKB_LEVEL_B",
+      "LightingModel\\EC_SPEC.cs:EC_RGBKB_LEVEL_B"
+    ]
+  },
+  "0x770": {
+    "reads": [],
+    "writes": [
+      "0x1400dddb3"
+    ],
+    "aliases": []
+  },
+  "0x783": {
+    "reads": [
+      "0x14026f8e4",
+      "0x14026fae1",
+      "0x14030b265",
+      "0x14032a565",
+      "0x14036ea6a",
+      "0x140370aa9"
+    ],
+    "writes": [
+      "0x14030b0fc",
+      "0x14030cff1",
+      "0x1403568c5"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_PL1_SETTING_VALUE"
+    ]
+  },
+  "0x784": {
+    "reads": [
+      "0x14026f8fe",
+      "0x14026fafb",
+      "0x14030b1af",
+      "0x14030b632",
+      "0x14032a57d",
+      "0x14036ea7f",
+      "0x140370abf"
+    ],
+    "writes": [
+      "0x14030b2c0",
+      "0x14030d033",
+      "0x140356905"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_PL2_SETTING_VALUE"
+    ]
+  },
+  "0x785": {
+    "reads": [
+      "0x14026f913",
+      "0x14026fb10",
+      "0x14030b398",
+      "0x14032a591",
+      "0x14036ea94",
+      "0x140370ad5"
+    ],
+    "writes": [
+      "0x14030b3f7",
+      "0x14030b6a4",
+      "0x14030d075",
+      "0x140356945"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_PL4_SETTING_VALUE"
+    ]
+  },
+  "0x786": {
+    "reads": [
+      "0x14026f928",
+      "0x14026fb25",
+      "0x14036eaa9",
+      "0x140370aeb"
+    ],
+    "writes": [
+      "0x14030cc74"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_L1_PWM_DEFAULT_MYFAN3",
+      "Define\\RamFan1p5_ECSpec.cs:ADDR_TimAP_TccOffset_Setting"
+    ]
+  },
+  "0x787": {
+    "reads": [],
+    "writes": [
+      "0x14030bb5e",
+      "0x140370136",
+      "0x14037062f",
+      "0x1403709ee"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_L2_PWM_DEFAULT_MYFAN3",
+      "Define\\RamFan1p5_ECSpec.cs:ADDR_TimAP_FanSwitchSpeedT100mSec"
+    ]
+  },
+  "0x78c": {
+    "reads": [
+      "0x1400dc57e",
+      "0x14029c95c",
+      "0x14029cbd8",
+      "0x14029d989",
+      "0x14029d9c7",
+      "0x14029ec25",
+      "0x14029fc57",
+      "0x1402a0662",
+      "0x1402a073b",
+      "0x1402a0b05",
+      "0x1402dd029",
+      "0x1402dd35d",
+      "0x140329cd3",
+      "0x14035c781",
+      "0x14035c874",
+      "0x14035cfc4",
+      "0x14035e535",
+      "0x140364a22",
+      "0x14036f920"
+    ],
+    "writes": [
+      "0x1400dc5f4",
+      "0x1400dc821",
+      "0x14029c993",
+      "0x14029cc53",
+      "0x14029dac4",
+      "0x14029dfac",
+      "0x14029ec5c",
+      "0x1402a07cd",
+      "0x1402a0b57",
+      "0x1402dd060",
+      "0x1402dd394",
+      "0x14035c7b8",
+      "0x14035c8ab",
+      "0x14035d049",
+      "0x140364a9d",
+      "0x14036f950"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_EC_LOGO_CONFIRM",
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE2",
+      "Define\\ECSpec.cs:ADDR_L4_PWM_DEFAULT_MYFAN2",
+      "Define\\ECSpec.cs:ADDR_SINGLEKBL_ENABLE"
+    ]
+  },
+  "0x78e": {
+    "reads": [
+      "0x1402d1a17"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_SINGLEKBL_SUPPORTPOWER",
+      "Define\\ECSpec.cs:ADDR_SUPPORT_BYTE6"
+    ]
+  },
+  "0x7a4": {
+    "reads": [
+      "0x14017226c"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_BIOS_BYTE"
+    ]
+  },
+  "0x7a6": {
+    "reads": [
+      "0x1400dde4b",
+      "0x1400e2e3c",
+      "0x1400e55c7",
+      "0x1401743a7",
+      "0x14017447b",
+      "0x14026d005",
+      "0x140329fc7",
+      "0x14032ce39",
+      "0x14032d028",
+      "0x140347b6c",
+      "0x1403773af"
+    ],
+    "writes": [
+      "0x1400dde90",
+      "0x1400e2e6c",
+      "0x1400e5608",
+      "0x1401743d7",
+      "0x1401744ab",
+      "0x14026d035",
+      "0x14032ce49",
+      "0x14032d038",
+      "0x140347ba1"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE4"
+    ]
+  },
+  "0x7a7": {
+    "reads": [
+      "0x14031fd79",
+      "0x14032a506",
+      "0x14034d61c",
+      "0x140371cff"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BATTERYSAVER_PL1_DEFAULT_VALUE"
+    ]
+  },
+  "0x7a8": {
+    "reads": [
+      "0x14031fd88",
+      "0x14032a51e",
+      "0x14034d62d",
+      "0x140371d18"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BATTERYSAVER_PL2_DEFAULT_VALUE"
+    ]
+  },
+  "0x7a9": {
+    "reads": [
+      "0x14031fdac",
+      "0x14032a536",
+      "0x14034d640",
+      "0x140371d2a"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BATTERYSAVER_PL4_DEFAULT_VALUE"
+    ]
+  },
+  "0x7ab": {
+    "reads": [
+      "0x14029d9b2",
+      "0x1402a0682",
+      "0x1402a0728",
+      "0x14036e485",
+      "0x14036e7b0",
+      "0x14036ea14",
+      "0x14036ee46",
+      "0x14036f397",
+      "0x140370a51"
+    ],
+    "writes": [
+      "0x14029da83",
+      "0x14029df6e",
+      "0x1402a0790",
+      "0x14036e4d4",
+      "0x14036e805",
+      "0x14036ee95",
+      "0x14036f3ec"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_EC_LOGO",
+      "Define\\ECSpec.cs:ADDR_MyFanCCI_Mode_Index"
+    ]
+  },
+  "0x7b9": {
+    "reads": [
+      "0x140329fe1"
+    ],
+    "writes": [
+      "0x1400dddf0"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BATTERY_CHARGE_LIMIT_UP"
+    ]
+  },
+  "0x7c4": {
+    "reads": [
+      "0x140370b46"
+    ],
+    "writes": [],
+    "aliases": []
+  },
+  "0x7c5": {
+    "reads": [
+      "0x14029cc6e",
+      "0x14029d9f5",
+      "0x14030e344",
+      "0x14035d07b",
+      "0x14036502c"
+    ],
+    "writes": [
+      "0x14029cca4",
+      "0x14029dbfd",
+      "0x14029dda0",
+      "0x14029dedd",
+      "0x14030e387",
+      "0x14035d0b1",
+      "0x140365062"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE5"
+    ]
+  },
+  "0x7c6": {
+    "reads": [],
+    "writes": [
+      "0x14030bdc5",
+      "0x14030be04",
+      "0x14030be55",
+      "0x14030e77d"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE6"
+    ]
+  },
+  "0x7c7": {
+    "reads": [
+      "0x14017225f"
+    ],
+    "writes": [
+      "0x14028f445",
+      "0x14029243e",
+      "0x1402934c7"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_AP_OEM_BYTE7"
+    ]
+  },
+  "0x7cc": {
+    "reads": [
+      "0x14026f952",
+      "0x14026fb52",
+      "0x140360f02",
+      "0x14036eafd",
+      "0x140370b75"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_COMPLEX_POWER_STATUS"
+    ]
+  },
+  "0x7d0": {
+    "reads": [
+      "0x140329ffc"
+    ],
+    "writes": [
+      "0x1400dde30"
+    ],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_BATTERY_CHARGE_LIMIT_DOWN"
+    ]
+  },
+  "0x7d5": {
+    "reads": [
+      "0x140370b5f"
+    ],
+    "writes": [],
+    "aliases": []
+  },
+  "0x7d8": {
+    "reads": [
+      "0x14031fd5d",
+      "0x14032a4ee"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_GAMING_TCC_OFFSET_DEFAULT_VALUE"
+    ]
+  },
+  "0x7d9": {
+    "reads": [
+      "0x14031fd06",
+      "0x14032a496"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_OFFICE_TCC_OFFSET_DEFAULT_VALUE"
+    ]
+  },
+  "0x7da": {
+    "reads": [
+      "0x14030cb80",
+      "0x14031fdc8",
+      "0x14032a54d",
+      "0x14034d658",
+      "0x14036e296"
+    ],
+    "writes": [],
+    "aliases": [
+      "Define\\ECSpec.cs:ADDR_TURBO_TCC_OFFSET_DEFAULT_VALUE"
+    ]
+  }
+}

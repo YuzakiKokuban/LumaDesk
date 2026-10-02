@@ -1,0 +1,3082 @@
+[
+  {
+    "type": "Define.ECSpec",
+    "name": "BIOSFuncReg",
+    "constant_type": 7,
+    "value": 1142,
+    "field_token": "0x40002ce",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ecPowSource",
+    "constant_type": 7,
+    "value": 1168,
+    "field_token": "0x40002cf",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BIOS_INFO_3_BYTE",
+    "constant_type": 7,
+    "value": 1183,
+    "field_token": "0x40002d0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ecBt1Temperature",
+    "constant_type": 7,
+    "value": 1186,
+    "field_token": "0x40002d1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ecBt1RSOC",
+    "constant_type": 7,
+    "value": 1195,
+    "field_token": "0x40002d2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_MODE_NORMAL",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40002d3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_MODE_BOOST",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002d4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_MODE_CUSTOMIZE",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002d5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_CUSTOMIZEMODE_NORMAL",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40002d6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_CUSTOMIZEMODE_BASIC",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002d7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_CUSTOMIZEMODE_HIGH",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002d8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_GAMING_MODE",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40002d9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_OFFICE_MODE",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002da",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_TURBO_MODE",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002db",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_CUSTOM_MODE",
+    "constant_type": 9,
+    "value": 3,
+    "field_token": "0x40002dc",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_OFFICE_MODE_BASIC",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002dd",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_OFFICE_MODE_ADVANCED",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002de",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_GAMING_MODE_SMART",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002df",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_GAMING_MODE_PERFENHANCED",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002e0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "POWER_SETTING_MODE_ECO",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002e1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "POWER_SETTING_MODE_STD",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002e2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_LEVEL_ZERO",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40002e3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_LEVEL_ONE",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002e4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_LEVEL_TWO",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002e5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_LEVEL_THREE",
+    "constant_type": 9,
+    "value": 3,
+    "field_token": "0x40002e6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_LEVEL_FOUR",
+    "constant_type": 9,
+    "value": 4,
+    "field_token": "0x40002e7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "FAN_LEVEL_FIVE",
+    "constant_type": 9,
+    "value": 5,
+    "field_token": "0x40002e8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_1",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002e9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_2",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002ea",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_3",
+    "constant_type": 9,
+    "value": 3,
+    "field_token": "0x40002eb",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_4",
+    "constant_type": 9,
+    "value": 4,
+    "field_token": "0x40002ec",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_MIN",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002ed",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_MAX",
+    "constant_type": 9,
+    "value": 4,
+    "field_token": "0x40002ee",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_DEFAULT",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40002ef",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TURBO_MODE_CPUBOOST",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40002f0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "QKEY_MODESWITCH",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40002f1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "QKEY_FANBOOST",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40002f2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BIF_DC_BYTE1",
+    "constant_type": 7,
+    "value": 1026,
+    "field_token": "0x40002f3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BIF_DC_BYTE2",
+    "constant_type": 7,
+    "value": 1027,
+    "field_token": "0x40002f4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BIF_DV_BYTE1",
+    "constant_type": 7,
+    "value": 1032,
+    "field_token": "0x40002f5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BIF_DV_BYTE2",
+    "constant_type": 7,
+    "value": 1033,
+    "field_token": "0x40002f6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BST_BPR_BYTE1",
+    "constant_type": 7,
+    "value": 1076,
+    "field_token": "0x40002f7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BST_BPR_BYTE2",
+    "constant_type": 7,
+    "value": 1077,
+    "field_token": "0x40002f8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BST_BRC_BYTE1",
+    "constant_type": 7,
+    "value": 1078,
+    "field_token": "0x40002f9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BST_BRC_BYTE2",
+    "constant_type": 7,
+    "value": 1079,
+    "field_token": "0x40002fa",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BST_BPV_BYTE1",
+    "constant_type": 7,
+    "value": 1080,
+    "field_token": "0x40002fb",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BST_BPV_BYTE2",
+    "constant_type": 7,
+    "value": 1081,
+    "field_token": "0x40002fc",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BT1CycleCount_BYTE1",
+    "constant_type": 7,
+    "value": 1190,
+    "field_token": "0x40002fd",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BT1CycleCount_BYTE2",
+    "constant_type": 7,
+    "value": 1191,
+    "field_token": "0x40002fe",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_MAIN_FAN_RPM_BYTE1",
+    "constant_type": 7,
+    "value": 1124,
+    "field_token": "0x40002ff",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_MAIN_FAN_RPM_BYTE2",
+    "constant_type": 7,
+    "value": 1125,
+    "field_token": "0x4000300",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_BIOS_INFO5",
+    "constant_type": 7,
+    "value": 1126,
+    "field_token": "0x4000301",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_SECOND_FAN_RPM_BYTE1",
+    "constant_type": 7,
+    "value": 1132,
+    "field_token": "0x4000302",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_SECOND_FAN_RPM_BYTE2",
+    "constant_type": 7,
+    "value": 1131,
+    "field_token": "0x4000303",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_BIOS_CONTROL_BYTE",
+    "constant_type": 7,
+    "value": 1798,
+    "field_token": "0x4000304",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MAFAN_CONTROL_BYTE",
+    "constant_type": 7,
+    "value": 1873,
+    "field_token": "0x4000305",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_CPU_VRM_CURRENT_LIMIT_BYTE",
+    "constant_type": 7,
+    "value": 1875,
+    "field_token": "0x4000306",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_CPU_VRM_MAXI_CURRENT_LIMIT_BYTE",
+    "constant_type": 7,
+    "value": 1876,
+    "field_token": "0x4000307",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_MAIN_FAN_L_DUTY_BYTE",
+    "constant_type": 7,
+    "value": 1883,
+    "field_token": "0x4000308",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_MAIN_FAN_R_DUTY_BYTE",
+    "constant_type": 7,
+    "value": 1884,
+    "field_token": "0x4000309",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_TRIGGER_BYTE2",
+    "constant_type": 7,
+    "value": 1885,
+    "field_token": "0x400030a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SUPPORT_BYTE1",
+    "constant_type": 7,
+    "value": 1893,
+    "field_token": "0x400030b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SUPPORT_BYTE2",
+    "constant_type": 7,
+    "value": 1894,
+    "field_token": "0x400030c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_PROJECT_ID_BYTE",
+    "constant_type": 7,
+    "value": 1856,
+    "field_token": "0x400030d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE",
+    "constant_type": 7,
+    "value": 1857,
+    "field_token": "0x400030e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SUPPORT_BYTE5",
+    "constant_type": 7,
+    "value": 1858,
+    "field_token": "0x400030f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN2_L1_PWM",
+    "constant_type": 7,
+    "value": 1859,
+    "field_token": "0x4000310",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN2_L2_PWM",
+    "constant_type": 7,
+    "value": 1860,
+    "field_token": "0x4000311",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN2_L3_PWM",
+    "constant_type": 7,
+    "value": 1861,
+    "field_token": "0x4000312",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN2_L4_PWM",
+    "constant_type": 7,
+    "value": 1862,
+    "field_token": "0x4000313",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN2_L5_PWM",
+    "constant_type": 7,
+    "value": 1863,
+    "field_token": "0x4000314",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ConfigurableTGP_DynamicBoost_CTRL_BYTE",
+    "constant_type": 7,
+    "value": 1859,
+    "field_token": "0x4000315",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ConfigurableTGP_VALUE",
+    "constant_type": 7,
+    "value": 1860,
+    "field_token": "0x4000316",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_DynamicBoost_TotalProcessingPowerTarget_VALUE",
+    "constant_type": 7,
+    "value": 1861,
+    "field_token": "0x4000317",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_DynamicBoost_MaxinumTGP_VALUE",
+    "constant_type": 7,
+    "value": 1862,
+    "field_token": "0x4000318",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L1_PWM_DEFAULT_MYFAN2",
+    "constant_type": 7,
+    "value": 1929,
+    "field_token": "0x4000319",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L2_PWM_DEFAULT_MYFAN2",
+    "constant_type": 7,
+    "value": 1930,
+    "field_token": "0x400031a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L3_PWM_DEFAULT_MYFAN2",
+    "constant_type": 7,
+    "value": 1931,
+    "field_token": "0x400031b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L4_PWM_DEFAULT_MYFAN2",
+    "constant_type": 7,
+    "value": 1932,
+    "field_token": "0x400031c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L5_PWM_DEFAULT_MYFAN2",
+    "constant_type": 7,
+    "value": 1933,
+    "field_token": "0x400031d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BIOS_OEM_BYTE",
+    "constant_type": 7,
+    "value": 1870,
+    "field_token": "0x400031e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BIOS_OEM_BYTE2",
+    "constant_type": 7,
+    "value": 1922,
+    "field_token": "0x400031f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GAMING_PL1_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1840,
+    "field_token": "0x4000320",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GAMING_PL2_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1841,
+    "field_token": "0x4000321",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GAMING_PL4_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1842,
+    "field_token": "0x4000322",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GAMING_D_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1843,
+    "field_token": "0x4000323",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OFFICE_PL1_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1844,
+    "field_token": "0x4000324",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OFFICE_PL2_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1845,
+    "field_token": "0x4000325",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OFFICE_PL4_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1846,
+    "field_token": "0x4000326",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OFFICE_D_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1847,
+    "field_token": "0x4000327",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_PL1_SETTING_VALUE",
+    "constant_type": 7,
+    "value": 1923,
+    "field_token": "0x4000328",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_PL2_SETTING_VALUE",
+    "constant_type": 7,
+    "value": 1924,
+    "field_token": "0x4000329",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_PL4_SETTING_VALUE",
+    "constant_type": 7,
+    "value": 1925,
+    "field_token": "0x400032a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L1_PWM_DEFAULT_MYFAN3",
+    "constant_type": 7,
+    "value": 1926,
+    "field_token": "0x400032b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L2_PWM_DEFAULT_MYFAN3",
+    "constant_type": 7,
+    "value": 1927,
+    "field_token": "0x400032c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L3_PWM_DEFAULT_MYFAN3",
+    "constant_type": 7,
+    "value": 1928,
+    "field_token": "0x400032d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L4_PWM_DEFAULT_MYFAN3",
+    "constant_type": 7,
+    "value": 1929,
+    "field_token": "0x400032e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_L5_PWM_DEFAULT_MYFAN3",
+    "constant_type": 7,
+    "value": 1930,
+    "field_token": "0x400032f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SINGLEKBL_ENABLE",
+    "constant_type": 7,
+    "value": 1932,
+    "field_token": "0x4000330",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SINGLEKBL_SUPPORTPOWER",
+    "constant_type": 7,
+    "value": 1934,
+    "field_token": "0x4000331",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN3_CPU_TAU",
+    "constant_type": 7,
+    "value": 1848,
+    "field_token": "0x4000332",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_TRIGGER_BYTE",
+    "constant_type": 7,
+    "value": 1895,
+    "field_token": "0x4000333",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_STAUTS_BYTE",
+    "constant_type": 7,
+    "value": 1896,
+    "field_token": "0x4000334",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_LIGHTBAR_CONTROL_BYTE",
+    "constant_type": 7,
+    "value": 1864,
+    "field_token": "0x4000335",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_REDBAR_CONTROL_BYTE",
+    "constant_type": 7,
+    "value": 1865,
+    "field_token": "0x4000336",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GREENBAR_CONTROL_BYTE",
+    "constant_type": 7,
+    "value": 1866,
+    "field_token": "0x4000337",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BLUEBAR_CONTROL_BYTE",
+    "constant_type": 7,
+    "value": 1867,
+    "field_token": "0x4000338",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OEMSERVICE_PROJECT_ID_BYTE",
+    "constant_type": 7,
+    "value": 1868,
+    "field_token": "0x4000339",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OEMSERVICE_PROJECT_ID_BYTE_NEW",
+    "constant_type": 7,
+    "value": 1869,
+    "field_token": "0x400033a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERY_ALERT_BYTE",
+    "constant_type": 7,
+    "value": 1172,
+    "field_token": "0x400033b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_FAN_ALERT_BYTE",
+    "constant_type": 7,
+    "value": 1857,
+    "field_token": "0x400033c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SILENTMODE_STATUS_BYTE",
+    "constant_type": 7,
+    "value": 1115,
+    "field_token": "0x400033d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFAN3_GPU_SETTING",
+    "constant_type": 7,
+    "value": 1931,
+    "field_token": "0x400033e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE2",
+    "constant_type": 7,
+    "value": 1932,
+    "field_token": "0x400033f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE5",
+    "constant_type": 7,
+    "value": 1989,
+    "field_token": "0x4000340",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_EC_LOGO",
+    "constant_type": 7,
+    "value": 1963,
+    "field_token": "0x4000341",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_EC_LOGO_R",
+    "constant_type": 7,
+    "value": 1897,
+    "field_token": "0x4000342",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_EC_LOGO_G",
+    "constant_type": 7,
+    "value": 1898,
+    "field_token": "0x4000343",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_EC_LOGO_B",
+    "constant_type": 7,
+    "value": 1899,
+    "field_token": "0x4000344",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_EC_LOGO_CONFIRM",
+    "constant_type": 7,
+    "value": 1932,
+    "field_token": "0x4000345",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_SingleZone",
+    "constant_type": 7,
+    "value": 3328,
+    "field_token": "0x4000346",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE6",
+    "constant_type": 7,
+    "value": 1990,
+    "field_token": "0x4000347",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SUPPORT_BYTE6",
+    "constant_type": 7,
+    "value": 1934,
+    "field_token": "0x4000348",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFANI_MIN_SPEED",
+    "constant_type": 7,
+    "value": 1950,
+    "field_token": "0x4000349",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFANI_MIN_TEMP",
+    "constant_type": 7,
+    "value": 1951,
+    "field_token": "0x400034a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MYFANI_EXTRA_SPEED",
+    "constant_type": 7,
+    "value": 1952,
+    "field_token": "0x400034b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BIOS_OEM_BYTE3",
+    "constant_type": 7,
+    "value": 1955,
+    "field_token": "0x400034c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_BIOS_BYTE",
+    "constant_type": 7,
+    "value": 1956,
+    "field_token": "0x400034d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE3",
+    "constant_type": 7,
+    "value": 1957,
+    "field_token": "0x400034e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE4",
+    "constant_type": 7,
+    "value": 1958,
+    "field_token": "0x400034f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERYSAVER_PL1_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1959,
+    "field_token": "0x4000350",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERYSAVER_PL2_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1960,
+    "field_token": "0x4000351",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERYSAVER_PL4_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1961,
+    "field_token": "0x4000352",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERYSAVER_D_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 1962,
+    "field_token": "0x4000353",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MyFanCCI_Mode_Index",
+    "constant_type": 7,
+    "value": 1963,
+    "field_token": "0x4000354",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MyFanCCI_Mode_Profile1",
+    "constant_type": 7,
+    "value": 1968,
+    "field_token": "0x4000355",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MyFanCCI_Mode_Profile2",
+    "constant_type": 7,
+    "value": 1969,
+    "field_token": "0x4000356",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_MyFanCCI_Mode_Profile3",
+    "constant_type": 7,
+    "value": 1970,
+    "field_token": "0x4000357",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERY_CHARGE_LIMIT_UP",
+    "constant_type": 7,
+    "value": 1977,
+    "field_token": "0x4000358",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE7",
+    "constant_type": 7,
+    "value": 1991,
+    "field_token": "0x4000359",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE8",
+    "constant_type": 7,
+    "value": 1992,
+    "field_token": "0x400035a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE9",
+    "constant_type": 7,
+    "value": 1830,
+    "field_token": "0x400035b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTE10_CUSTOM_LIGHT_TEST",
+    "constant_type": 7,
+    "value": 1831,
+    "field_token": "0x400035c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_OEM_BYTEB",
+    "constant_type": 7,
+    "value": 1832,
+    "field_token": "0x400035d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_AP_MISCSWITCH2",
+    "constant_type": 7,
+    "value": 3407,
+    "field_token": "0x400035e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ESHUTTER_STATUS",
+    "constant_type": 7,
+    "value": 1831,
+    "field_token": "0x400035f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_CPU_DOUBLE_FLAG_SUPPORT",
+    "constant_type": 7,
+    "value": 1831,
+    "field_token": "0x4000360",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BIOS_OEM_BYTE8",
+    "constant_type": 7,
+    "value": 1994,
+    "field_token": "0x4000361",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_COMPLEX_POWER_STATUS",
+    "constant_type": 7,
+    "value": 1996,
+    "field_token": "0x4000362",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_BATTERY_CHARGE_LIMIT_DOWN",
+    "constant_type": 7,
+    "value": 2000,
+    "field_token": "0x4000363",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ModuleID_GPU",
+    "constant_type": 7,
+    "value": 2002,
+    "field_token": "0x4000364",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GPU_STATUS",
+    "constant_type": 7,
+    "value": 1834,
+    "field_token": "0x4000365",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ModuleID",
+    "constant_type": 7,
+    "value": 2003,
+    "field_token": "0x4000366",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_GAMING_TCC_OFFSET_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 2008,
+    "field_token": "0x4000367",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_OFFICE_TCC_OFFSET_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 2009,
+    "field_token": "0x4000368",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_TURBO_TCC_OFFSET_DEFAULT_VALUE",
+    "constant_type": 7,
+    "value": 2010,
+    "field_token": "0x4000369",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_LC_FAN_VALUE",
+    "constant_type": 7,
+    "value": 2022,
+    "field_token": "0x400036a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_LC_PUMP_VALUE",
+    "constant_type": 7,
+    "value": 2023,
+    "field_token": "0x400036b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_EC_DEFAULT_MODE",
+    "constant_type": 7,
+    "value": 2024,
+    "field_token": "0x400036c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_CHANGE_PORT_ID_WKD",
+    "constant_type": 7,
+    "value": 2043,
+    "field_token": "0x400036d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_SystemID",
+    "constant_type": 7,
+    "value": 1110,
+    "field_token": "0x400036e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ROMID",
+    "constant_type": 7,
+    "value": 1905,
+    "field_token": "0x400036f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_ROMID2",
+    "constant_type": 7,
+    "value": 1906,
+    "field_token": "0x4000370",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_CAPSLOCK",
+    "constant_type": 7,
+    "value": 1,
+    "field_token": "0x4000371",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_NUMLOCK",
+    "constant_type": 7,
+    "value": 2,
+    "field_token": "0x4000372",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_SROLLOCK",
+    "constant_type": 7,
+    "value": 3,
+    "field_token": "0x4000373",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_TPON",
+    "constant_type": 7,
+    "value": 4,
+    "field_token": "0x4000374",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_TPOFF",
+    "constant_type": 7,
+    "value": 5,
+    "field_token": "0x4000375",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_SILENTON",
+    "constant_type": 7,
+    "value": 6,
+    "field_token": "0x4000376",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_SILENTOFF",
+    "constant_type": 7,
+    "value": 7,
+    "field_token": "0x4000377",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WLANON",
+    "constant_type": 7,
+    "value": 8,
+    "field_token": "0x4000378",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WLANOFF",
+    "constant_type": 7,
+    "value": 9,
+    "field_token": "0x4000379",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WINMAXON",
+    "constant_type": 7,
+    "value": 10,
+    "field_token": "0x400037a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WINMAXOFF",
+    "constant_type": 7,
+    "value": 11,
+    "field_token": "0x400037b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_BTON",
+    "constant_type": 7,
+    "value": 12,
+    "field_token": "0x400037c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_BTOFF",
+    "constant_type": 7,
+    "value": 13,
+    "field_token": "0x400037d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_RFON",
+    "constant_type": 7,
+    "value": 14,
+    "field_token": "0x400037e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_RFOFF",
+    "constant_type": 7,
+    "value": 15,
+    "field_token": "0x400037f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_3GON",
+    "constant_type": 7,
+    "value": 16,
+    "field_token": "0x4000380",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_3GOFF",
+    "constant_type": 7,
+    "value": 17,
+    "field_token": "0x4000381",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WEBCAMON",
+    "constant_type": 7,
+    "value": 18,
+    "field_token": "0x4000382",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WEBCAMOFF",
+    "constant_type": 7,
+    "value": 19,
+    "field_token": "0x4000383",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_BRIGHTNESSUP",
+    "constant_type": 7,
+    "value": 20,
+    "field_token": "0x4000384",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_BRIGHTNESSDOWN",
+    "constant_type": 7,
+    "value": 21,
+    "field_token": "0x4000385",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_RADIOON",
+    "constant_type": 7,
+    "value": 26,
+    "field_token": "0x4000386",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_RADIOOFF",
+    "constant_type": 7,
+    "value": 27,
+    "field_token": "0x4000387",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_POWERSAVEON",
+    "constant_type": 7,
+    "value": 49,
+    "field_token": "0x4000388",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_POWERSAVEOFF",
+    "constant_type": 7,
+    "value": 50,
+    "field_token": "0x4000389",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_MENU",
+    "constant_type": 7,
+    "value": 52,
+    "field_token": "0x400038a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_MUTE",
+    "constant_type": 7,
+    "value": 53,
+    "field_token": "0x400038b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_VOLUMEDOWN",
+    "constant_type": 7,
+    "value": 54,
+    "field_token": "0x400038c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_VOLUMEUP",
+    "constant_type": 7,
+    "value": 55,
+    "field_token": "0x400038d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_OSD_MENU_2",
+    "constant_type": 7,
+    "value": 56,
+    "field_token": "0x400038e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_BREATH_LED_ON",
+    "constant_type": 7,
+    "value": 57,
+    "field_token": "0x400038f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_BREATH_LED_OFF",
+    "constant_type": 7,
+    "value": 58,
+    "field_token": "0x4000390",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_KB_LED_LEVEL0",
+    "constant_type": 7,
+    "value": 59,
+    "field_token": "0x4000391",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_KB_LED_LEVEL1",
+    "constant_type": 7,
+    "value": 60,
+    "field_token": "0x4000392",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_KB_LED_LEVEL2",
+    "constant_type": 7,
+    "value": 61,
+    "field_token": "0x4000393",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_KB_LED_LEVEL3",
+    "constant_type": 7,
+    "value": 62,
+    "field_token": "0x4000394",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_KB_LED_LEVEL4",
+    "constant_type": 7,
+    "value": 63,
+    "field_token": "0x4000395",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WINKEY_LOCK",
+    "constant_type": 7,
+    "value": 64,
+    "field_token": "0x4000396",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_WINKEY_UNLOCK",
+    "constant_type": 7,
+    "value": 65,
+    "field_token": "0x4000397",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_MENU_JP",
+    "constant_type": 7,
+    "value": 66,
+    "field_token": "0x4000398",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_CAMERAON",
+    "constant_type": 7,
+    "value": 144,
+    "field_token": "0x4000399",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_CAMERAOFF",
+    "constant_type": 7,
+    "value": 145,
+    "field_token": "0x400039a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_AIRPLANEMODE",
+    "constant_type": 7,
+    "value": 164,
+    "field_token": "0x400039b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_FANBOOST_UPDATE",
+    "constant_type": 7,
+    "value": 167,
+    "field_token": "0x400039c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_LCD_SW",
+    "constant_type": 7,
+    "value": 169,
+    "field_token": "0x400039d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "PDWarning_Event",
+    "constant_type": 7,
+    "value": 199,
+    "field_token": "0x400039e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_AC_Chg",
+    "constant_type": 7,
+    "value": 199,
+    "field_token": "0x400039f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_MyFanOT",
+    "constant_type": 7,
+    "value": 170,
+    "field_token": "0x40003a0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_MyBat_ACUpdate",
+    "constant_type": 7,
+    "value": 171,
+    "field_token": "0x40003a1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_MyBat_HPOff",
+    "constant_type": 7,
+    "value": 172,
+    "field_token": "0x40003a2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_ReleaseUSM",
+    "constant_type": 7,
+    "value": 173,
+    "field_token": "0x40003a3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_Battery_Alert",
+    "constant_type": 7,
+    "value": 174,
+    "field_token": "0x40003a4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_HaierLB_Sw",
+    "constant_type": 7,
+    "value": 175,
+    "field_token": "0x40003a5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "WinKey_Update",
+    "constant_type": 7,
+    "value": 165,
+    "field_token": "0x40003a6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_FanModeSwitch",
+    "constant_type": 7,
+    "value": 176,
+    "field_token": "0x40003a7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "BacklightLevelChange",
+    "constant_type": 7,
+    "value": 179,
+    "field_token": "0x40003a8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "BacklightPowerChange",
+    "constant_type": 7,
+    "value": 180,
+    "field_token": "0x40003a9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_MicMute_Sw",
+    "constant_type": 7,
+    "value": 183,
+    "field_token": "0x40003aa",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OSD_FnChange",
+    "constant_type": 7,
+    "value": 184,
+    "field_token": "0x40003ab",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "CallAP",
+    "constant_type": 7,
+    "value": 186,
+    "field_token": "0x40003ac",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_HighTemp",
+    "constant_type": 7,
+    "value": 187,
+    "field_token": "0x40003ad",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_WhisperUpdate",
+    "constant_type": 7,
+    "value": 188,
+    "field_token": "0x40003ae",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "SC_SwitchOC",
+    "constant_type": 7,
+    "value": 192,
+    "field_token": "0x40003af",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "SC_PumpFanAuto",
+    "constant_type": 7,
+    "value": 193,
+    "field_token": "0x40003b0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_HWOCScanCode",
+    "constant_type": 7,
+    "value": 194,
+    "field_token": "0x40003b1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_LidClose",
+    "constant_type": 7,
+    "value": 195,
+    "field_token": "0x40003b2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_LidOpen",
+    "constant_type": 7,
+    "value": 196,
+    "field_token": "0x40003b3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "SC_ThermalProtect",
+    "constant_type": 7,
+    "value": 200,
+    "field_token": "0x40003b4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "PHxGPURule1",
+    "constant_type": 7,
+    "value": 203,
+    "field_token": "0x40003b5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "SC_CustomMode",
+    "constant_type": 7,
+    "value": 201,
+    "field_token": "0x40003b6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_ELU_Fn2",
+    "constant_type": 7,
+    "value": 205,
+    "field_token": "0x40003b7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_ELU_Fn3",
+    "constant_type": 7,
+    "value": 206,
+    "field_token": "0x40003b8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_DISPLAY_In",
+    "constant_type": 7,
+    "value": 209,
+    "field_token": "0x40003b9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_NotifyEShutter",
+    "constant_type": 7,
+    "value": 207,
+    "field_token": "0x40003ba",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "TimAP_NotifyFlipScreen",
+    "constant_type": 7,
+    "value": 208,
+    "field_token": "0x40003bb",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OS_VK_CAPITAL",
+    "constant_type": 8,
+    "value": 20,
+    "field_token": "0x40003bc",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OS_VK_NUMLOCK",
+    "constant_type": 8,
+    "value": 144,
+    "field_token": "0x40003bd",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "OS_VK_SCROLL",
+    "constant_type": 8,
+    "value": 145,
+    "field_token": "0x40003be",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "Light_ChinaMode",
+    "constant_type": 7,
+    "value": 1894,
+    "field_token": "0x40003bf",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "Light_SetToChinaMode",
+    "constant_type": 7,
+    "value": 1922,
+    "field_token": "0x40003c0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ecOEM_EC_VER",
+    "constant_type": 7,
+    "value": 1108,
+    "field_token": "0x40003c1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ecOEM_SUB_VER2",
+    "constant_type": 7,
+    "value": 1149,
+    "field_token": "0x40003c2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "AP_SSDTempr",
+    "constant_type": 7,
+    "value": 2001,
+    "field_token": "0x40003c3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "EC_Color_Calibration_Support",
+    "constant_type": 7,
+    "value": 3406,
+    "field_token": "0x40003c4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "BatteryLogoEnable",
+    "constant_type": 7,
+    "value": 1989,
+    "field_token": "0x40003c5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "SmartBalance",
+    "constant_type": 7,
+    "value": 1964,
+    "field_token": "0x40003c6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "PowerLight_LEDPWM",
+    "constant_type": 7,
+    "value": 2040,
+    "field_token": "0x40003c7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "APP_Normal_Mode",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40003c8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "APP_ImageProjectionLight_Mode",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40003c9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "APP_LightBar_Mode",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40003ca",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_ZERO",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40003cb",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_ONE",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40003cc",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_TWO",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40003cd",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_THREE",
+    "constant_type": 9,
+    "value": 3,
+    "field_token": "0x40003ce",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_FOUR",
+    "constant_type": 9,
+    "value": 4,
+    "field_token": "0x40003cf",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_FIVE",
+    "constant_type": 9,
+    "value": 5,
+    "field_token": "0x40003d0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_SIX",
+    "constant_type": 9,
+    "value": 6,
+    "field_token": "0x40003d1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_SEVEN",
+    "constant_type": 9,
+    "value": 7,
+    "field_token": "0x40003d2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_EIGHT",
+    "constant_type": 9,
+    "value": 8,
+    "field_token": "0x40003d3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_NINE",
+    "constant_type": 9,
+    "value": 9,
+    "field_token": "0x40003d4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "LEVEL_MAX",
+    "constant_type": 9,
+    "value": 100,
+    "field_token": "0x40003d5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "Animation_OFF",
+    "constant_type": 8,
+    "value": 0,
+    "field_token": "0x40003d6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "Animation_ON",
+    "constant_type": 8,
+    "value": 1,
+    "field_token": "0x40003d7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "Enable_RGB_Music",
+    "constant_type": 5,
+    "value": 254,
+    "field_token": "0x40003d8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "Disable_RGB_Music",
+    "constant_type": 5,
+    "value": 0,
+    "field_token": "0x40003d9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_LEVEL_R",
+    "constant_type": 7,
+    "value": 1897,
+    "field_token": "0x40003da",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_LEVEL_G",
+    "constant_type": 7,
+    "value": 1898,
+    "field_token": "0x40003db",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_LEVEL_B",
+    "constant_type": 7,
+    "value": 1899,
+    "field_token": "0x40003dc",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_LEVEL_DEFAULT_R",
+    "constant_type": 7,
+    "value": 1900,
+    "field_token": "0x40003dd",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_LEVEL_DEFAULT_G",
+    "constant_type": 7,
+    "value": 1901,
+    "field_token": "0x40003de",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_LEVEL_DEFAULT_B",
+    "constant_type": 7,
+    "value": 1902,
+    "field_token": "0x40003df",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.ECSpec",
+    "name": "ADDR_RGBKB_MUSIC_NO",
+    "constant_type": 7,
+    "value": 1903,
+    "field_token": "0x40003e0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1_ECSpec",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3840,
+    "field_token": "0x4000431",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1_ECSpec",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3856,
+    "field_token": "0x4000432",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1_ECSpec",
+    "name": "ADDR_CPU_FAN_TABLE_DUTY0",
+    "constant_type": 7,
+    "value": 3872,
+    "field_token": "0x4000433",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1_ECSpec",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3888,
+    "field_token": "0x4000434",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1_ECSpec",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3904,
+    "field_token": "0x4000435",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1_ECSpec",
+    "name": "ADDR_GPU_FAN_TABLE_DUTY0",
+    "constant_type": 7,
+    "value": 3920,
+    "field_token": "0x4000436",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3840,
+    "field_token": "0x4000437",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_CPU_FAN_TABLE_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3856,
+    "field_token": "0x4000438",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_CPU_FAN_TABLE_DUTY0",
+    "constant_type": 7,
+    "value": 3872,
+    "field_token": "0x4000439",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3888,
+    "field_token": "0x400043a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_GPU_FAN_TABLE_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3904,
+    "field_token": "0x400043b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_GPU_FAN_TABLE_DUTY0",
+    "constant_type": 7,
+    "value": 3920,
+    "field_token": "0x400043c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_RAMFAN1P5_TABLE_STATUS1",
+    "constant_type": 7,
+    "value": 3933,
+    "field_token": "0x400043d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_RAMFAN1P5_TABLE_STATUS2",
+    "constant_type": 7,
+    "value": 3934,
+    "field_token": "0x400043e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_RAMFAN1P5_TABLE_CTRL",
+    "constant_type": 7,
+    "value": 3935,
+    "field_token": "0x400043f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_TimAP_TccOffset_Setting",
+    "constant_type": 7,
+    "value": 1926,
+    "field_token": "0x4000440",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan1p5_ECSpec",
+    "name": "ADDR_TimAP_FanSwitchSpeedT100mSec",
+    "constant_type": 7,
+    "value": 1927,
+    "field_token": "0x4000441",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F1_CPU_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3840,
+    "field_token": "0x4000442",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F1_CPU_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3856,
+    "field_token": "0x4000443",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F1_DUTY0",
+    "constant_type": 7,
+    "value": 3872,
+    "field_token": "0x4000444",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F1_GPU_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3888,
+    "field_token": "0x4000445",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F1_GPU_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3904,
+    "field_token": "0x4000446",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F2_CPU_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3920,
+    "field_token": "0x4000447",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F2_CPU_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3936,
+    "field_token": "0x4000448",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F2_DUTY0",
+    "constant_type": 7,
+    "value": 3952,
+    "field_token": "0x4000449",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F2_GPU_TEMP_UP0",
+    "constant_type": 7,
+    "value": 3968,
+    "field_token": "0x400044a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F2_GPU_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 3984,
+    "field_token": "0x400044b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F3_CPU_TEMP_UP0",
+    "constant_type": 7,
+    "value": 4000,
+    "field_token": "0x400044c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F3_CPU_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 4016,
+    "field_token": "0x400044d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F3_DUTY0",
+    "constant_type": 7,
+    "value": 4032,
+    "field_token": "0x400044e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F3_GPU_TEMP_UP0",
+    "constant_type": 7,
+    "value": 4048,
+    "field_token": "0x400044f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.RamFan2_ECSpec",
+    "name": "ADDR_TABLE_F3_GPU_TEMP_DOWN0",
+    "constant_type": 7,
+    "value": 4064,
+    "field_token": "0x4000450",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.DGgpuDirectConnectionMode",
+    "name": "AMD_MSHybrid",
+    "constant_type": 5,
+    "value": 0,
+    "field_token": "0x40005ce",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.DGgpuDirectConnectionMode",
+    "name": "AMD_dGPU_only",
+    "constant_type": 5,
+    "value": 1,
+    "field_token": "0x40005cf",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.DGgpuDirectConnectionMode",
+    "name": "AMD_iGPU_only",
+    "constant_type": 5,
+    "value": 2,
+    "field_token": "0x40005d0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.DGgpuDirectConnectionMode",
+    "name": "Intel_iGPU_only",
+    "constant_type": 5,
+    "value": 1,
+    "field_token": "0x40005d1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.DGgpuDirectConnectionMode",
+    "name": "Intel_dGPU_only",
+    "constant_type": 5,
+    "value": 2,
+    "field_token": "0x40005d2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "Define.DGgpuDirectConnectionMode",
+    "name": "Intel_Dynamic",
+    "constant_type": 5,
+    "value": 4,
+    "field_token": "0x40005d3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_SUPPORT_BYTE2",
+    "constant_type": 11,
+    "value": 1894,
+    "field_token": "0x400087f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_TRIGGER_BYTE",
+    "constant_type": 11,
+    "value": 1895,
+    "field_token": "0x4000880",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKB_LEVEL_R",
+    "constant_type": 11,
+    "value": 1897,
+    "field_token": "0x4000881",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKB_LEVEL_G",
+    "constant_type": 11,
+    "value": 1898,
+    "field_token": "0x4000882",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKB_LEVEL_B",
+    "constant_type": 11,
+    "value": 1899,
+    "field_token": "0x4000883",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKB_LEVEL_DEFAULT_R",
+    "constant_type": 11,
+    "value": 1900,
+    "field_token": "0x4000884",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKB_LEVEL_DEFAULT_G",
+    "constant_type": 11,
+    "value": 1901,
+    "field_token": "0x4000885",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKB_LEVEL_DEFAULT_B",
+    "constant_type": 11,
+    "value": 1902,
+    "field_token": "0x4000886",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKEYBOARD_SUPPORT_BIT",
+    "constant_type": 5,
+    "value": 4,
+    "field_token": "0x4000887",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKEYBOARD_TRIGGER_BIT",
+    "constant_type": 5,
+    "value": 32,
+    "field_token": "0x4000888",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_RGBKEYBOARD_WELCOME_ON_BIT",
+    "constant_type": 5,
+    "value": 128,
+    "field_token": "0x4000889",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_ID_BYTE",
+    "constant_type": 11,
+    "value": 1856,
+    "field_token": "0x400088a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_LEGANCY",
+    "constant_type": 5,
+    "value": 0,
+    "field_token": "0x400088b",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GIxKN",
+    "constant_type": 5,
+    "value": 1,
+    "field_token": "0x400088c",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GJxKN",
+    "constant_type": 5,
+    "value": 2,
+    "field_token": "0x400088d",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GKxCN",
+    "constant_type": 5,
+    "value": 3,
+    "field_token": "0x400088e",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GIxCN",
+    "constant_type": 5,
+    "value": 4,
+    "field_token": "0x400088f",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GJxCN",
+    "constant_type": 5,
+    "value": 5,
+    "field_token": "0x4000890",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GK5CN_X",
+    "constant_type": 5,
+    "value": 6,
+    "field_token": "0x4000891",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GK7CN_S",
+    "constant_type": 5,
+    "value": 7,
+    "field_token": "0x4000892",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GK7CPCS_GK5CQ7Z",
+    "constant_type": 5,
+    "value": 8,
+    "field_token": "0x4000893",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_IDP",
+    "constant_type": 5,
+    "value": 11,
+    "field_token": "0x4000894",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_ID6Y",
+    "constant_type": 5,
+    "value": 12,
+    "field_token": "0x4000895",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_ID7Y",
+    "constant_type": 5,
+    "value": 13,
+    "field_token": "0x4000896",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_PF4MU_PF4MN_PF5MU",
+    "constant_type": 5,
+    "value": 14,
+    "field_token": "0x4000897",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_CML_Gaming",
+    "constant_type": 5,
+    "value": 15,
+    "field_token": "0x4000898",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GK7NXXR",
+    "constant_type": 5,
+    "value": 16,
+    "field_token": "0x4000899",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "LightingModel.EC_SPEC",
+    "name": "EC_PROJECT_GM5MU1Y",
+    "constant_type": 5,
+    "value": 17,
+    "field_token": "0x400089a",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "GENERIC_READ",
+    "constant_type": 9,
+    "value": 2147483648,
+    "field_token": "0x40009cf",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "GENERIC_WRITE",
+    "constant_type": 9,
+    "value": 1073741824,
+    "field_token": "0x40009d0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "FILE_SHARE_WRITE",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40009d1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "FILE_SHARE_READ",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40009d2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "FILE_FLAG_OVERLAPPED",
+    "constant_type": 9,
+    "value": 1073741824,
+    "field_token": "0x40009d3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "OPEN_EXISTING",
+    "constant_type": 9,
+    "value": 3,
+    "field_token": "0x40009d4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "OPEN_ALWAYS",
+    "constant_type": 9,
+    "value": 4,
+    "field_token": "0x40009d5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "METHOD_BUFFERED",
+    "constant_type": 9,
+    "value": 0,
+    "field_token": "0x40009d6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "METHOD_IN_DIRECT",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40009d7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "METHOD_OUT_DIRECT",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40009d8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "METHOD_NEITHER",
+    "constant_type": 9,
+    "value": 3,
+    "field_token": "0x40009d9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "FILE_READ_ACCESS",
+    "constant_type": 9,
+    "value": 1,
+    "field_token": "0x40009da",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "FILE_WRITE_ACCESS",
+    "constant_type": 9,
+    "value": 2,
+    "field_token": "0x40009db",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "GPD_TYPE",
+    "constant_type": 9,
+    "value": 40000,
+    "field_token": "0x40009dc",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "SMRW_CMD_READ",
+    "constant_type": 5,
+    "value": 187,
+    "field_token": "0x40009dd",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "SMRW_CMD_WRITE",
+    "constant_type": 5,
+    "value": 170,
+    "field_token": "0x40009de",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_READ_PORT_UCHAR",
+    "constant_type": 9,
+    "value": 2621465600,
+    "field_token": "0x40009df",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_READ_PORT_USHORT",
+    "constant_type": 9,
+    "value": 2621465604,
+    "field_token": "0x40009e0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_READ_PORT_ULONG",
+    "constant_type": 9,
+    "value": 2621465608,
+    "field_token": "0x40009e1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_WRITE_PORT_UCHAR",
+    "constant_type": 9,
+    "value": 2621482048,
+    "field_token": "0x40009e2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_WRITE_PORT_USHORT",
+    "constant_type": 9,
+    "value": 2621482052,
+    "field_token": "0x40009e3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_WRITE_PORT_ULONG",
+    "constant_type": 9,
+    "value": 2621482056,
+    "field_token": "0x40009e4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_CMREAD",
+    "constant_type": 9,
+    "value": 2621482112,
+    "field_token": "0x40009e5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_CMWRITE",
+    "constant_type": 9,
+    "value": 2621482116,
+    "field_token": "0x40009e6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_ECREAD",
+    "constant_type": 9,
+    "value": 2621482120,
+    "field_token": "0x40009e7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_ECWRITE",
+    "constant_type": 9,
+    "value": 2621482124,
+    "field_token": "0x40009e8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_MMREADB",
+    "constant_type": 9,
+    "value": 2621482128,
+    "field_token": "0x40009e9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_MMREADD",
+    "constant_type": 9,
+    "value": 2621482132,
+    "field_token": "0x40009ea",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_MMWRITEB",
+    "constant_type": 9,
+    "value": 2621482136,
+    "field_token": "0x40009eb",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_MMWRITED",
+    "constant_type": 9,
+    "value": 2621482140,
+    "field_token": "0x40009ec",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_PEREAD",
+    "constant_type": 9,
+    "value": 2621482144,
+    "field_token": "0x40009ed",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_PEWRITE",
+    "constant_type": 9,
+    "value": 2621482148,
+    "field_token": "0x40009ee",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_IOREAD",
+    "constant_type": 9,
+    "value": 2621482176,
+    "field_token": "0x40009ef",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_IOWRITE",
+    "constant_type": 9,
+    "value": 2621482180,
+    "field_token": "0x40009f0",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_INIOREAD",
+    "constant_type": 9,
+    "value": 2621482184,
+    "field_token": "0x40009f1",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_INIOWRITE",
+    "constant_type": 9,
+    "value": 2621482188,
+    "field_token": "0x40009f2",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_TMPREAD1",
+    "constant_type": 9,
+    "value": 2621482192,
+    "field_token": "0x40009f3",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_TMPREAD2",
+    "constant_type": 9,
+    "value": 2621482196,
+    "field_token": "0x40009f4",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_TMPREAD3",
+    "constant_type": 9,
+    "value": 2621482200,
+    "field_token": "0x40009f5",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_TMPWRITE1",
+    "constant_type": 9,
+    "value": 2621482204,
+    "field_token": "0x40009f6",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_TMPWRITE2",
+    "constant_type": 9,
+    "value": 2621482208,
+    "field_token": "0x40009f7",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_TMPWRITE3",
+    "constant_type": 9,
+    "value": 2621482212,
+    "field_token": "0x40009f8",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_SMAPCTABLE",
+    "constant_type": 9,
+    "value": 2621482240,
+    "field_token": "0x40009f9",
+    "evidence": ".NET Constant metadata table"
+  },
+  {
+    "type": "MyECIO.AcpiCtrl",
+    "name": "IOCTL_GPD_ACPI_CUSTOMCTL",
+    "constant_type": 9,
+    "value": 2621482244,
+    "field_token": "0x40009fa",
+    "evidence": ".NET Constant metadata table"
+  }
+]
