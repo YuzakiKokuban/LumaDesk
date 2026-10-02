@@ -1,3 +1,7 @@
+//! C ABI shared by the WinUI shell and command-line client.
+//! Responses are UTF-8 JSON envelopes. Each returned pointer must be released
+//! exactly once with lumadesk_free; the ABI version is checked before use.
+
 use std::ffi::{c_char, CStr, CString};
 use std::sync::OnceLock;
 

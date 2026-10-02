@@ -1,0 +1,9 @@
+﻿{
+    "started":  "2026-10-02T16:16:50.6651693+08:00",
+    "service":  {
+                    "State":  "Stopped",
+                    "StartMode":  "Disabled"
+                },
+    "oemRestoredToTakeover":  true,
+    "passed":  true
+}

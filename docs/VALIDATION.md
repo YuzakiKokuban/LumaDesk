@@ -6,6 +6,8 @@
 
 Rust 单元与 FFI 测试 30 项，Python EC/MUX 离线测试 9 项。Clippy 开启警告即失败；WinUI 构建与发布包验证纳入 [CI](../.github/workflows/ci.yml)。发布包检查包含 ZIP 完整性、七种尺寸图标、管理员清单、CLI、FFI，以及不内置系统运行时。
 
+0.2.0-beta.1 安装版在本机完成依赖检查、空目录安装、已安装 CLI、界面启动和卸载。卸载恢复 OEM 服务后再次接管，最终为 Disabled / Stopped；个人设置保留。CI 也执行安装与卸载，结果见 [构建记录](https://github.com/YuzakiKokuban/LumaDesk/actions/runs/36983030136)。体积与内存采样见 [性能记录](PERFORMANCE.md)。
+
 ## 实机控制
 
 [控制报告](../reverse/native/evidence/control-validation.json) 保存寄存器快照、API 返回值和恢复结果：

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--application-directory', default=str(ROOT / 'artifacts/LumaDesk-0.1.2-win-x64'))
+    parser.add_argument('--application-directory', required=True, help='Extracted portable or installed application directory')
     parser.add_argument('--output', default=str(ROOT / 'reverse/native/evidence/oem-roundtrip.json'))
     args = parser.parse_args()
     report = {'captured_utc': datetime.now(timezone.utc).isoformat(), 'passed': False}
