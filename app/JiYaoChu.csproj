@@ -26,8 +26,8 @@
     <SelfContained>true</SelfContained>
 
     <AssemblyName>机耀处</AssemblyName>
-    <Version>0.1.0</Version>
-    <FileVersion>0.1.0.0</FileVersion>
+    <Version>0.1.1</Version>
+    <FileVersion>0.1.1.0</FileVersion>
     <Product>机耀处 · LumaDesk</Product>
     <Company>JiYaoChu</Company>
     <Copyright>MIT</Copyright>

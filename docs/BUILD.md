@@ -22,11 +22,11 @@ dotnet build app/JiYaoChu.csproj -c Debug
 ./scripts/build.ps1
 ```
 
-脚本生成 `artifacts/LumaDesk-0.1.0-win-x64/` 和 `artifacts/LumaDesk-0.1.0-win-x64.zip`，加入 CLI、文档、许可证。手动发布命令：
+脚本生成 `artifacts/LumaDesk-0.1.1-win-x64/` 和 `artifacts/LumaDesk-0.1.1-win-x64.zip`，加入 CLI、文档、许可证。手动发布命令：
 
 ```powershell
 cargo build --release
-dotnet publish app/JiYaoChu.csproj -c Release -r win-x64 -o artifacts/LumaDesk-0.1.0-win-x64
+dotnet publish app/JiYaoChu.csproj -c Release -r win-x64 -o artifacts/LumaDesk-0.1.1-win-x64
 ```
 
 这是完整目录形式的便携包，不是单文件 EXE。包含 .NET 和 Windows App SDK 运行依赖；设备驱动、NVIDIA 驱动由系统安装环境提供。构建不接管服务、不切换 MUX、不重启。
@@ -49,3 +49,7 @@ python scripts/verify-hardware.py --library target/debug/jiyaochu_core.dll --out
 启动失败检查 `%APPDATA%\JiYaoChu\ui-errors.log` 与 Windows 应用事件日志。写入需同时验证读回和实际行为。
 
 管理员控制验证：`python scripts/verify-controls.py` 会暂时切换 OEM/Windows 模式和 RGB，最终恢复原 EC/Windows 状态；按用户要求保留官方服务接管。恢复测试：`python scripts/verify-oem-restore.py` 恢复原服务后再次接管。测试脚本不能当作日常启动程序。
+
+## Logo
+
+assets/LumaDesk.svg 是用户提供的原始 Logo。运行 ./scripts/generate-icons.ps1 可从该源图生成透明 PNG 和多尺寸 ICO，并同步 app/Assets/AppIcon.ico；脚本不重新设计图形。

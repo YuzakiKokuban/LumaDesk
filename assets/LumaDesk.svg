@@ -1,1 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" rx="48" fill="#1b202d"/><rect x="48" y="50" width="160" height="112" rx="6" fill="none" stroke="#3ec7f2" stroke-width="14"/><path d="M116 164h24v25h-24z" fill="#3ec7f2"/><path d="M82 191h92v12H82z M112 70l-18 47h28l-9 26 49-47h-30l13-26z" fill="#e2ebf9"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">半弧流线</title>
+  <desc id="desc">透明背景上的深蓝与深青灰双弧带，粗细渐变，沿不对称的半圆轮廓展开。</desc>
+  <g transform="translate(0 72) scale(1 .8)">
+  <path fill="#0E1726" d="
+    M69 349
+    C51 241 103 145 194 113
+    C281 82 388 119 430 203
+    C451 244 459 291 447 333
+    C445 341 440 343 438 335
+    C420 249 371 197 297 179
+    C211 158 142 196 104 267
+    C91 293 85 325 83 349
+    C82 362 71 362 69 349Z"/>
+  <path fill="#426A73" d="
+    M156 290
+    C188 223 268 204 333 237
+    C373 257 404 300 415 348
+    C418 360 414 363 407 354
+    C383 317 358 291 324 274
+    C268 246 209 253 166 296
+    C155 307 150 303 156 290Z"/>
+  </g>
+</svg>

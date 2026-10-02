@@ -1,6 +1,6 @@
 # LumaDesk · 机耀处
 
-A Windows control center for Mechrevo laptops, focused on the Yaoshi 15 Air (EC project 0x1A). Version 0.1.0 uses C# WinUI 3 and a Rust hardware backend.
+A Windows control center for Mechrevo laptops, focused on the Yaoshi 15 Air (EC project 0x1A). Version 0.1.1 uses C# WinUI 3 and a Rust hardware backend.
 
 Repository: [YuzakiKokuban/LumaDesk](https://github.com/YuzakiKokuban/LumaDesk). This repository has independent history and new branding.
 

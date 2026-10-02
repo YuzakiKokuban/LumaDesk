@@ -1,26 +1,90 @@
+# Rasterize the user-provided SVG without changing its artwork or background.
+# This dependency-free renderer supports the M/C/Z paths used by this asset;
+# unsupported SVG features fail explicitly instead of silently changing it.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$bitmap = [Drawing.Bitmap]::new(256,256)
-$g = [Drawing.Graphics]::FromImage($bitmap)
-$g.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
-$g.Clear([Drawing.Color]::FromArgb(255,27,32,45))
-$cyan = [Drawing.SolidBrush]::new([Drawing.Color]::FromArgb(255,62,199,242))
-$light = [Drawing.SolidBrush]::new([Drawing.Color]::FromArgb(255,226,235,249))
-$pen = [Drawing.Pen]::new($cyan,14)
-$pen.LineJoin = [Drawing.Drawing2D.LineJoin]::Round
-$g.DrawRectangle($pen,48,50,160,112)
-$g.FillRectangle($cyan,116,164,24,25)
-$g.FillRectangle($light,82,191,92,12)
-$g.FillPolygon($light,[Drawing.Point[]]@([Drawing.Point]::new(112,70),[Drawing.Point]::new(94,117),[Drawing.Point]::new(122,117),[Drawing.Point]::new(113,143),[Drawing.Point]::new(162,96),[Drawing.Point]::new(132,96),[Drawing.Point]::new(145,70)))
-$bitmap.Save((Join-Path $projectRoot 'assets/LumaDesk.png'),[Drawing.Imaging.ImageFormat]::Png)
-foreach($file in Get-ChildItem (Join-Path $projectRoot 'app/Assets') -Filter '*.png') { $bitmap.Save($file.FullName,[Drawing.Imaging.ImageFormat]::Png) }
-$png = [IO.File]::ReadAllBytes((Join-Path $projectRoot 'assets/LumaDesk.png'))
-$stream = [IO.MemoryStream]::new()
-$writer = [IO.BinaryWriter]::new($stream)
-$writer.Write([uint16]0);$writer.Write([uint16]1);$writer.Write([uint16]1)
-$writer.Write([byte]0);$writer.Write([byte]0);$writer.Write([byte]0);$writer.Write([byte]0)
-$writer.Write([uint16]1);$writer.Write([uint16]32);$writer.Write([uint32]$png.Length);$writer.Write([uint32]22);$writer.Write($png)
-[IO.File]::WriteAllBytes((Join-Path $projectRoot 'assets/LumaDesk.ico'),$stream.ToArray())
-Copy-Item -LiteralPath (Join-Path $projectRoot 'assets/LumaDesk.ico') -Destination (Join-Path $projectRoot 'app/Assets/AppIcon.ico') -Force
-$writer.Dispose();$stream.Dispose();$pen.Dispose();$cyan.Dispose();$light.Dispose();$g.Dispose();$bitmap.Dispose()
+[xml]$svg = Get-Content -LiteralPath (Join-Path $projectRoot 'assets/LumaDesk.svg') -Raw -Encoding UTF8
+$ns = [Xml.XmlNamespaceManager]::new($svg.NameTable)
+$ns.AddNamespace('svg', 'http://www.w3.org/2000/svg')
+$group = $svg.SelectSingleNode('/svg:svg/svg:g', $ns)
+if ($svg.DocumentElement.GetAttribute('viewBox') -ne '0 0 512 512' -or
+    $group.GetAttribute('transform') -ne 'translate(0 72) scale(1 .8)') {
+    throw 'Unsupported SVG canvas or transform; update the renderer before regenerating icons.'
+}
+$bitmap = [Drawing.Bitmap]::new(2048, 2048, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+$graphics = [Drawing.Graphics]::FromImage($bitmap)
+$graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
+$graphics.Clear([Drawing.Color]::Transparent)
+# SVG coordinates: x = x, y = 72 + 0.8*y; supersample by four.
+$matrix = [Drawing.Drawing2D.Matrix]::new(4, 0, 0, 3.2, 0, 288)
+$graphics.Transform = $matrix
+try {
+    foreach ($element in $group.SelectNodes('svg:path', $ns)) {
+        $tokens = [regex]::Matches($element.GetAttribute('d'), '[MCZ]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?')
+        $unparsed = [regex]::Replace($element.GetAttribute('d'), '[MCZ]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?|[\s,]', '')
+        if ($unparsed) { throw "Unsupported SVG path: $unparsed" }
+        $path = [Drawing.Drawing2D.GraphicsPath]::new()
+        $brush = [Drawing.SolidBrush]::new([Drawing.ColorTranslator]::FromHtml($element.GetAttribute('fill')))
+        try {
+            $cursor = 0
+            $currentX = [single]0
+            $currentY = [single]0
+            while ($cursor -lt $tokens.Count) {
+                $command = $tokens[$cursor++].Value
+                switch ($command) {
+                    'M' {
+                        $path.StartFigure()
+                        $currentX = [single]::Parse($tokens[$cursor++].Value, [Globalization.CultureInfo]::InvariantCulture)
+                        $currentY = [single]::Parse($tokens[$cursor++].Value, [Globalization.CultureInfo]::InvariantCulture)
+                    }
+                    'C' {
+                        $points = @()
+                        for ($index = 0; $index -lt 6; $index++) {
+                            $points += [single]::Parse($tokens[$cursor++].Value, [Globalization.CultureInfo]::InvariantCulture)
+                        }
+                        $path.AddBezier($currentX, $currentY, $points[0], $points[1], $points[2], $points[3], $points[4], $points[5])
+                        $currentX = $points[4]
+                        $currentY = $points[5]
+                    }
+                    'Z' { $path.CloseFigure() }
+                    default { throw "Unsupported SVG command: $command" }
+                }
+            }
+            $graphics.FillPath($brush, $path)
+        } finally { $brush.Dispose(); $path.Dispose() }
+    }
+    $sizes = @(16, 24, 32, 48, 64, 128, 256)
+    $images = @()
+    foreach ($size in @($sizes) + @(512)) {
+        $scaled = [Drawing.Bitmap]::new($size, $size, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+        $scaledGraphics = [Drawing.Graphics]::FromImage($scaled)
+        $stream = [IO.MemoryStream]::new()
+        try {
+            $scaledGraphics.InterpolationMode = [Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+            $scaledGraphics.PixelOffsetMode = [Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+            $scaledGraphics.DrawImage($bitmap, 0, 0, $size, $size)
+            $scaled.Save($stream, [Drawing.Imaging.ImageFormat]::Png)
+            if ($size -eq 512) {
+                [IO.File]::WriteAllBytes((Join-Path $projectRoot 'assets/LumaDesk.png'), $stream.ToArray())
+            } else { $images += ,$stream.ToArray() }
+        } finally { $stream.Dispose(); $scaledGraphics.Dispose(); $scaled.Dispose() }
+    }
+    $iconStream = [IO.MemoryStream]::new()
+    $writer = [IO.BinaryWriter]::new($iconStream)
+    try {
+        $writer.Write([uint16]0); $writer.Write([uint16]1); $writer.Write([uint16]$sizes.Count)
+        $offset = 6 + 16 * $sizes.Count
+        for ($index = 0; $index -lt $sizes.Count; $index++) {
+            $dimension = if ($sizes[$index] -eq 256) { 0 } else { $sizes[$index] }
+            $writer.Write([byte]$dimension); $writer.Write([byte]$dimension)
+            $writer.Write([byte]0); $writer.Write([byte]0)
+            $writer.Write([uint16]1); $writer.Write([uint16]32)
+            $writer.Write([uint32]$images[$index].Length); $writer.Write([uint32]$offset)
+            $offset += $images[$index].Length
+        }
+        foreach ($image in $images) { $writer.Write([byte[]]$image) }
+        [IO.File]::WriteAllBytes((Join-Path $projectRoot 'assets/LumaDesk.ico'), $iconStream.ToArray())
+    } finally { $writer.Dispose(); $iconStream.Dispose() }
+    Copy-Item -LiteralPath (Join-Path $projectRoot 'assets/LumaDesk.ico') -Destination (Join-Path $projectRoot 'app/Assets/AppIcon.ico') -Force
+} finally { $matrix.Dispose(); $graphics.Dispose(); $bitmap.Dispose() }

@@ -1,0 +1,2 @@
+# Preserve the user-supplied SVG byte for byte on every checkout.
+assets/LumaDesk.svg -text

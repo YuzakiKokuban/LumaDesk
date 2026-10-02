@@ -1,4 +1,4 @@
-param([string]$Version = '0.1.0')
+param([string]$Version = '0.1.1', [switch]$NoRestore)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $publishDir = Join-Path $projectRoot "artifacts\LumaDesk-$Version-win-x64"
@@ -6,7 +6,9 @@ Push-Location $projectRoot
 try {
     cargo build --release
     if ($LASTEXITCODE -ne 0) { throw 'Rust build failed' }
-    dotnet publish app/JiYaoChu.csproj -c Release -r win-x64 -o $publishDir -v minimal
+    $publishArgs = @('publish', 'app/JiYaoChu.csproj', '-c', 'Release', '-r', 'win-x64', '-o', $publishDir, '-v', 'minimal')
+    if ($NoRestore) { $publishArgs += '--no-restore' }
+    dotnet @publishArgs
     if ($LASTEXITCODE -ne 0) { throw 'WinUI publish failed' }
     Copy-Item -LiteralPath 'target\release\jiyaochu-ctl.exe' -Destination $publishDir
     Copy-Item -LiteralPath 'README.md','README_en.md','LICENSE' -Destination $publishDir

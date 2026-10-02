@@ -1,6 +1,6 @@
 [package]
 name = "jiyaochu"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.77"
 description = "机耀处 — Mechrevo laptop control center, optimized for 耀世 15 Air"

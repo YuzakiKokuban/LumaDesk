@@ -1,12 +1,12 @@
 # 机耀处 · LumaDesk
 
-面向机械革命笔记本的 Windows 控制中心，优先适配 **耀世 15 Air / EC 项目 0x1A**。C# WinUI 3 界面、Rust 硬件后端，当前版本 `0.1.0`。
+面向机械革命笔记本的 Windows 控制中心，优先适配 **耀世 15 Air / EC 项目 0x1A**。C# WinUI 3 界面、Rust 硬件后端，当前版本 `0.1.1`。
 
 项目地址：[YuzakiKokuban/LumaDesk](https://github.com/YuzakiKokuban/LumaDesk)。源码与提交历史独立维护；旧版图标、赞助页面和截图已移除。协议来源与实现边界见 [来源说明](docs/PROVENANCE.md)。
 
 ## 使用
 
-1. 解压完整的 `LumaDesk-0.1.0-win-x64.zip`，不要单独移动 EXE。
+1. 解压完整的 `LumaDesk-0.1.1-win-x64.zip`，不要单独移动 EXE。
 2. 启动 `机耀处.exe` 并接受管理员权限请求。
 3. 首次启动自动接管官方控制中心。系统页可恢复原服务与计划任务状态；恢复后取消自动接管。
 4. 电源页主卡片调整机械革命机身档位；下方 Windows 电源模式是独立设置。
