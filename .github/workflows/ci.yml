@@ -2,10 +2,10 @@ name: Build and release
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     tags: ['v*']
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
@@ -58,6 +58,8 @@ jobs:
           exit $LASTEXITCODE
       - name: Protocol tests
         run: python -m unittest discover -s reverse/native -p 'test_*.py'
+      - name: Release policy tests
+        run: python scripts/verify-release-policy.py
       - name: Source identity check
         run: python scripts/verify-source.py
       - name: Install shared WinUI runtime for application tests
@@ -108,6 +110,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify release source
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: ./scripts/verify-release.ps1 -Tag $env:RELEASE_TAG
       - name: Download verified package and publish
         shell: pwsh
         env:
