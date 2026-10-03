@@ -123,7 +123,8 @@ public sealed record HardwareStatus
     public SupportFlags SupportFlags { get; init; } = new();
 
     /// <summary>The stored cooling profile; zero when the configuration is unreadable.</summary>
-    public byte PowerMode { get; init; }
+    public byte? PowerMode { get; init; }
+    public string? PowerModeError { get; init; }
 
     public GpuMode? GpuMode { get; init; }
     public bool? FanBoost { get; init; }
@@ -141,12 +142,13 @@ public static class PowerModes
     public static byte Clamp(byte mode) => mode > (byte)PowerMode.Custom ? (byte)PowerMode.Custom : mode;
 
     /// <summary>Label for a stored profile id, with a fallback for the unknown case.</summary>
-    public static string Label(byte mode) => Clamp(mode) switch
+    public static string Label(byte? mode) => mode switch
     {
         (byte)PowerMode.Office => "办公",
         (byte)PowerMode.Balance => "均衡",
         (byte)PowerMode.Beast => "狂暴",
-        _ => "自定义",
+        (byte)PowerMode.Custom => "自定义",
+        _ => "未知",
     };
 
     /// <summary>The one-word subtitle printed under the name.</summary>

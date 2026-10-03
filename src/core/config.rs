@@ -270,7 +270,9 @@ pub struct HardwareStatus {
     pub battery: BatteryStatus,
     pub device: DeviceStatus,
     pub support_flags: SupportFlags,
-    pub power_mode: PowerModeId,
+    pub power_mode: Option<PowerModeId>,
+    #[serde(default)]
+    pub power_mode_error: Option<String>,
     pub gpu_mode: Option<GpuMode>,
     #[serde(default)]
     pub fan_boost: Option<bool>,

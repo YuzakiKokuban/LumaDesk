@@ -1,0 +1,66 @@
+{
+  "background_startup_reads": 0,
+  "background_memory": {
+    "working_mib": 12.65,
+    "private_mib": 104.15
+  },
+  "visible_reads": 4,
+  "visible_memory": {
+    "working_mib": 104.64,
+    "private_mib": 130.91
+  },
+  "window_title": "\u673A\u8000\u5904",
+  "executable": "LumaDesk.exe",
+  "maximized_and_half_screen_restore": true,
+  "narrow_window_dip": {
+    "width": 760,
+    "height": 600,
+    "scale": 2
+  },
+  "lighting_controls_and_scroll_preserved": true,
+  "system_controls_and_scroll_preserved": true,
+  "power_controls_preserved": true,
+  "all_pages_narrow_no_horizontal_overflow": true,
+  "failed_readback_keeps_settings": true,
+  "event_driven_power_rules": true,
+  "backup_and_diagnostics_export": true,
+  "diagnostics_path": "D:\\LumaDesk\\artifacts\\shell-test-config-c08478250ac648788622e4b0db7a7e11\\exports\\LumaDesk-diagnostics-20261004-003022-01e212156efb411fb0cadee68aded39f.zip",
+  "backup_path": "D:\\LumaDesk\\artifacts\\shell-test-config-c08478250ac648788622e4b0db7a7e11\\exports\\LumaDesk-settings-20261004-003022-be003e056ff44c3db579acf6d2f7e542.zip",
+  "hidden_reads_before": 13,
+  "hidden_reads_after": 13,
+  "hidden_memory": {
+    "working_mib": 158.68,
+    "private_mib": 154.68
+  },
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "brightness_percentage_osd": true,
+  "hidden_event_reads": 18,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "osd_burst_does_not_collect": true,
+  "memory_collections": 1,
+  "last_collection_ms": 10.3782,
+  "reopen_ui_queue_ms": [
+    397.8849,
+    117.4215,
+    335.8508
+  ],
+  "idle_cpu_seconds_over_3s": 0.015625,
+  "final_hidden_memory": {
+    "working_mib": 165.98,
+    "private_mib": 150.17
+  },
+  "passed": true
+}

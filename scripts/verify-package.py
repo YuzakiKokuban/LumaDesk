@@ -99,22 +99,24 @@ def main():
         with zipfile.ZipFile(archive_path) as archive:
             assert archive.testzip() is None, "Archive CRC failed"
             names = {name.casefold() for name in archive.namelist()}
-            required = {"机耀处.exe", "机耀处.pri", "jiyaochu_core.dll", "jiyaochu-ctl.exe",
-                        "Microsoft.WindowsAppRuntime.Bootstrap.dll", "机耀处.runtimeconfig.json",
+            required = {"LumaDesk.exe", "LumaDesk.pri", "jiyaochu_core.dll", "jiyaochu-ctl.exe",
+                        "Microsoft.WindowsAppRuntime.Bootstrap.dll", "LumaDesk.runtimeconfig.json",
                         "RUNTIMES.md", "README.md", "README_en.md", "LICENSE"}
             required = {name.casefold() for name in required}
             assert required <= names, f"Missing files: {required - names}"
+            assert "lumadesk.dll" in names and "lumadesk.deps.json" in names, "Managed application outputs missing"
+            assert not any(name.startswith("机耀处.") for name in names), "Obsolete application outputs were bundled"
             assert not ({"coreclr.dll", "hostfxr.dll", "microsoft.ui.xaml.dll"} & names), "Shared runtimes were bundled"
             assert not ({"microsoft.ui.reactor.devtools.dll", "reactor.devtools.dll"} & names), "Debug tooling was bundled"
-            runtime = json.loads(archive.read("机耀处.runtimeconfig.json"))
+            runtime = json.loads(archive.read("LumaDesk.runtimeconfig.json"))
             assert runtime["runtimeOptions"]["framework"]["name"] == "Microsoft.NETCore.App"
             assert len({name.casefold() for name in archive.namelist()}) == len(archive.namelist()), "Duplicate Windows paths"
-            for filename in ["机耀处.exe", "jiyaochu-ctl.exe"]:
+            for filename in ["LumaDesk.exe", "jiyaochu-ctl.exe"]:
                 embedded = resources(archive.read(filename))
                 verify_version_resource(embedded, info)
                 actual = {hashlib.sha256(data).digest() for keys, data in embedded.items() if keys[0] == 3}
                 assert actual == icons, f"{filename}: embedded logo differs"
-                if filename == "机耀处.exe":
+                if filename == "LumaDesk.exe":
                     manifests = [data for keys, data in embedded.items() if keys[0] == 24]
                     assert any(b'level="requireAdministrator"' in data for data in manifests), "Administrator manifest missing"
             archive.extractall(folder)

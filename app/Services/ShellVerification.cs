@@ -37,6 +37,13 @@ internal static class ShellVerification
             report["visible_reads"] = MachineStore.HardwareReads;
             report["visible_memory"] = MemorySample();
             Require(main != 0 && IsWindowVisible(main), "Main window is missing");
+            var title = new System.Text.StringBuilder(256);
+            GetWindowText(main, title, title.Capacity);
+            Require(title.ToString() == "机耀处", "Main window title differs from the product name");
+            Require(string.Equals(Path.GetFileName(Environment.ProcessPath), "LumaDesk.exe", StringComparison.OrdinalIgnoreCase),
+                "Desktop executable name differs");
+            report["window_title"] = title.ToString();
+            report["executable"] = Path.GetFileName(Environment.ProcessPath)!;
             Require(IsZoomed(main), "Opening the window did not maximize it");
             ShowWindow(main, 9);
             await Task.Delay(350);
@@ -199,6 +206,7 @@ internal static class ShellVerification
     }
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint FindWindow(string? className, string title);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(nint window, System.Text.StringBuilder title, int length);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hwnd);
     [DllImport("user32.dll")] private static extern bool IsZoomed(nint hwnd);
     [DllImport("user32.dll")] private static extern bool PostMessage(nint hwnd, uint message, nuint w, nint l);

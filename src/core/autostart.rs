@@ -4,13 +4,13 @@
 fn task_command(action: &str) -> Result<String, String> {
     use std::os::windows::process::CommandExt;
     let current = std::env::current_exe().map_err(|e| e.to_string())?;
-    let exe = if current.file_name().and_then(|p| p.to_str()) == Some("机耀处.exe") {
+    let exe = if current.file_name().and_then(|p| p.to_str()) == Some("LumaDesk.exe") {
         current
     } else {
-        current.with_file_name("机耀处.exe")
+        current.with_file_name("LumaDesk.exe")
     };
     if action == "enable" && !exe.exists() {
-        return Err("找不到机耀处.exe，请在完整发布目录启用自启动".into());
+        return Err("找不到LumaDesk.exe，请在完整发布目录启用自启动".into());
     }
     let script = r#"$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $name='LumaDesk';$task=Get-ScheduledTask -TaskName $name -TaskPath '\' -ErrorAction SilentlyContinue
@@ -18,7 +18,7 @@ switch($env:LUMADESK_STARTUP_ACTION) {
  'query' { if ($task -and $task.Settings.Enabled -and $task.Principal.RunLevel -eq 'Highest') { Write-Output 'enabled' } else { Write-Output 'disabled' } }
  'disable' { if ($task) { Unregister-ScheduledTask -TaskName $name -TaskPath '\' -Confirm:$false } }
  'migrate' {
-  # Upgrade only the task created by this application for this executable and
+  # Upgrade only the task created by this application for this directory and
   # user. Do not create or enable a task, or replace unknown custom arguments.
   if ($task -and @($task.Actions).Count -eq 1 -and
       $task.Principal.RunLevel -eq 'Highest' -and $task.Principal.LogonType -eq 'Interactive') {
@@ -31,12 +31,18 @@ switch($env:LUMADESK_STARTUP_ACTION) {
     }
     $path=$existing.Execute.Trim('"')
     $root=[IO.Path]::GetPathRoot($path)
+    $target=[IO.Path]::GetFullPath($env:LUMADESK_STARTUP_EXE)
+    $legacy=Join-Path ([IO.Path]::GetDirectoryName($target)) '机耀处.exe'
+    $same=[string]::Equals([IO.Path]::GetFullPath($path), $target, [StringComparison]::OrdinalIgnoreCase)
+    $renamed=[string]::Equals([IO.Path]::GetFullPath($path), $legacy, [StringComparison]::OrdinalIgnoreCase)
     $owned=$owner.Value -eq $user.User.Value -and
      $existing.CimClass.CimClassName -eq 'MSFT_TaskExecAction' -and
      [IO.Path]::IsPathRooted($path) -and $root -ne '\' -and $root -notmatch '^[A-Za-z]:$' -and
-     [string]::Equals([IO.Path]::GetFullPath($path), [IO.Path]::GetFullPath($env:LUMADESK_STARTUP_EXE), [StringComparison]::OrdinalIgnoreCase)
+     ($same -or $renamed)
    } catch { $owned=$false }
-   if ($owned -and [string]::IsNullOrWhiteSpace($existing.Arguments)) {
+   if ($owned -and ([string]::IsNullOrWhiteSpace($existing.Arguments) -or
+       ($renamed -and $existing.Arguments -eq '--background'))) {
+    $existing.Execute=$target
     $existing.Arguments='--background'
     $task.Actions=@($existing)
     Set-ScheduledTask -InputObject $task | Out-Null

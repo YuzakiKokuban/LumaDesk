@@ -42,7 +42,7 @@ def main():
         report['expected'] = {'StartMode': {2: 'Auto', 3: 'Manual', 4: 'Disabled'}[backup['start']],
                               'State': 'Running' if backup['running'] else 'Stopped'}
         report['official_task_count'] = len(backup.get('tasks', []))
-        restored = subprocess.run([str(directory / '机耀处.exe'), '--restore-oem'],
+        restored = subprocess.run([str(directory / 'LumaDesk.exe'), '--restore-oem'],
                                   capture_output=True, timeout=60)
         report['restore_exit_code'] = restored.returncode
         if restored.returncode:

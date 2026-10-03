@@ -1290,6 +1290,11 @@ impl Api {
 
     /* ------------------------------------------------------ firmware switches */
 
+    /// Small readback for the physical profile button, without full telemetry.
+    pub fn get_power_mode(&self) -> Result<u8, String> {
+        self.state.hal().get_power_mode().map_err(fail)
+    }
+
     pub fn set_win_key_locked(&self, locked: bool) -> Result<(), String> {
         self.state.hal().set_win_key_locked(locked).map_err(fail)?;
         self.state
@@ -1569,6 +1574,8 @@ impl Api {
     /// Extra call kept for compatibility: the whole power-settings block.
     pub fn get_power_settings(&self) -> Result<serde_json::Value, String> {
         let config = config_snapshot(&self.state);
+        let power_mode = self.state.hal().get_power_mode();
+        let power_mode_error = power_mode.as_ref().err().map(ToString::to_string);
         let schemes = self.state.hal().windows_power_schemes();
         let active = self.state.hal().active_windows_power_scheme();
 
@@ -1578,7 +1585,8 @@ impl Api {
         let windows_mode: Option<u8> = None;
         Ok(serde_json::json!({
             "windows_power_mode": windows_mode,
-            "power_mode": self.state.hal().get_power_mode().map_err(fail)?,
+            "power_mode": power_mode.ok(),
+            "power_mode_error": power_mode_error,
             "power_mode_ac": config.power_mode_ac,
             "power_mode_battery": config.power_mode_battery,
             "auto_power_mode": config.auto_power_mode,

@@ -1,11 +1,11 @@
 <img src="assets/LumaDesk.png" width="96" alt="LumaDesk Logo">
 
-# 机耀处 · LumaDesk
+# 机耀处
 
 [![构建](https://github.com/YuzakiKokuban/LumaDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/YuzakiKokuban/LumaDesk/actions/workflows/ci.yml)
 [![许可证](https://img.shields.io/badge/license-MPL--2.0-blue)](LICENSE)
 
-面向机械革命笔记本的 Windows 控制中心，采用 WinUI 3 界面与 Rust 硬件后端。目前适配 **耀世 15 Air（EC 项目 0x1A）**。
+机耀处（LumaDesk）是面向机械革命笔记本的 Windows 控制中心，采用 WinUI 3 界面与 Rust 硬件后端。目前适配 **耀世 15 Air（EC 项目 0x1A）**。
 
 [English](README_en.md)
 
@@ -26,7 +26,7 @@
 需要 Windows 11 x64、.NET 10、Windows App SDK Runtime 2.5.1，以及原厂控制中心安装的 UWACPIDriver。运行组件见 [依赖说明](docs/RUNTIMES.md)。
 
 1. 从 [Releases](https://github.com/YuzakiKokuban/LumaDesk/releases) 下载安装包，或将便携 ZIP 解压到固定目录。
-2. 运行 `机耀处.exe`，允许管理员权限。
+2. 运行 `LumaDesk.exe`，允许管理员权限。
 3. 首次启动接管官方控制中心；需要切回时，在“系统设置”中选择“还原官方控制中心”。
 
 关闭或最小化窗口后程序驻留托盘，双击托盘图标打开，右键退出。配置与日志保存在 `%APPDATA%\JiYaoChu`。

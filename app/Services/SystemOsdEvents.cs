@@ -16,11 +16,17 @@ internal static class SystemOsdEvents
     private static readonly HookProc KeyboardCallback = OnKeyboard;
     private static readonly Dictionary<uint, bool> LockStates = [];
     private static readonly HashSet<uint> HeldLockKeys = [];
+    internal static Func<uint, bool> ReadLockState { get; set; } = key => (GetKeyState((int)key) & 1) != 0;
     private static nint _keyboardHook;
     private static nint _powerRegistration;
     private static AudioNotifications? _audio;
+    private static RadioStateNotifications? _radio;
+    private static FnKeyInput? _fn;
     private static uint? _powerSource;
     private static bool _started;
+    private static int _generation;
+    private static int _airplanePending;
+    private static long _lastAirplaneRequest;
 
     /// <summary>Call on the UI thread after the backend has initialized.</summary>
     public static void Start(nint hwnd)
@@ -38,10 +44,51 @@ internal static class SystemOsdEvents
         if (_powerRegistration == 0) StartupLog.Write(new Win32Exception(Marshal.GetLastWin32Error(), "无法订阅电源状态通知。"));
         try { _audio = new AudioNotifications(); }
         catch (Exception error) { StartupLog.Write(error); }
+        _radio = new RadioStateNotifications();
+        _ = StartFnInputAsync(hwnd, ++_generation);
+    }
+
+    private static async Task StartFnInputAsync(nint hwnd, int generation)
+    {
+        try
+        {
+            // This command validates the EC project (0x1A) before reading.
+            // Apply the captured Fn marker only to the supported project.
+            await Backend.CallAsync<byte>("get_power_mode");
+            ReactorApp.UIDispatcher?.TryEnqueue(() =>
+            {
+                if (!_started || generation != _generation) return;
+                try { _fn = new FnKeyInput(hwnd, ToggleFnAirplaneAsync); }
+                catch (Exception error) { StartupLog.Write(error); }
+            });
+        }
+        catch (Exception error) { StartupLog.Write(error); }
+    }
+
+    internal static async Task ToggleFnAirplaneAsync()
+    {
+        if (Interlocked.Exchange(ref _airplanePending, 1) != 0) return;
+        try
+        {
+            // One physical press can have both a firmware and input companion.
+            var now = Environment.TickCount64;
+            if (now - _lastAirplaneRequest < 350) return;
+            _lastAirplaneRequest = now;
+            // Returning OEM control also returns ownership of this shortcut.
+            var status = await Backend.CallAsync<JiYaoChu.Model.OemStatus>("get_oem_status");
+            if (status.TakenOver) await AirplaneModeControl.ToggleAsync();
+        }
+        catch (Exception error)
+        {
+            StartupLog.Write(error);
+            ReactorApp.UIDispatcher?.TryEnqueue(() => OsdOverlay.Show("飞行模式切换失败", "请在 Windows 设置中检查无线开关"));
+        }
+        finally { Volatile.Write(ref _airplanePending, 0); }
     }
 
     public static void Stop()
     {
+        ++_generation;
         if (_keyboardHook != 0) UnhookWindowsHookEx(_keyboardHook);
         if (_powerRegistration != 0) UnregisterPowerSettingNotification(_powerRegistration);
         _keyboardHook = 0;
@@ -49,6 +96,10 @@ internal static class SystemOsdEvents
         try { _audio?.Dispose(); }
         catch (Exception error) { StartupLog.Write(error); }
         _audio = null;
+        _radio?.Dispose();
+        _radio = null;
+        _fn?.Dispose();
+        _fn = null;
         _powerSource = null;
         LockStates.Clear();
         HeldLockKeys.Clear();
@@ -58,6 +109,7 @@ internal static class SystemOsdEvents
     /// <summary>Forward from the existing main-window subclass; does not consume the message.</summary>
     public static void HandleWindowMessage(uint message, nint wParam, nint lParam)
     {
+        if (_started && message == 0xff && lParam != 0) _fn?.Handle(lParam);
         if (!_started || Backend.BackendName == "mock" || message != 0x218 || wParam.ToInt64() != 0x8013 || lParam == 0) return;
         // POWERBROADCAST_SETTING is GUID, DWORD length, then its variable payload.
         var setting = Marshal.PtrToStructure<Guid>(lParam);
@@ -81,17 +133,30 @@ internal static class SystemOsdEvents
         var message = wParam.ToInt64();
         if (message is 0x100 or 0x104)
         {
-            // The low-level callback runs before Windows updates key state.
-            // Track one accepted transition per press, including SendInput.
-            if (HeldLockKeys.Add(key)) LockStates[key] = !LockStates[key];
+            HeldLockKeys.Add(key);
         }
         else if (message is 0x101 or 0x105 && HeldLockKeys.Remove(key))
         {
-            var enabled = LockStates[key];
-            // Leave the hook immediately; rendering takes place on the UI queue.
-            ReactorApp.UIDispatcher?.TryEnqueue(() => PublishLockState(key, enabled));
+            // Windows has not updated the state while the hook is running.
+            // Read its toggle bit after input processing; never predict by flipping
+            // a cached value, which drifts after focus changes or other software.
+            _ = PublishLockAfterInputAsync(key, _generation);
         }
         return result;
+    }
+
+    private static async Task PublishLockAfterInputAsync(uint key, int generation)
+    {
+        await Task.Delay(30).ConfigureAwait(false);
+        // GetKeyState belongs to the message-queue thread. Always dispatch the
+        // read explicitly, including when no SynchronizationContext is installed.
+        ReactorApp.UIDispatcher?.TryEnqueue(() =>
+        {
+            if (!_started || generation != _generation) return;
+            var enabled = ReadLockState(key);
+            LockStates[key] = enabled;
+            PublishLockState(key, enabled);
+        });
     }
 
     /// <summary>Also used by the isolated mock integration checks.</summary>
@@ -117,6 +182,12 @@ internal static class SystemOsdEvents
     {
         if (percent <= 100) Publish("brightness", "屏幕亮度", $"{percent}%");
     }
+
+    internal static void PublishAirplaneState(bool enabled)
+        => Publish("airplane", "飞行模式", enabled ? "已开启" : "已关闭");
+
+    internal static void PublishPowerMode(byte mode)
+        => Publish("performance", "性能模式", JiYaoChu.Model.PowerModes.Label(mode));
 
     private static void Publish(string kind, string title, string detail)
         => EventBus.Raise(new BackendEvent("osd://system", new JsonObject { ["kind"] = kind, ["title"] = title, ["detail"] = detail }));

@@ -8,7 +8,7 @@ $env:JIYAOCHU_DATA_DIR = Join-Path (Split-Path $reportPath -Parent) ('shell-test
 $previewPath = [IO.Path]::ChangeExtension($reportPath, '.preview.json')
 foreach ($file in @($reportPath, $previewPath, ($reportPath + '.lighting.png'), ($reportPath + '.system.png'), ($reportPath + '.tuning.png'), ($reportPath + '.gpu.png'), ($reportPath + '.overview.png'))) { if (Test-Path -LiteralPath $file) { Remove-Item -LiteralPath $file } }
 $arguments = '--background "--verify-shell=' + $reportPath + '"'
-$executable = Join-Path $directory '机耀处.exe'
+$executable = Join-Path $directory 'LumaDesk.exe'
 if (!$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -and
     [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($executable)).Contains('requireAdministrator')) {
     throw 'Run from an elevated shell, or build an isolated asInvoker mock test host as documented in BUILD.md.'

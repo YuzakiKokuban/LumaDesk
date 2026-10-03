@@ -10,13 +10,24 @@ try {
     $process = Start-Process $setup -ArgumentList ('/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="' + $destination + '" /LOG="' + $destination + '-setup.log"') -WindowStyle Hidden -Wait -PassThru
     if ($process.ExitCode -ne 0) { throw "Installation failed: $($process.ExitCode)" }
     $installed = $true
-    foreach ($file in @('机耀处.exe','机耀处.pri','jiyaochu_core.dll','jiyaochu-ctl.exe','unins000.exe')) {
+    # Upgrade an existing installation containing the previous assembly name.
+    $obsolete = @('机耀处.exe','机耀处.dll','机耀处.pri','机耀处.deps.json','机耀处.runtimeconfig.json')
+    foreach ($file in $obsolete) { Set-Content -LiteralPath (Join-Path $destination $file) -Value 'old application output' }
+    $keep = Join-Path $destination 'upgrade-preserve.txt'
+    Set-Content -LiteralPath $keep -Value 'preserve unrelated files'
+    $upgrade = Start-Process $setup -ArgumentList ('/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="' + $destination + '"') -WindowStyle Hidden -Wait -PassThru
+    if ($upgrade.ExitCode -ne 0) { throw "Upgrade failed: $($upgrade.ExitCode)" }
+    foreach ($file in $obsolete) {
+        if (Test-Path -LiteralPath (Join-Path $destination $file)) { throw "Upgrade left obsolete output: $file" }
+    }
+    if ((Get-Content -LiteralPath $keep) -ne 'preserve unrelated files') { throw 'Upgrade changed unrelated files' }
+    foreach ($file in @('LumaDesk.exe','LumaDesk.pri','jiyaochu_core.dll','jiyaochu-ctl.exe','unins000.exe')) {
         if (!(Test-Path -LiteralPath (Join-Path $destination $file))) { throw "Missing installed file: $file" }
     }
     $cli = Join-Path $destination 'jiyaochu-ctl.exe'
     $reply = & $cli system.ping | ConvertFrom-Json
     if ($LASTEXITCODE -ne 0 -or !$reply.ok) { throw 'Installed CLI failed' }
-    $installedApp = Start-Process -FilePath (Join-Path $destination '机耀处.exe') -WorkingDirectory $destination -PassThru
+    $installedApp = Start-Process -FilePath (Join-Path $destination 'LumaDesk.exe') -WorkingDirectory $destination -PassThru
     try {
         Start-Sleep -Seconds 8
         $installedApp.Refresh()
@@ -28,7 +39,7 @@ try {
     if ($installed) {
         $uninstall = Start-Process (Join-Path $destination 'unins000.exe') -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -WindowStyle Hidden -Wait -PassThru
         if ($uninstall.ExitCode -ne 0) { throw "Uninstallation failed: $($uninstall.ExitCode)" }
-        if (Test-Path -LiteralPath (Join-Path $destination '机耀处.exe')) { throw 'Uninstallation left the application executable' }
+        if (Test-Path -LiteralPath (Join-Path $destination 'LumaDesk.exe')) { throw 'Uninstallation left the application executable' }
     }
 }
-'Verified installer: checksum, installation, installed CLI, application startup, uninstallation'
+'Verified installer: checksum, installation, renamed-output upgrade, installed CLI, application startup, uninstallation'

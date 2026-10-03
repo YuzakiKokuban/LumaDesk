@@ -26,7 +26,7 @@ See [feature support](docs/FEATURES.md) and [verification records](docs/VALIDATI
 Requires Windows 11 x64, .NET 10, Windows App SDK Runtime 2.5.1, and UWACPIDriver installed with the OEM control center. See [runtime dependencies](docs/RUNTIMES.md).
 
 1. Download the installer from [Releases](https://github.com/YuzakiKokuban/LumaDesk/releases), or extract the portable ZIP to a permanent directory.
-2. Run `机耀处.exe` and accept the administrator prompt.
+2. Run `LumaDesk.exe` and accept the administrator prompt.
 3. LumaDesk takes over the OEM control center on first launch. Use the restore option in System settings to switch back.
 
 Closing or minimizing the window keeps the application in the tray. Double-click the tray icon to reopen it, or right-click to exit. Configuration and logs are stored in `%APPDATA%\JiYaoChu`.

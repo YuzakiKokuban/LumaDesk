@@ -123,6 +123,8 @@ impl HardwareHal for WindowsHal {
     // ------------------------------------------------------------- telemetry
 
     fn hardware_status(&self, cfg: &AppConfig) -> HalResult<HardwareStatus> {
+        let power_mode = self.get_power_mode();
+        let power_mode_error = power_mode.as_ref().err().map(ToString::to_string);
         Ok(HardwareStatus {
             cpu: self.cpu_status()?,
             gpu: self.gpu_status()?,
@@ -130,7 +132,8 @@ impl HardwareHal for WindowsHal {
             battery: self.battery_status(cfg.battery_limit)?,
             device: self.device_status()?,
             support_flags: self.support_flags()?,
-            power_mode: self.get_power_mode()?,
+            power_mode: power_mode.ok(),
+            power_mode_error,
             gpu_mode: self
                 .gpu_mode_info(cfg)
                 .ok()

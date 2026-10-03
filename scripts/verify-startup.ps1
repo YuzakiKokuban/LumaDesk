@@ -8,7 +8,7 @@ $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 if (!([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Run as administrator' }
 $directory = (Resolve-Path -LiteralPath $ApplicationDirectory).Path
 $cli = Join-Path $directory 'jiyaochu-ctl.exe'
-$application = Join-Path $directory '机耀处.exe'
+$application = Join-Path $directory 'LumaDesk.exe'
 if (!(Test-Path -LiteralPath $application -PathType Leaf)) { throw 'Application is missing' }
 $original = Get-ScheduledTask -TaskPath '\' -TaskName LumaDesk -ErrorAction SilentlyContinue
 $originalXml = if ($original) { Export-ScheduledTask -TaskPath '\' -TaskName LumaDesk } else { $null }

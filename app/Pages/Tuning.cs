@@ -90,6 +90,10 @@ public sealed class TuningPage : SettingsPage
 
         return Chrome.SectionCard(
             "机械革命性能档位",
+            Chrome.Field("当前档位", settings.PowerMode is null ? "未知（固件返回了未识别档位）" : PowerModes.Label(settings.PowerMode)),
+            settings.PowerModeError is { } error
+                ? Chrome.Notice("仅性能档位暂不可读", error, InfoBarSeverity.Warning)
+                : (Element)VStack(),
             Body("办公适合日常轻负载，均衡兼顾性能与噪声，狂暴用于高负载。")
                 .Foreground(Theme.SecondaryText).TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap),
             Chrome.ChoiceRow(cards));

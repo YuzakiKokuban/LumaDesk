@@ -26,6 +26,7 @@ pub const COMMANDS: &[&str] = &[
     "export_models_json",
     "open_models_in_notepad",
     "set_power_mode",
+    "get_power_mode",
     "set_power_automation",
     "set_windows_power_mode",
     "set_fan_boost",
@@ -312,6 +313,7 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
 
         // -- power / performance ------------------------------------------
         "set_power_mode" => cmd!(api, args, set_power_mode, mode: u8),
+        "get_power_mode" => cmd!(api, args, get_power_mode),
         "set_power_automation" => {
             cmd!(api, args, set_power_automation, enabled: bool, ac_mode: u8, battery_mode: u8)
         }

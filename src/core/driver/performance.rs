@@ -15,9 +15,17 @@ fn require_model(driver: &AcpiDriver) -> HalResult<()> {
 }
 pub fn read(driver: &AcpiDriver) -> HalResult<u8> {
     require_model(driver)?;
-    let value = driver.read_ec(0x751)? & 0xb0;
+    decode(driver.read_ec(0x751)?)
+}
+
+fn decode(register: u8) -> HalResult<u8> {
+    // The physical mode key leaves bit 5 set in both balanced (0x20,
+    // blue LED) and beast (0x30, purple LED). It is not a profile bit.
+    // Ignore it and the independent full-fan flag. The existing software
+    // office encoding 0xA0 still decodes through its bit 7.
+    let value = register & 0x90;
     match value {
-        0xa0 => Ok(0),
+        0x80 => Ok(0),
         0 => Ok(1),
         0x10 => Ok(2),
         _ => Err(HalError::unavailable(format!(
@@ -25,6 +33,7 @@ pub fn read(driver: &AcpiDriver) -> HalResult<u8> {
         ))),
     }
 }
+
 pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
     require_model(driver)?;
     let value = match mode {
@@ -70,4 +79,26 @@ pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
         }
         result
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::decode;
+
+    #[test]
+    fn physical_key_profiles_ignore_bit_five_and_full_fan_state() {
+        for (raw, expected) in [
+            (0, 1),
+            (0x20, 1),
+            (0x10, 2),
+            (0x30, 2),
+            (0x80, 0),
+            (0xa0, 0),
+        ] {
+            assert_eq!(decode(raw).unwrap(), expected);
+            assert_eq!(decode(raw | 0x40).unwrap(), expected);
+        }
+        assert!(decode(0x90).is_err());
+        assert!(decode(0xb0).is_err());
+    }
 }

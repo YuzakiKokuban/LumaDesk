@@ -1,4 +1,4 @@
-param([switch]$SkipNativeAudio)
+param([switch]$SkipNativeAudio, [switch]$ReadNativeRadio, [switch]$RoundTripRadio, [int]$WatchFnSeconds = 0)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $probeDirectory = Join-Path $repoRoot ('artifacts/system-osd-probe-' + [guid]::NewGuid().ToString('N'))
@@ -8,6 +8,10 @@ $project = @"
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup><Compile Include="$source" Link="SystemOsdEvents.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/RadioStateNotifications.cs')" Link="RadioStateNotifications.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Model/Status.cs')" Link="Status.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/FnKeyInput.cs')" Link="FnKeyInput.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/AirplaneModeControl.cs')" Link="AirplaneModeControl.cs" /></ItemGroup>
 </Project>
 "@
 [IO.File]::WriteAllText((Join-Path $probeDirectory 'Probe.csproj'), $project)
@@ -21,10 +25,45 @@ using JiYaoChu.Interop;
 static void Require(bool passed, string reason) { if (!passed) throw new Exception(reason); }
 static FieldInfo Field(string name) => typeof(SystemOsdEvents).GetField(name, BindingFlags.Static | BindingFlags.NonPublic)!;
 static string Last(string property) => EventBus.Events[^1].Payload![property]!.GetValue<string>();
+var toggles = 0;
+using (var input = new FnKeyInput(() => { toggles++; return Task.CompletedTask; }))
+{
+    input.Process(0x73, 0x3e, 0);
+    input.Process(0x73, 0x3e, 1);
+    Require(toggles == 0, "Ordinary F4 toggled airplane mode");
+    input.Process(0xff, 0x78, 2);
+    input.Process(0x73, 0x3e, 0);
+    input.Process(0x73, 0x3e, 0);
+    input.Process(0x73, 0x3e, 1);
+    Require(toggles == 1, "Captured Fn+F4 was missed or repeated");
+    input.Process(0x73, 0x3e, 0);
+    input.Process(0x73, 0x3e, 1);
+    Require(toggles == 2, "Second Fn+F4 did not toggle");
+    input.Process(0xff, 0x78, 3);
+    input.Process(0xff, 0x78, 0);
+    input.Process(0x73, 0x3e, 0);
+    Require(toggles == 2, "Released Fn or an unrelated marker toggled");
+}
+var pending = new TaskCompletionSource();
+using (var input = new FnKeyInput(() => { toggles++; return pending.Task; }))
+{
+    input.Process(0xff, 0x78, 2);
+    input.Process(0x73, 0x3e, 0);
+    input.Process(0x73, 0x3e, 1);
+    input.Process(0x73, 0x3e, 0);
+    Require(toggles == 3, "Concurrent radio changes were allowed");
+    pending.SetResult();
+}
 SystemOsdEvents.Start(0);
 Require((nint)Field("_keyboardHook").GetValue(null)! == 0, "Mock initialization attached a keyboard listener");
 Require((nint)Field("_powerRegistration").GetValue(null)! == 0, "Mock initialization attached a power listener");
 SystemOsdEvents.Stop();
+SystemOsdEvents.PublishAirplaneState(true);
+Require(Last("kind") == "airplane" && Last("detail") == "已开启", "Airplane mode on wasn't displayed");
+SystemOsdEvents.PublishAirplaneState(false);
+Require(Last("detail") == "已关闭", "Airplane mode off wasn't displayed");
+SystemOsdEvents.PublishPowerMode(1);
+Require(Last("kind") == "performance" && Last("detail") == "均衡", "Profile readback wasn't displayed");
 SystemOsdEvents.PublishDisplayBrightness(0);
 Require(Last("kind") == "brightness" && Last("detail") == "0%", "Zero brightness wasn't displayed");
 SystemOsdEvents.PublishDisplayBrightness(100);
@@ -64,21 +103,28 @@ try
     Require(EventBus.Events.Count == before, "Malformed/unrelated power messages displayed an OSD");
     Require(PowerPolicy.Sources.SequenceEqual(new uint[] { 0, 1, 0 }), "Power rules missed the initial source or received duplicate/malformed transitions");
 
-    // Keyboard input must report one toggle per press, even with auto-repeat.
+    // The authoritative reader deliberately disagrees with the cached state.
+    // Keyboard input must report the real value once, even with auto-repeat.
     var states = (Dictionary<uint, bool>)Field("LockStates").GetValue(null)!;
+    var actualLockState = true;
+    SystemOsdEvents.ReadLockState = _ => actualLockState;
     var keyboard = typeof(SystemOsdEvents).GetMethod("OnKeyboard", BindingFlags.NonPublic | BindingFlags.Static)!;
     foreach (var key in new uint[] { 0x14, 0x90, 0x91 })
     {
-        states[key] = false;
+        states[key] = true;
+        actualLockState = true;
         Marshal.WriteInt32(block, (int)key);
         before = EventBus.Events.Count;
         keyboard.Invoke(null, new object[] { 0, (nint)0x100, block });
         keyboard.Invoke(null, new object[] { 0, (nint)0x100, block });
         keyboard.Invoke(null, new object[] { 0, (nint)0x101, block });
         keyboard.Invoke(null, new object[] { 0, (nint)0x101, block });
+        await Task.Delay(100);
         Require(EventBus.Events.Count == before + 1 && Last("kind") == "lock" && Last("detail") == "已开启", "Lock repeat emitted extra/incorrect transitions");
         keyboard.Invoke(null, new object[] { 0, (nint)0x100, block });
+        actualLockState = false;
         keyboard.Invoke(null, new object[] { 0, (nint)0x101, block });
+        await Task.Delay(100);
         Require(Last("detail") == "已关闭", "Second lock press did not switch off");
     }
 
@@ -114,15 +160,104 @@ if (!args.Contains("--skip-native-audio"))
     foreach (var fieldName in new[] { "_output", "_microphone" })
         if (nativeType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(native) is not null) endpoints++;
 }
-Console.WriteLine(JsonSerializer.Serialize(new { passed = true, events_checked = EventBus.Events.Count, native_audio_endpoints = endpoints, native_audio_skipped = args.Contains("--skip-native-audio"), hardware_writes = 0 }));
+bool? radioInitial = null;
+bool? radioChanged = null;
+bool? radioRestored = null;
+var nativeFnToggles = 0;
+if (args.FirstOrDefault(value => value.StartsWith("--watch-fn=")) is { } watch)
+    nativeFnToggles = NativeFnProbe.Run(int.Parse(watch.Split('=')[1]));
+if (args.Contains("--read-native-radio") || args.Contains("--round-trip-radio"))
+{
+    radioInitial = AirplaneModeControl.Read();
+    if (args.Contains("--round-trip-radio"))
+    {
+        try
+        {
+            radioChanged = AirplaneModeControl.Set(!radioInitial.Value);
+            Require(radioChanged == !radioInitial, "Native radio switch wasn't read back");
+        }
+        finally { radioRestored = AirplaneModeControl.Set(radioInitial.Value); }
+        Require(radioRestored == radioInitial, "Native radio state wasn't restored");
+    }
+}
+Console.WriteLine(JsonSerializer.Serialize(new { passed = true, events_checked = EventBus.Events.Count, fn_input_toggles_checked = toggles, native_fn_toggles = nativeFnToggles, native_audio_endpoints = endpoints, native_audio_skipped = args.Contains("--skip-native-audio"), radio_initial = radioInitial, radio_changed = radioChanged, radio_restored = radioRestored, hardware_writes = 0 }));
+
+internal static class NativeFnProbe
+{
+    internal static int Run(int seconds)
+    {
+        if (seconds is < 1 or > 300) throw new ArgumentOutOfRangeException(nameof(seconds));
+        var initial = AirplaneModeControl.Read();
+        var count = 0;
+        var hwnd = CreateWindowEx(0, "STATIC", "LumaDesk Fn verification", 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        if (hwnd == 0) throw new Exception("Cannot create native Fn probe window");
+        using var input = new FnKeyInput(hwnd, async () =>
+        {
+            var state = await Task.Run(() => AirplaneModeControl.Set(!AirplaneModeControl.Read()));
+            Interlocked.Increment(ref count);
+            Console.WriteLine(JsonSerializer.Serialize(new { native_fn_toggle = Volatile.Read(ref count), airplane = state }));
+        });
+        input.SpecialKeyObserved = (key, scan, flags) => Console.WriteLine(JsonSerializer.Serialize(new { raw_key = key, scan, flags }));
+        SubclassProc callback = (window, message, w, l, id, data) =>
+        {
+            if (message == 0xff) input.Handle(l);
+            return DefSubclassProc(window, message, w, l);
+        };
+        try
+        {
+            if (!SetWindowSubclass(hwnd, callback, 1, 0)) throw new Exception("Cannot attach native Fn probe");
+            Console.WriteLine("Native Fn probe ready; press Fn+F4 twice. Original radio state will be restored.");
+            var until = Environment.TickCount64 + seconds * 1000L;
+            while (Environment.TickCount64 < until && Volatile.Read(ref count) < 2)
+            {
+                while (PeekMessage(out var message, 0, 0, 0, 1))
+                {
+                    TranslateMessage(ref message);
+                    DispatchMessage(ref message);
+                }
+                Thread.Sleep(10);
+            }
+        }
+        finally
+        {
+            input.Dispose();
+            RemoveWindowSubclass(hwnd, callback, 1);
+            DestroyWindow(hwnd);
+            AirplaneModeControl.Set(initial);
+            GC.KeepAlive(callback);
+        }
+        if (count != 2) throw new Exception("Physical Fn+F4 roundtrip was not captured twice");
+        return count;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Message { public nint Window; public uint Kind; public nuint W; public nint L; public uint Time; public int X, Y; public uint Private; }
+    private delegate nint SubclassProc(nint window, uint message, nuint w, nint l, nuint id, nuint data);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint CreateWindowEx(uint extended, string cls, string name, uint style, int x, int y, int width, int height, nint parent, nint menu, nint instance, nint parameter);
+    [DllImport("user32.dll")] private static extern bool DestroyWindow(nint window);
+    [DllImport("user32.dll")] private static extern bool PeekMessage(out Message message, nint window, uint min, uint max, uint flags);
+    [DllImport("user32.dll")] private static extern bool TranslateMessage(ref Message message);
+    [DllImport("user32.dll")] private static extern nint DispatchMessage(ref Message message);
+    [DllImport("comctl32.dll")] private static extern bool SetWindowSubclass(nint window, SubclassProc callback, nuint id, nuint data);
+    [DllImport("comctl32.dll")] private static extern bool RemoveWindowSubclass(nint window, SubclassProc callback, nuint id);
+    [DllImport("comctl32.dll")] private static extern nint DefSubclassProc(nint window, uint message, nuint w, nint l);
+}
 
 namespace JiYaoChu.Interop
 {
     public sealed record BackendEvent(string Name, System.Text.Json.Nodes.JsonNode? Payload);
-    public static class Backend { public static string BackendName { get; set; } = "mock"; }
+    public static class Backend
+    {
+        public static string BackendName { get; set; } = "mock";
+        public static Task<T> CallAsync<T>(string command) => throw new Exception("Unexpected backend call: " + command);
+    }
+}
+namespace JiYaoChu.Model
+{
+    public sealed record OemStatus { public bool TakenOver { get; init; } }
 }
 namespace JiYaoChu.Services
 {
+    public static class OsdOverlay { public static void Show(string title, string detail) { } }
     public static class PowerPolicy
     {
         public static readonly List<uint> Sources = [];
@@ -150,5 +285,8 @@ dotnet build (Join-Path $probeDirectory 'Probe.csproj') -c Release --nologo -v q
 if ($LASTEXITCODE -ne 0) { throw 'System OSD probe build failed.' }
 $probeArguments = @((Join-Path $probeDirectory 'bin/Release/net10.0-windows/Probe.dll'))
 if ($SkipNativeAudio) { $probeArguments += '--skip-native-audio' }
+if ($ReadNativeRadio) { $probeArguments += '--read-native-radio' }
+if ($RoundTripRadio) { $probeArguments += '--round-trip-radio' }
+if ($WatchFnSeconds -gt 0) { $probeArguments += "--watch-fn=$WatchFnSeconds" }
 dotnet @probeArguments
 if ($LASTEXITCODE -ne 0) { throw 'System OSD event checks failed.' }

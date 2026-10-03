@@ -154,7 +154,8 @@ public sealed record PowerSettings
 {
     public byte? WindowsPowerMode { get; init; }
     public string ActiveScheme { get; init; } = "";
-    public byte PowerMode { get; init; }
+    public byte? PowerMode { get; init; }
+    public string? PowerModeError { get; init; }
     public byte PowerModeAc { get; init; }
     public byte PowerModeBattery { get; init; }
     public bool AutoPowerMode { get; init; }

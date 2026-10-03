@@ -77,6 +77,7 @@ public static class BackgroundHost
             var config = startup.Config.Read<AppConfig>() ?? new();
             OsdOverlay.Configure(config.Osd);
             PowerPolicy.Start(config);
+            ChassisProfileNotifications.Start();
             if (Backend.BackendName != "mock") SystemOsdEvents.Start(_hwnd);
             if (config.WinKeyLocked)
                 await Backend.CallAsync("set_win_key_locked", new { locked = true });
@@ -110,6 +111,11 @@ public static class BackgroundHost
 
     public static async void OnOemHotkey(uint code)
     {
+        if ((code & 0xff) == 0xa4)
+        {
+            await SystemOsdEvents.ToggleFnAirplaneAsync();
+            return;
+        }
         if ((code & 0xff) is 0xba or 0xcc) { Show(); return; }
         if ((code & 0xff) is not (0xce or 0xa5 or 0x40 or 0x41))
         {
@@ -165,6 +171,7 @@ public static class BackgroundHost
 
     private static void Cleanup()
     {
+        ChassisProfileNotifications.Stop();
         SystemOsdEvents.Stop();
         var data = IconData();
         ShellNotifyIcon(2, ref data);
@@ -177,7 +184,7 @@ public static class BackgroundHost
     {
         Size = (uint)Marshal.SizeOf<NotifyIconData>(), Window = _hwnd, Id = 1,
         Flags = 1 | 2 | 4, CallbackMessage = TrayMessage, Icon = _icon,
-        Tip = "机耀处 · LumaDesk\n双击打开，右键菜单", Info = "", InfoTitle = "",
+        Tip = "机耀处\n双击打开，右键菜单", Info = "", InfoTitle = "",
     };
 
     private static bool AddIcon()

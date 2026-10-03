@@ -27,10 +27,10 @@
     <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
     <SelfContained>false</SelfContained>
 
-    <AssemblyName>机耀处</AssemblyName>
+    <AssemblyName>LumaDesk</AssemblyName>
     <Version>0.2.0-beta.4</Version>
     <FileVersion>0.2.0.20004</FileVersion>
-    <Product>机耀处 · LumaDesk</Product>
+    <Product>机耀处</Product>
     <Company>JiYaoChu</Company>
     <Copyright>Copyright (c) 2026 由崎黑板</Copyright>
   </PropertyGroup>
@@ -48,7 +48,7 @@
 
     src/ffi.rs exports a small C ABI over the same command dispatcher the
     headless jiyaochu-ctl front end drives; this project is the second consumer.
-    The DLL has to sit next to JiYaoChu.exe, so it is copied into the output
+    The DLL has to sit next to LumaDesk.exe, so it is copied into the output
     directory on every build. Build the Rust half first:
 
       cargo build                      (debug)   -> target\debug\jiyaochu_core.dll

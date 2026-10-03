@@ -58,9 +58,9 @@ try
     using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
     var principal = new System.Security.Principal.WindowsPrincipal(identity);
     if (!principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator) && !isolatedShellVerification)
-        throw new UnauthorizedAccessException("机耀处需要管理员权限，请启动机耀处.exe 并接受权限请求。");
+        throw new UnauthorizedAccessException("机耀处需要管理员权限，请启动LumaDesk.exe 并接受权限请求。");
     NativeLayout.Configure();
-    ReactorApp.Run<App>("机耀处 · LumaDesk", width: initialSize.Width, height: initialSize.Height);
+    ReactorApp.Run<App>("机耀处", width: initialSize.Width, height: initialSize.Height);
 }
 catch (Exception error)
 {
@@ -173,7 +173,7 @@ class App : Component
 
         items.Add(NavItem("系统设置", icon: "Setting", tag: "system"));
 
-        var titleBar = TitleBar("机耀处 · LumaDesk")
+        var titleBar = TitleBar("机耀处")
             .WithNavigation(nav)
             .PaneToggleButtonVisible(true)
             .PaneToggleRequested(() => setIsPaneOpen(!isPaneOpen))

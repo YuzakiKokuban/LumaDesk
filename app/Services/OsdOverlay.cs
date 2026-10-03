@@ -20,6 +20,7 @@ public static class OsdOverlay
     private static bool _started;
     private static volatile bool _shown;
     internal static bool IsVisible => _shown;
+    internal static bool WatchPhysicalProfile => _config.Enabled && _config.ShowOnPowerChange;
     private static readonly Dictionary<string, long> SystemNoticeTimes = [];
     internal static (string Title, string Detail) VisibleNotice => (_title?.Text ?? "", _detail?.Text ?? "");
     internal static int BorderConfigurationResult { get; private set; }
@@ -62,7 +63,7 @@ public static class OsdOverlay
         if (status is null) return;
         if (_previous is { } previous && _config.ShowOnPowerChange)
         {
-            if (status.PowerMode != previous.PowerMode)
+            if (status.PowerMode.HasValue && previous.PowerMode.HasValue && status.PowerMode != previous.PowerMode)
                 Show("性能模式", PowerModes.Label(status.PowerMode));
             else if (status.FanBoost != previous.FanBoost && status.FanBoost is { } fan)
                 Show("一键强冷", fan ? "已开启" : "已关闭");

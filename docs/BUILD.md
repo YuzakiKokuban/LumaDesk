@@ -10,7 +10,7 @@ dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Debug
 dotnet build app/JiYaoChu.csproj -c Debug --no-restore
 ```
 
-先构建 Rust DLL，再构建 WinUI。调试入口：`app/bin/Debug/net10.0-windows10.0.26100.0/win-x64/机耀处.exe`。
+先构建 Rust DLL，再构建 WinUI。调试入口：`app/bin/Debug/net10.0-windows10.0.26100.0/win-x64/LumaDesk.exe`。
 
 ```powershell
 ./scripts/build.ps1

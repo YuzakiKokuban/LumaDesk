@@ -29,7 +29,7 @@ function Set-ScheduledTask {
 """
 with tempfile.TemporaryDirectory(prefix="lumadesk-task-migration-") as temp:
     folder = Path(temp)
-    executable = folder / "机耀处.exe"
+    executable = folder / "LumaDesk.exe"
     executable.touch()
     task = {
         "TaskName": "LumaDesk", "TaskPath": "\\",
@@ -41,13 +41,18 @@ with tempfile.TemporaryDirectory(prefix="lumadesk-task-migration-") as temp:
     }
     cases = [("old-owned", task, True), ("missing", None, False)]
     for name, change, migrate in [
+        ("renamed-owned", lambda t: t["Actions"][0].update(Execute=str(folder / "机耀处.exe")), True),
+        ("renamed-background", lambda t: t["Actions"][0].update(Execute=str(folder / "机耀处.exe"), Arguments="--background"), True),
+        ("renamed-disabled", lambda t: (t["Actions"][0].update(Execute=str(folder / "机耀处.exe")), t["Settings"].update(Enabled=False)), True),
+        ("renamed-custom", lambda t: t["Actions"][0].update(Execute=str(folder / "机耀处.exe"), Arguments="--custom"), False),
+        ("renamed-foreign-directory", lambda t: t["Actions"][0].update(Execute=str(folder / "other" / "机耀处.exe")), False),
         ("disabled-owned", lambda t: t["Settings"].update(Enabled=False), True),
         ("case-normalized", lambda t: t["Actions"][0].update(Execute=str(executable).upper()), True),
         ("already-background", lambda t: t["Actions"][0].update(Arguments="--background"), False),
         ("custom-arguments", lambda t: t["Actions"][0].update(Arguments="--layout-check"), False),
         ("foreign-path", lambda t: t["Actions"][0].update(Execute=str(folder / "other.exe")), False),
-        ("relative-path", lambda t: t["Actions"][0].update(Execute="机耀处.exe"), False),
-        ("drive-relative-path", lambda t: t["Actions"][0].update(Execute=executable.drive + "机耀处.exe"), False),
+        ("relative-path", lambda t: t["Actions"][0].update(Execute="LumaDesk.exe"), False),
+        ("drive-relative-path", lambda t: t["Actions"][0].update(Execute=executable.drive + "LumaDesk.exe"), False),
         ("foreign-principal", lambda t: t["Principal"].update(UserId="S-1-5-18"), False),
         ("multiple-actions", lambda t: t["Actions"].append(copy.deepcopy(t["Actions"][0])), False),
         ("different-action", lambda t: t["Actions"][0]["CimClass"].update(CimClassName="MSFT_TaskComHandlerAction"), False),
@@ -70,6 +75,7 @@ with tempfile.TemporaryDirectory(prefix="lumadesk-task-migration-") as temp:
         assert output.exists() == migrate, (name, "unexpected modification")
         if migrate:
             expected = copy.deepcopy(candidate)
+            expected["Actions"][0]["Execute"] = str(executable)
             expected["Actions"][0]["Arguments"] = "--background"
             actual = json.loads(output.read_text(encoding="utf-8-sig"))
             assert actual == expected, (name, "migration changed other task metadata")

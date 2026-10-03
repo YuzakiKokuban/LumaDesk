@@ -7,8 +7,8 @@
 #ifndef AppFileVersion
   #error AppFileVersion is required
 #endif
-#define AppName "机耀处 · LumaDesk"
-#define AppExe "机耀处.exe"
+#define AppName "机耀处"
+#define AppExe "LumaDesk.exe"
 
 [Setup]
 AppId={{45F4C1DE-8087-475F-9972-8D8571CC6772}
@@ -47,6 +47,16 @@ Name: "desktopicon"; Description: "{cm:DesktopShortcut}"; GroupDescription: "{cm
 
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[InstallDelete]
+; Remove only obsolete application outputs when upgrading in place.
+Type: files; Name: "{app}\机耀处.exe"
+Type: files; Name: "{app}\机耀处.dll"
+Type: files; Name: "{app}\机耀处.pri"
+Type: files; Name: "{app}\机耀处.deps.json"
+Type: files; Name: "{app}\机耀处.runtimeconfig.json"
+Type: files; Name: "{group}\机耀处 · LumaDesk.lnk"
+Type: files; Name: "{autodesktop}\机耀处 · LumaDesk.lnk"
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"
@@ -153,6 +163,21 @@ begin
   end;
 end;
 
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  Code: Integer;
+begin
+  // Preserve login startup after a silent in-place upgrade to LumaDesk.exe.
+  // Reuse the backend's ownership/path/argument checks instead of replacing
+  // every task named LumaDesk or creating a new enabled task.
+  if CurStep = ssPostInstall then
+    if not Exec(ExpandConstant('{app}\jiyaochu-ctl.exe'), 'migrate_autostart_task',
+      ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, Code) then
+      Log('Unable to migrate the owned login task; retry on first application launch')
+    else if Code <> 0 then
+      Log('Login task migration failed; retry on first application launch');
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   Code: Integer;
@@ -161,7 +186,8 @@ begin
   if CurUninstallStep = usUninstall then begin
     // Remove only a startup task that points into this installation.
     Script := '$t=Get-ScheduledTask -TaskName LumaDesk -TaskPath ''\'' -ErrorAction SilentlyContinue; ' +
-      'if ($t -and ($t.Actions.Execute -contains ''' + PSQuote(ExpandConstant('{app}\{#AppExe}')) + ''')) { ' +
+      'if ($t -and (($t.Actions.Execute -contains ''' + PSQuote(ExpandConstant('{app}\{#AppExe}')) + ''') -or ' +
+      '($t.Actions.Execute -contains ''' + PSQuote(ExpandConstant('{app}\机耀处.exe')) + '''))) { ' +
       'Unregister-ScheduledTask -TaskName LumaDesk -TaskPath ''\'' -Confirm:$false }';
     Exec(ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe'),
       '-NoProfile -NonInteractive -Command "' + Script + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
