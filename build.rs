@@ -16,7 +16,7 @@ fn main() {
         res.set("ProductName", "机耀处");
         res.set("FileDescription", "机耀处");
         res.set("CompanyName", "JiYaoChu");
-        res.set("LegalCopyright", "MIT License");
+        res.set("LegalCopyright", "Copyright (c) 2026 由崎黑板");
         res.set("OriginalFilename", "jiyaochu-ctl.exe");
         res.set("InternalName", "jiyaochu");
         res.set("ProductVersion", env!("CARGO_PKG_VERSION"));
