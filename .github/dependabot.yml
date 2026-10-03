@@ -4,16 +4,27 @@ updates:
     target-branch: "dev"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      actions:
+        patterns: ["*"]
 
   - package-ecosystem: "cargo"
     target-branch: "dev"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      cargo-patches:
+        patterns: ["*"]
+        update-types: ["patch"]
 
   - package-ecosystem: "nuget"
     target-branch: "dev"
     directory: "/app"
     schedule:
       interval: "weekly"
+    groups:
+      nuget-compatible:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]

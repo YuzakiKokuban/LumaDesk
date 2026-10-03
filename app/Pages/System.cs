@@ -15,45 +15,38 @@ namespace JiYaoChu.Pages;
 /// log file and the on-screen display.
 /// </summary>
 /// <remarks>
-/// The page reads a bundle of six independent commands in one resource rather
-/// than six resources: they are all cheap, they are all refetched together
-/// after any write, and one <see cref="AsyncValue{T}"/> keeps the page's
-/// loading and error handling in a single place.
+/// Initial reads are grouped; subsequent writes refresh only their own section.
+/// Successful values remain mounted through pending and failed readbacks.
 /// </remarks>
-public sealed class SystemPage : Component
+public sealed class SystemPage : SettingsPage
 {
     public override Element Render()
     {
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
         var (applied, setApplied) = UseState<string?>(null);
-        var (revision, setRevision) = UseState(0);
+        var (reader, bundle) = UseSettings(FetchAsync);
+        var (notificationReader, notifications) = UseSettings(() => Backend.CallNodeAsync("system.subscriptions"));
+        var working = busy || bundle.Refreshing;
         UseEffect(() => EventBus.Subscribe(raised =>
         {
-            if (raised.Name == "shell://win-key-changed") setRevision(revision + 1);
-        }), revision);
+            if (raised.Name == "shell://win-key-changed")
+                _ = reader.RefreshAsync(value => RefreshSectionAsync(value, "set_device_switch"));
+            else if (raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() is { } command && IsSettingCommand(command))
+                _ = reader.RefreshAsync(value => RefreshSectionAsync(value, command));
+        }), []);
         var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
-
-        var bundle = UseResource(_ => FetchAsync(), deps: [revision]);
 
         void Settled(string? error, string? ok)
         {
             setFailure(error);
             setApplied(ok);
-            MachineStore.Refresh();
-            setRevision(revision + 1);
+            if (error is not null) reader.Refresh();
         }
 
         var sections = new List<Element>();
 
-        if (failure is not null)
-        {
-            sections.Add(Chrome.Notice("操作失败", failure, InfoBarSeverity.Error));
-        }
-        else if (applied is not null)
-        {
-            sections.Add(Chrome.Notice("已应用", applied, InfoBarSeverity.Success));
-        }
+        sections.Add(Chrome.Feedback(failure ?? bundle.Error, applied));
 
         if (machine.Error is not null)
         {
@@ -65,10 +58,11 @@ public sealed class SystemPage : Component
             value => VStack(
                 20,
                 IdentitySection(machine.Status),
-                SwitchesSection(value.Switches, value.SwitchesError, busy, setBusy, Settled),
-                FirmwareSection(value, busy, setBusy, Settled),
-                LogSection(value, busy, setBusy, Settled),
-                OsdSection(value.Osd, value.OsdError, busy, setBusy, Settled)),
+                SwitchesSection(value.Switches, value.SwitchesError, working, setBusy, Settled),
+                FirmwareSection(value, working, setBusy, Settled),
+                LogSection(value, working, setBusy, Settled),
+                OsdSection(value.Osd, value.OsdError, working, setBusy, Settled),
+                SupportSection(notifications.Value, notifications.Error, notificationReader.Refresh, working, setBusy, Settled)),
             error => Chrome.Notice("读取系统设置失败", error.Message, InfoBarSeverity.Error)));
 
         return Chrome.Page("系统", machine.Status?.Device.Model, [.. sections]);
@@ -95,6 +89,20 @@ public sealed class SystemPage : Component
         string? LogPath,
         OsdConfig? Osd,
         string? OsdError);
+
+    private static bool IsSettingCommand(string command) => command is
+        "set_device_switch" or "set_win_key_locked" or "toggle_oem_service" or "restore_official_control_center"
+        or "set_autostart" or "set_log_level" or "set_log_filter" or "save_osd_config" or "set_osd_config";
+
+    private static async Task<Bundle> RefreshSectionAsync(Bundle value, string command) => command switch
+    {
+        "set_device_switch" or "set_win_key_locked" => value with { Switches = await Backend.CallAsync<List<DeviceSwitch>>("get_device_switches"), SwitchesError = null },
+        "toggle_oem_service" or "restore_official_control_center" => value with { Oem = await Backend.CallAsync<OemStatus>("get_oem_status"), OemError = null },
+        "set_autostart" => value with { Autostart = await Backend.CallAsync<bool>("get_autostart"), AutostartError = null },
+        "set_log_level" or "set_log_filter" => value with { Log = await Backend.CallAsync<LogStatus>("get_log_status"), LogError = null },
+        "save_osd_config" or "set_osd_config" => value with { Osd = await Backend.CallAsync<OsdConfig>("get_osd_config"), OsdError = null },
+        _ => value,
+    };
 
     private static async Task<(T? Value, string? Error)> Soft<T>(Func<Task<T>> read)
         where T : class
@@ -167,6 +175,31 @@ public sealed class SystemPage : Component
 
     private static string Blank(string? value)
         => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static string NotificationState(System.Text.Json.Nodes.JsonNode? value)
+    {
+        var label = value?["state"]?.GetValue<string>() switch {
+            "connected" => "已连接", "connecting" or "reconnecting" => "正在连接",
+            "retrying" => "连接中断，自动重试", "inactive" => Backend.BackendName == "mock" ? "模拟模式，未订阅设备" : "未启用", _ => "正在检测" };
+        return value?["last_error"]?.GetValue<string>() is { } error ? label + " · " + error : label;
+    }
+
+    private static Element SupportSection(System.Text.Json.Nodes.JsonNode? notifications, string? error, Action refresh, bool busy, Action<bool> setBusy, Act.Report settled)
+        => Chrome.SectionCard("诊断与备份",
+            Chrome.Field("屏幕亮度通知", NotificationState(notifications?["brightness"])),
+            Chrome.Field("OEM 热键通知", NotificationState(notifications?["hotkeys"])),
+            Chrome.Feedback(error, null).WithKey("notification-feedback"),
+            Body("诊断包包含版本、通知连接状态、最近的硬件读数和日志；设置备份包含配置、机型资料与自定义预设。").Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
+            HStack(8,
+                Button("导出诊断包", Act.Fire("export_diagnostics", async () => { await SupportExport.ExportAsync(false); }, settled, setBusy)).IsEnabled(!busy).AutomationName("导出诊断包"),
+                Button("备份设置", Act.Fire("backup_settings", async () => { await SupportExport.ExportAsync(true); }, settled, setBusy)).IsEnabled(!busy).AutomationName("备份设置")),
+            HStack(8, Button("检测通知连接", refresh).SubtleButton().IsEnabled(!busy),
+            Button("重新连接通知", Act.Fire("reconnect_notifications", async () => {
+                await Backend.CallAsync("system.reconnect_events");
+                Core.StartDisplayBrightness();
+                Core.StartOemHotkeys();
+                refresh();
+            }, settled, setBusy)).SubtleButton().IsEnabled(!busy)));
 
     // ------------------------------------------------------------------ switches
 

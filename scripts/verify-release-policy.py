@@ -68,9 +68,15 @@ class ReleasePolicyTests(unittest.TestCase):
     def test_beta_on_main_rejected(self):
         self.verify(self.release("1.0.0-beta.1", "main"), "must belong to dev")
 
-    def test_wrong_version_rejected(self):
+    def test_tag_versions_the_release_without_manual_source_bump(self):
         self.release("1.0.0", "main")
-        self.verify("v2.0.0", "does not match package version")
+        self.git("tag", "v1.0.1")
+        (self.repo / "docs/releases/NOTES.md").write_text("Maintainer verification notes\n", encoding="utf-8")
+        self.verify("v1.0.1")
+
+    def test_invalid_semver_rejected_before_publication(self):
+        self.release("1.0.0", "main")
+        self.verify("v1.00.0", "Unsupported release tag")
 
     def test_wrong_checkout_rejected(self):
         tag = self.release("1.0.0", "main")

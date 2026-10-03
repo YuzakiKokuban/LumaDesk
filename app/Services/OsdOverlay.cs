@@ -193,7 +193,6 @@ public static class OsdOverlay
     {
         _timer?.Stop(); _window?.AppWindow.Hide();
         _shown = false;
-        BackgroundMemory.ReleaseWhenHidden();
     }
     public static void Close()
     {

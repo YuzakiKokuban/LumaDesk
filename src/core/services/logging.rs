@@ -163,7 +163,7 @@ fn timestamp() -> String {
     // Format as a local-ish ISO-8601 stamp. We deliberately avoid pulling in a
     // full timezone database: the boot log is read by humans, not parsed.
     let (y, mo, d, h, mi, s) = civil_from_unix(secs as i64);
-    format!("{y:04}-{mo:02}-{d:02} {h:02}:{mi:02}:{s:02}.{millis:03}")
+    format!("{y:04}-{mo:02}-{d:02}T{h:02}:{mi:02}:{s:02}.{millis:03}Z")
 }
 
 /// Days-to-civil conversion (Howard Hinnant's algorithm), UTC.
@@ -204,6 +204,19 @@ pub fn write(level: LogLevel, message: &str) {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
+    let Ok(lock) = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .read(true)
+        .write(true)
+        .open(path.with_extension("log.lock"))
+    else {
+        return;
+    };
+    if lock.lock().is_err() {
+        return;
+    }
+    rotate();
     let line = format!("[{}] [{}] {}\n", timestamp(), level.tag(), message);
     let _ = OpenOptions::new()
         .create(true)
@@ -212,14 +225,25 @@ pub fn write(level: LogLevel, message: &str) {
         .and_then(|mut f| f.write_all(line.as_bytes()));
 }
 
-/// Truncates the log. Called once per process start so `boot.log` describes the
-/// current session, exactly like the original.
+/// Retains five bounded log segments, including previous application runs.
 pub fn rotate() {
     let path = path();
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
-    let _ = fs::write(&path, b"");
+    if fs::metadata(&path).is_ok_and(|meta| meta.len() > 2 * 1024 * 1024) {
+        for index in (1..=4).rev() {
+            let source = if index == 1 {
+                path.clone()
+            } else {
+                path.with_extension(format!("log.{}", index - 1))
+            };
+            let destination = path.with_extension(format!("log.{index}"));
+            if source.exists() {
+                let _ = fs::rename(source, destination);
+            }
+        }
+    }
 }
 
 /// Reads the tail of the log for the in-app log viewer.
@@ -258,7 +282,6 @@ pub fn debug(message: impl AsRef<str>) {
 /// Ensures the data directory exists and starts a fresh log file.
 pub fn init() {
     let _ = crate::core::config::ensure_dir(&crate::core::config::data_dir());
-    rotate();
     info("=== JiYaoChu control center starting ===");
 }
 

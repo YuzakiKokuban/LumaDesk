@@ -1,0 +1,105 @@
+name: Windows packages
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build and test Windows packages
+    runs-on: windows-2025
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CARGO_TERM_COLOR: always
+      JIYAOCHU_FORCE_MOCK: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Prepare unified version
+        env:
+          BUILD_VERSION: ${{ inputs.version }}
+        run: |
+          $arguments = @('scripts/version.py', '--apply')
+          if ($env:BUILD_VERSION) { $arguments += @('--version', $env:BUILD_VERSION) }
+          python @arguments
+          exit $LASTEXITCODE
+      - name: Isolate mock configuration
+        run: '"JIYAOCHU_DATA_DIR=$env:RUNNER_TEMP\LumaDesk-packages" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8'
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: app/packages.*.lock.json
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: windows-packages
+          cache-all-crates: true
+          save-if: ${{ github.event_name != 'pull_request' && github.ref_type != 'tag' }}
+      - name: Install shared WinUI runtime for application tests
+        run: |
+          Invoke-WebRequest 'https://aka.ms/windowsappsdk/2.5/2.5.1/windowsappruntimeinstall-x64.exe' -OutFile "$env:RUNNER_TEMP\WinUI-runtime.exe"
+          $signature = Get-AuthenticodeSignature "$env:RUNNER_TEMP\WinUI-runtime.exe"
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'WinUI runtime publisher verification failed' }
+          $runtime = Start-Process "$env:RUNNER_TEMP\WinUI-runtime.exe" -ArgumentList '--quiet' -WindowStyle Hidden -Wait -PassThru
+          if ($runtime.ExitCode -ne 0) { throw "Runtime installation failed: $($runtime.ExitCode)" }
+      - name: Build Debug frontend
+        run: |
+          cargo build --locked
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Debug
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet build app/JiYaoChu.csproj -c Debug --no-restore -warnaserror
+          exit $LASTEXITCODE
+      - name: Restore Release dependencies
+        run: dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Release
+      - name: Build portable and installer packages
+        run: ./scripts/build.ps1 -NoRestore
+      - name: Verify package
+        run: python scripts/verify-package.py --archive (Get-ChildItem artifacts/LumaDesk-*-win-x64.zip).FullName --installer (Get-ChildItem artifacts/LumaDesk-*-Setup.exe).FullName
+      - name: Verify installer dependency detection
+        run: python scripts/verify-installer-dependencies.py
+      - name: Verify event-driven system OSD
+        run: ./scripts/verify-system-osd.ps1 -SkipNativeAudio
+      - name: Verify background login task migration
+        run: python scripts/verify-autostart-migration.py
+      - name: Verify settings remain mounted after writes
+        run: |
+          $testManifest = Join-Path $env:RUNNER_TEMP 'LumaDesk-mock.manifest'
+          [IO.File]::WriteAllText($testManifest, (Get-Content app/app.manifest -Raw).Replace('requireAdministrator', 'asInvoker'))
+          dotnet build app/JiYaoChu.csproj -c Release --no-restore -warnaserror "-p:ApplicationManifest=$testManifest" "-p:OutDir=$env:RUNNER_TEMP\LumaDesk-mock-host\"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $env:JIYAOCHU_VERIFY_SETTINGS = '1'
+          $env:JIYAOCHU_VERIFY_SCREENSHOTS = '0'
+          ./scripts/verify-shell.ps1 -ApplicationDirectory "$env:RUNNER_TEMP\LumaDesk-mock-host" -Report artifacts/settings-experience-validation.json
+      - name: Verify installation and uninstallation
+        run: ./scripts/verify-installer.ps1 -Installer (Get-ChildItem artifacts/LumaDesk-*-Setup.exe).FullName -Directory "$env:RUNNER_TEMP\LumaDesk-installed"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: LumaDesk-win-x64
+          path: |
+            artifacts/LumaDesk-*-win-x64.zip
+            artifacts/LumaDesk-*-win-x64.zip.sha256
+            artifacts/LumaDesk-*-win-x64-Setup.exe
+            artifacts/LumaDesk-*-win-x64-Setup.exe.sha256
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save UI verification report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: settings-verification
+          path: artifacts/settings-experience-validation.json*
+          if-no-files-found: ignore
+          retention-days: 14

@@ -25,7 +25,7 @@ internal static class ShellVerification
         try
         {
             Require(Backend.BackendName == "mock", "Shell verification requires the mock backend");
-            await Task.Delay(1500);
+            await Task.Delay(3500);
             var main = BackgroundHost.Handle;
             Require(main != 0 && !IsWindowVisible(main), "Background startup opened a window");
             Require(!MachineStore.IsActive && MachineStore.HardwareReads == 0, "Background startup scanned hardware");
@@ -48,6 +48,8 @@ internal static class ShellVerification
                 "Restored window is not centered");
             report["maximized_and_half_screen_restore"] = true;
             BackgroundHost.Show();
+            if (Environment.GetEnvironmentVariable("JIYAOCHU_VERIFY_SETTINGS") == "1")
+                await SettingsVerification.RunAsync(report, reportPath);
             PostMessage(main, 0x10, 0, 0); // Close button / WM_CLOSE.
             await Task.Delay(1500);
             Require(!IsWindowVisible(main) && !MachineStore.IsActive, "Close did not hide to the tray");
@@ -84,7 +86,7 @@ internal static class ShellVerification
             report["osd_bounds"] = new { bounds.Left, bounds.Top, bounds.Right, bounds.Bottom };
             // Give the external harness time to capture the actual rendered OSD.
             var previewReport = Path.ChangeExtension(reportPath, ".preview.json");
-            await File.WriteAllTextAsync(previewReport, JsonSerializer.Serialize(report));
+            await SettingsVerification.WritePreviewAsync(previewReport, JsonSerializer.Serialize(report));
             await Task.Delay(2500);
             Require(!IsWindowVisible(osd), "OSD did not disappear on its timer");
             ShowWindow(main, 6); // Minimize.
@@ -148,6 +150,35 @@ internal static class ShellVerification
                 "Repeating the Fn+F3 packet did not unlock");
             Require(MachineStore.HardwareReads == reads, "Hidden Win-key changes restarted scanning");
             report["fn_f3_packet_toggle"] = true;
+            if (Environment.GetEnvironmentVariable("JIYAOCHU_VERIFY_SETTINGS") == "1")
+            {
+                var collections = BackgroundMemory.Collections;
+                await Backend.CallAsync("save_osd_config", new { config = config with { Enabled = true, DurationMs = 600 } });
+                for (var i = 0; i < 4; i++) { OsdOverlay.Show("连续提示", $"{i}"); await Task.Delay(650); }
+                Require(BackgroundMemory.Collections == collections, "Each OSD timeout triggered a collection");
+                report["osd_burst_does_not_collect"] = true;
+                report["memory_collections"] = collections;
+                report["last_collection_ms"] = BackgroundMemory.LastCollectionMs;
+                var timings = new List<double>();
+                for (var i = 0; i < 3; i++)
+                {
+                    var timer = System.Diagnostics.Stopwatch.StartNew();
+                    BackgroundHost.Show();
+                    var painted = new TaskCompletionSource();
+                    Microsoft.UI.Reactor.ReactorApp.UIDispatcher!.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => painted.SetResult());
+                    await painted.Task;
+                    timings.Add(timer.Elapsed.TotalMilliseconds);
+                    BackgroundHost.Hide();
+                    await Task.Delay(100);
+                }
+                report["reopen_ui_queue_ms"] = timings;
+                if (Environment.GetEnvironmentVariable("JIYAOCHU_VERIFY_MEMORY_IDLE") == "1")
+                {
+                    await Task.Delay(BackgroundMemory.IdleDelayMs + 700);
+                    report["memory_after_idle_cooldown"] = MemorySample();
+                    report["collections_after_idle"] = BackgroundMemory.Collections;
+                }
+            }
             using (var process = System.Diagnostics.Process.GetCurrentProcess())
             {
                 var before = process.TotalProcessorTime;

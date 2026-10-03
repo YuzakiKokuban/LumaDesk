@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "passive_native_wmi": true,
+  "duplicate_start_is_idempotent": true,
+  "initial": {
+    "brightness": {
+      "connections": 1,
+      "failures": 0,
+      "last_error": null,
+      "state": "connected"
+    },
+    "hotkeys": {
+      "connections": 1,
+      "failures": 0,
+      "last_error": null,
+      "state": "connected"
+    }
+  },
+  "after_reconnect": {
+    "brightness": {
+      "connections": 2,
+      "failures": 0,
+      "last_error": null,
+      "state": "connected"
+    },
+    "hotkeys": {
+      "connections": 2,
+      "failures": 0,
+      "last_error": null,
+      "state": "connected"
+    }
+  }
+}

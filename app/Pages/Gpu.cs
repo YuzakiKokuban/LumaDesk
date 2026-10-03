@@ -9,37 +9,35 @@ using static Microsoft.UI.Reactor.Factories;
 
 namespace JiYaoChu.Pages;
 
-public sealed class GpuPage : Component
+public sealed class GpuPage : SettingsPage
 {
     public override Element Render()
     {
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
-        var (saved, setSaved) = UseState(false);
-        var (revision, setRevision) = UseState(0);
         var (draft, setDraft) = UseState<GpuMode?>(null);
         var (confirmRestart, setConfirmRestart) = UseState(false);
         var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
-        var resource = UseResource(_ => Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info"), deps: [revision]);
+        var (reader, resource) = UseSettings(() => Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info"));
         var info = resource.Match<GpuModeInfo?>(() => null, value => value, _ => null);
         var current = info?.ConfiguredMode;
         var target = draft ?? current;
-        var pending = saved || info?.PendingReboot == true;
+        var pending = info?.PendingReboot == true;
 
         void Settled(string? error, string? success)
         {
             setFailure(error);
-            if (success is not null) { setSaved(true); setDraft(null); }
-            setRevision(revision + 1);
+            if (success is not null) setDraft(null);
+            reader.Refresh();
             MachineStore.Refresh();
         }
 
         var sections = new List<Element>();
-        if (failure is not null) sections.Add(Chrome.Notice("保存失败", failure, InfoBarSeverity.Error));
+        sections.Add(Chrome.Feedback(failure ?? resource.Error, null));
         if (pending)
         {
             sections.Add(Chrome.SectionCard("模式已保存，重启后生效",
-                Body("请先保存正在编辑的文件。固件配置已更新，当前显示路由可能尚未改变。"),
+                Body("请先保存正在编辑的文件。固件配置已更新，当前显示路由可能尚未改变。").TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap),
                 confirmRestart
                     ? HStack(10,
                         Button("确认重启（30 秒后）", Act.Fire("restart_system", () => Backend.CallAsync("restart_system"),
@@ -53,7 +51,8 @@ public sealed class GpuPage : Component
             value => Chrome.SectionCard("输出模式",
                 HStack(10, Body($"已保存：{GpuModes.Label(value.ConfiguredMode)}").SemiBold(),
                     Chrome.Pill("固件读取", InfoBarSeverity.Informational)),
-                Body("选择模式后点击保存。更改将在下次重启时由固件应用。").Foreground(Theme.SecondaryText),
+                Body("选择模式后点击保存。更改将在下次重启时由固件应用。").Foreground(Theme.SecondaryText).TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap),
+                !value.RebootStatusKnown ? Caption("暂时无法确认系统启动时间，待重启状态可能需要重新检查。").Foreground(Theme.SecondaryText) : Grid([], []),
                 Chrome.ChoiceRow([.. GpuModes.All.Select(mode => Chrome.ChoiceCard(
                     GpuModes.Name(mode), GpuModes.Tag(mode), GpuModes.Description(mode),
                     selected: mode == target,
@@ -67,9 +66,9 @@ public sealed class GpuPage : Component
                         {
                             if (target is { } mode) await Backend.CallAsync("set_gpu_mode", new { mode = GpuModes.Wire(mode) });
                         }, Settled, setBusy)).AutomationName("保存显卡模式").AccentButton().IsEnabled(!busy && value.Supported && target is not null && target != current),
-                    Button("重新读取", () => setRevision(revision + 1)).SubtleButton().IsEnabled(!busy))),
+                    Button("重新读取", reader.Refresh).SubtleButton().IsEnabled(!busy))),
             error => Chrome.SectionCard("输出模式", Chrome.Notice("暂时无法读取", error.Message, InfoBarSeverity.Warning),
-                Button("重新读取", () => setRevision(revision + 1)).SubtleButton())));
+                Button("重新读取", reader.Refresh).SubtleButton())));
 
         var gpu = machine.Status?.Gpu;
         sections.Add(Chrome.SectionCard("图形处理器",

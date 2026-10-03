@@ -1,13 +1,12 @@
 param([string]$Version, [switch]$NoRestore)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$manifest = Get-Content -LiteralPath (Join-Path $projectRoot 'Cargo.toml') -Raw
-$sourceVersion = [regex]::Match($manifest, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
-if (!$sourceVersion) { throw 'Cargo package version is missing' }
-if (!$Version) { $Version = $sourceVersion }
-if ($Version -ne $sourceVersion) { throw "Requested version $Version differs from source $sourceVersion" }
-[xml]$appProject = Get-Content -LiteralPath (Join-Path $projectRoot 'app/JiYaoChu.csproj') -Raw
-if ($appProject.SelectSingleNode('/Project/PropertyGroup/Version').InnerText -ne $sourceVersion) { throw 'Rust and application versions differ' }
+$versionArgs = @((Join-Path $PSScriptRoot 'version.py'), '--apply', '--root', $projectRoot)
+if ($Version) { $versionArgs += @('--version', $Version) }
+$versionJson = python @versionArgs
+if ($LASTEXITCODE -ne 0) { throw 'Version preparation failed' }
+$versionInfo = $versionJson | ConvertFrom-Json
+$Version = $versionInfo.version
 if ($NoRestore) {
     $assets = Get-Content -LiteralPath (Join-Path $projectRoot 'app/obj/project.assets.json') -Raw | ConvertFrom-Json
     if ($assets.libraries.PSObject.Properties.Name -match '^Microsoft.UI.Reactor.Devtools/') {
@@ -19,8 +18,14 @@ Push-Location $projectRoot
 try {
     cargo build --locked --release
     if ($LASTEXITCODE -ne 0) { throw 'Rust build failed' }
-    $publishArgs = @('publish', 'app/JiYaoChu.csproj', '-c', 'Release', '-r', 'win-x64', '-o', $publishDir, '-v', 'minimal', '-p:RestoreLockedMode=true')
-    if ($NoRestore) { $publishArgs += '--no-restore' }
+    # Mock UI checks may have built an asInvoker apphost in shared intermediates.
+    # Always regenerate the real host before publishing, even without source changes.
+    $applicationManifest = Join-Path $projectRoot 'app/app.manifest'
+    $buildArgs = @('build', 'app/JiYaoChu.csproj', '-c', 'Release', '-r', 'win-x64', '-t:Rebuild', '-p:RestoreLockedMode=true', "-p:ApplicationManifest=$applicationManifest")
+    if ($NoRestore) { $buildArgs += '--no-restore' }
+    dotnet @buildArgs
+    if ($LASTEXITCODE -ne 0) { throw 'Release rebuild failed' }
+    $publishArgs = @('publish', 'app/JiYaoChu.csproj', '-c', 'Release', '-r', 'win-x64', '-o', $publishDir, '-v', 'minimal', '--no-build', '--no-restore', "-p:ApplicationManifest=$applicationManifest")
     dotnet @publishArgs
     if ($LASTEXITCODE -ne 0) { throw 'WinUI publish failed' }
     Copy-Item -LiteralPath 'target\release\jiyaochu-ctl.exe' -Destination $publishDir
@@ -32,7 +37,7 @@ try {
     [IO.File]::WriteAllText(($archivePath + '.sha256'), ($hash.Hash.ToLowerInvariant() + '  ' + [IO.Path]::GetFileName($archivePath) + "`n"), [Text.UTF8Encoding]::new($false))
     $hash
     $compiler = & (Join-Path $PSScriptRoot 'ensure-inno.ps1')
-    & $compiler '/Q' "/DAppVersion=$Version" "/DPublishDir=$publishDir" (Join-Path $projectRoot 'installer/LumaDesk.iss')
+    & $compiler '/Q' "/DAppVersion=$Version" "/DAppFileVersion=$($versionInfo.file_version)" "/DPublishDir=$publishDir" (Join-Path $projectRoot 'installer/LumaDesk.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
     $installer = Join-Path $projectRoot "artifacts\LumaDesk-$Version-win-x64-Setup.exe"
     $installerHash = Get-FileHash -LiteralPath $installer -Algorithm SHA256

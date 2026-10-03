@@ -15,23 +15,20 @@ namespace JiYaoChu.Pages;
 /// <remarks>
 /// The stored configuration arrives through <c>get_power_settings</c> rather
 /// than from the polled status: it carries the scheme list and the CPU power
-/// limits, which the one-second snapshot deliberately does not. Every write
-/// bumps a revision so that resource refetches, because these values are not
-/// part of the polled snapshot.
+/// limits, which the one-second snapshot deliberately does not. Write readbacks
+/// keep the controls and scroll position mounted while updating those values.
 /// </remarks>
-public sealed class TuningPage : Component
+public sealed class TuningPage : SettingsPage
 {
     public override Element Render()
     {
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
         var (applied, setApplied) = UseState<string?>(null);
-        var (revision, setRevision) = UseState(0);
         var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
 
-        var settings = UseResource(
-            _ => Backend.CallAsync<PowerSettings>("get_power_settings"),
-            deps: [revision]);
+        var (reader, settings) = UseSettings(() => Backend.CallAsync<PowerSettings>("get_power_settings"));
+        var working = busy || settings.Refreshing;
 
         // One callback for "a write landed": refresh the live snapshot and force
         // the resource above to re-read the stored configuration.
@@ -40,19 +37,12 @@ public sealed class TuningPage : Component
             setFailure(error);
             setApplied(ok);
             MachineStore.Refresh();
-            setRevision(revision + 1);
+            reader.Refresh();
         }
 
         var sections = new List<Element>();
 
-        if (failure is not null)
-        {
-            sections.Add(Chrome.Notice("操作失败", failure, InfoBarSeverity.Error));
-        }
-        else if (applied is not null)
-        {
-            sections.Add(Chrome.Notice("已应用", applied, InfoBarSeverity.Success));
-        }
+        sections.Add(Chrome.Feedback(failure ?? settings.Error, applied));
 
         if (machine.Error is not null)
         {
@@ -63,10 +53,11 @@ public sealed class TuningPage : Component
             () => Chrome.SectionCard("机械革命性能档位", HStack(12, ProgressRing(), Body("正在读取电源设置…"))),
             value => VStack(
                 20,
-                PowerSection(value, busy, setBusy, Settled),
-                BatterySection(machine.Status, busy, setBusy, Settled),
-                WindowsModeSection(value, busy, setBusy, Settled),
-                SchemeSection(value, busy, setBusy, Settled)),
+                PowerSection(value, working, setBusy, Settled),
+                AutomationSection(value, working, setBusy, Settled),
+                BatterySection(machine.Status, working, setBusy, Settled),
+                WindowsModeSection(value, working, setBusy, Settled),
+                SchemeSection(value, working, setBusy, Settled)),
             error => Chrome.Notice("读取电源设置失败", error.Message, InfoBarSeverity.Error)));
 
         sections.Add(LiveSection(machine.Status));
@@ -100,8 +91,22 @@ public sealed class TuningPage : Component
         return Chrome.SectionCard(
             "机械革命性能档位",
             Body("办公适合日常轻负载，均衡兼顾性能与噪声，狂暴用于高负载。")
-                .Foreground(Theme.SecondaryText),
+                .Foreground(Theme.SecondaryText).TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap),
             Chrome.ChoiceRow(cards));
+    }
+
+    private static Element AutomationSection(PowerSettings settings, bool busy, Action<bool> setBusy, Act.Report settled)
+    {
+        void Save(bool enabled, byte ac, byte battery)
+            => Act.Fire("set_power_automation", () => Backend.CallAsync("set_power_automation", new { enabled, ac_mode = ac, battery_mode = battery }), settled, setBusy)();
+        var modes = new[] { "办公", "均衡", "狂暴" };
+        return Chrome.SectionCard("自动性能档位",
+            Chrome.SettingRow("随供电方式切换", "开启后立即应用当前规则；手动切换会保留到下次供电变化。",
+                ToggleSwitch(Optional<bool>.Of(settings.AutoPowerMode), enabled => { if (enabled != settings.AutoPowerMode) Save(enabled, settings.PowerModeAc, settings.PowerModeBattery); }).IsEnabled(!busy)),
+            Chrome.SettingRow("连接电源", null,
+                ComboBox(modes, Optional<int>.Of(settings.PowerModeAc), index => { if (index is >= 0 and <= 2 && index != settings.PowerModeAc) Save(settings.AutoPowerMode, (byte)index, settings.PowerModeBattery); }).IsEnabled(!busy)),
+            Chrome.SettingRow("电池或备用电源", null,
+                ComboBox(modes, Optional<int>.Of(settings.PowerModeBattery), index => { if (index is >= 0 and <= 2 && index != settings.PowerModeBattery) Save(settings.AutoPowerMode, settings.PowerModeAc, (byte)index); }).IsEnabled(!busy)));
     }
 
     private static Element BatterySection(
@@ -176,7 +181,7 @@ public sealed class TuningPage : Component
 
         return Chrome.SectionCard(
             "Windows 电源计划",
-            Body($"当前：{settings.ActiveScheme}").Foreground(Theme.SecondaryText),
+            Body($"当前：{settings.ActiveScheme}").Foreground(Theme.SecondaryText).TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap),
             VStack(10, [.. rows]));
     }
 

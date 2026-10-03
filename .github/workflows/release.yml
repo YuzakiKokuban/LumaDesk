@@ -1,0 +1,100 @@
+name: Publish release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    name: Validate tag and source
+    runs-on: windows-2025
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Verify release provenance
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: ./scripts/verify-release.ps1 -Tag $env:RELEASE_TAG
+      - name: Resolve tag version
+        id: version
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python scripts/version.py --tag $env:RELEASE_TAG --github-output $env:GITHUB_OUTPUT
+
+  checks:
+    needs: metadata
+    uses: ./.github/workflows/checks.yml
+    with:
+      version: ${{ needs.metadata.outputs.version }}
+  audit:
+    needs: metadata
+    uses: ./.github/workflows/dependency-audit.yml
+  package:
+    needs: [metadata, checks]
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.metadata.outputs.version }}
+
+  publish:
+    name: Publish verified assets
+    needs: [metadata, checks, audit, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v8
+        with:
+          name: LumaDesk-win-x64
+          path: release-files
+      - name: Validate downloaded assets
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: python scripts/verify-release-assets.py --directory release-files --version "$RELEASE_VERSION"
+      - name: Generate commit changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          version: v2.14.2
+          config: cliff.toml
+          args: --current
+        env:
+          OUTPUT: artifacts/commit-changes.md
+      - name: Combine verification notes and changelog
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: python scripts/release-notes.py --version "$RELEASE_VERSION" --changes artifacts/commit-changes.md --output artifacts/release-notes.md
+      - name: Publish exact tag and verified packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+          PRERELEASE: ${{ needs.metadata.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [ "$PRERELEASE" = 'true' ]; then extra+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" release-files/* --verify-tag \
+            --notes-file artifacts/release-notes.md --title "LumaDesk $RELEASE_VERSION" "${extra[@]}"

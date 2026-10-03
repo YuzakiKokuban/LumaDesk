@@ -26,6 +26,7 @@ pub const COMMANDS: &[&str] = &[
     "export_models_json",
     "open_models_in_notepad",
     "set_power_mode",
+    "set_power_automation",
     "set_windows_power_mode",
     "set_fan_boost",
     "set_battery_limit",
@@ -133,44 +134,32 @@ pub const COMMANDS: &[&str] = &[
     "toggle_oem_service",
     "restore_official_control_center",
     "open_mini_drawer",
+    "system.subscriptions",
+    "system.reconnect_events",
     "system.ping",
     "system.commands",
 ];
 
 static API: OnceLock<Api> = OnceLock::new();
 
-/// Event-only display brightness subscription for the resident desktop shell.
+/// Starts a resident watcher; its health is exposed by system.subscriptions.
 #[no_mangle]
 pub extern "C" fn lumadesk_start_display_brightness(callback: extern "C" fn(u32)) -> *mut c_char {
     #[cfg(windows)]
     {
-        static STARTED: OnceLock<Result<(), String>> = OnceLock::new();
-        let result = STARTED.get_or_init(|| {
-            let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-            std::thread::Builder::new()
-                .name("display-brightness-events".into())
-                .spawn(
-                    move || match crate::core::hal::winapi::Wmi::connect("ROOT\\WMI") {
-                        Ok(wmi) => {
-                            if let Err(error) = wmi.watch_display_brightness(sender, |percent| {
-                                if percent <= 100 {
-                                    callback(percent);
-                                }
-                            }) {
-                                log::warn!("Display brightness subscription ended: {error}");
-                            }
-                        }
-                        Err(error) => {
-                            let _ = sender.send(Err(error.to_string()));
-                        }
-                    },
-                )
-                .map_err(|error| error.to_string())?;
-            receiver
-                .recv_timeout(std::time::Duration::from_secs(5))
-                .map_err(|error| error.to_string())?
-        });
-        respond(result.clone())
+        use crate::core::services::subscriptions::BRIGHTNESS;
+        respond(BRIGHTNESS.start(move |generation| {
+            let wmi = crate::core::hal::winapi::Wmi::connect("ROOT\\WMI")?;
+            wmi.watch_display_brightness(
+                |result| BRIGHTNESS.ready(result),
+                || BRIGHTNESS.interrupted(generation),
+                |percent| {
+                    if percent <= 100 {
+                        callback(percent);
+                    }
+                },
+            )
+        }))
     }
     #[cfg(not(windows))]
     {
@@ -181,66 +170,18 @@ pub extern "C" fn lumadesk_start_display_brightness(callback: extern "C" fn(u32)
     }
 }
 
-/// The desktop shell alone subscribes to firmware notifications. Command-line
-/// clients never start a resident watcher or a keyboard hook at initialization.
 #[no_mangle]
 pub extern "C" fn lumadesk_start_oem_hotkeys(callback: extern "C" fn(u32)) -> *mut c_char {
     #[cfg(windows)]
     {
-        static STARTED: OnceLock<Result<(), String>> = OnceLock::new();
-        let result = STARTED.get_or_init(|| {
-            let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-            std::thread::Builder::new()
-                .name("oem-key-events".into())
-                .spawn(move || {
-                    let connection = crate::core::hal::winapi::Wmi::connect("ROOT\\WMI");
-                    match connection {
-                        Ok(wmi) => {
-                            if let Err(error) = wmi.watch_oem_hotkeys(sender, |code| {
-                                // OEM ECSpec OSD constants, plus the Fn+F1
-                                // notification captured on this model (0xCC).
-                                // Forward events only; no EC polling or plain
-                                // F-key interception is needed in the tray.
-                                if matches!(
-                                    code & 0xff,
-                                    0x04
-                                        | 0x05
-                                        | 0x14
-                                        | 0x15
-                                        | 0x35..=0x37
-                                        | 0x3b..=0x41
-                                        | 0xa4
-                                        | 0xa5
-                                        | 0xab
-                                        | 0xb0
-                                        | 0xb3
-                                        | 0xb4
-                                        | 0xb7
-                                        | 0xb8
-                                        | 0xba
-                                        | 0xc7
-                                        | 0xcc
-                                        | 0xcd
-                                        | 0xce
-                                ) && api().is_ok_and(|api| api.state().oem_taken_over())
-                                {
-                                    callback(code);
-                                }
-                            }) {
-                                log::warn!("OEM key subscription ended: {error}");
-                            }
-                        }
-                        Err(error) => {
-                            let _ = sender.send(Err(error.to_string()));
-                        }
-                    }
-                })
-                .map_err(|error| error.to_string())?;
-            receiver
-                .recv_timeout(std::time::Duration::from_secs(5))
-                .map_err(|error| error.to_string())?
-        });
-        respond(result.clone())
+        use crate::core::services::subscriptions::HOTKEYS;
+        respond(HOTKEYS.start(move |generation| {
+            let wmi = crate::core::hal::winapi::Wmi::connect("ROOT\\WMI")?;
+            wmi.watch_oem_hotkeys(|result| HOTKEYS.ready(result), || HOTKEYS.interrupted(generation), |code| {
+                if matches!(code & 0xff, 0x04 | 0x05 | 0x14 | 0x15 | 0x35..=0x37 | 0x3b..=0x41 | 0xa4 | 0xa5 | 0xab | 0xb0 | 0xb3 | 0xb4 | 0xb7 | 0xb8 | 0xba | 0xc7 | 0xcc | 0xcd | 0xce)
+                    && api().is_ok_and(|api| api.state().oem_taken_over()) { callback(code); }
+            })
+        }))
     }
     #[cfg(not(windows))]
     {
@@ -371,6 +312,9 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
 
         // -- power / performance ------------------------------------------
         "set_power_mode" => cmd!(api, args, set_power_mode, mode: u8),
+        "set_power_automation" => {
+            cmd!(api, args, set_power_automation, enabled: bool, ac_mode: u8, battery_mode: u8)
+        }
         "set_windows_power_mode" => cmd!(api, args, set_windows_power_mode, mode: u8),
         "set_fan_boost" => cmd!(api, args, set_fan_boost, enabled: bool),
         "set_battery_limit" => cmd!(api, args, set_battery_limit, limit: u32),
@@ -548,6 +492,15 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         // -- self-description ----------------------------------------------
         // These two let a front end confirm it is talking to a compatible
         // backend before it issues anything that touches hardware.
+        "system.subscriptions" => respond(Ok::<_, String>(serde_json::json!({
+            "brightness": crate::core::services::subscriptions::BRIGHTNESS.status(),
+            "hotkeys": crate::core::services::subscriptions::HOTKEYS.status(),
+        }))),
+        "system.reconnect_events" => {
+            crate::core::services::subscriptions::BRIGHTNESS.reconnect();
+            crate::core::services::subscriptions::HOTKEYS.reconnect();
+            respond(Ok::<_, String>(()))
+        }
         "system.ping" => respond::<Value>(Ok(serde_json::json!({
             "pong": true,
             "abi_version": ABI_VERSION,

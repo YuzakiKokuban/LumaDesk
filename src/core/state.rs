@@ -67,17 +67,38 @@ impl AppState {
 
     /// Mutates the config and immediately persists it.
     pub fn update_config(&self, f: impl FnOnce(&mut AppConfig)) -> Result<(), String> {
-        let snapshot = {
-            let mut guard = match self.config.lock() {
-                Ok(guard) => guard,
-                Err(poisoned) => poisoned.into_inner(),
-            };
-            f(&mut guard);
-            guard.sanitise();
-            guard.clone()
-        };
-        crate::core::config::save_config(&snapshot)
+        self.update_config_at(&crate::core::config::config_path(), f)
             .map_err(|e| format!("could not save config: {e}"))
+    }
+
+    fn update_config_at(
+        &self,
+        path: &std::path::Path,
+        f: impl FnOnce(&mut AppConfig),
+    ) -> std::io::Result<()> {
+        let mut guard = self.config.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        // Desktop and CLI may update different settings concurrently. Merge
+        // the requested change into the last committed file under an OS lock.
+        let lock = std::fs::OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .read(true)
+            .write(true)
+            .open(path.with_extension("lock"))?;
+        lock.lock()?;
+        let mut candidate = std::fs::read(path)
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<AppConfig>(&bytes).ok())
+            .unwrap_or_else(|| guard.clone());
+        f(&mut candidate);
+        candidate.sanitise();
+        let bytes = serde_json::to_vec_pretty(&candidate).map_err(std::io::Error::other)?;
+        crate::core::config::write_atomic(path, &bytes)?;
+        *guard = candidate;
+        Ok(())
     }
 
     pub fn config_error(&self) -> Option<String> {
@@ -137,5 +158,70 @@ impl AppState {
             Ok(mut queue) => std::mem::take(&mut *queue),
             Err(poisoned) => std::mem::take(&mut *poisoned.into_inner()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+    fn test_path() -> PathBuf {
+        std::env::temp_dir()
+            .join(format!(
+                "lumadesk-config-test-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ))
+            .join("config.json")
+    }
+    fn state() -> AppState {
+        AppState::new(
+            AppConfig::default(),
+            Arc::new(crate::core::hal::mock::MockHal::new()),
+            AcpiDriver::new(),
+            None,
+        )
+    }
+    #[test]
+    fn failed_commit_preserves_memory_configuration() {
+        let path = test_path();
+        std::fs::create_dir_all(&path).unwrap(); // A directory cannot be replaced by the config file.
+        let state = state();
+        let original = state.config();
+        assert!(state
+            .update_config_at(&path, |cfg| cfg.autostart = true)
+            .is_err());
+        assert_eq!(state.config(), original);
+        std::fs::remove_dir_all(path.parent().unwrap()).unwrap();
+    }
+    #[test]
+    fn independent_states_merge_concurrent_settings_without_lost_updates() {
+        let path = test_path();
+        std::thread::scope(|scope| {
+            let a = &path;
+            scope.spawn(move || {
+                let state = state();
+                for _ in 0..30 {
+                    state
+                        .update_config_at(a, |cfg| cfg.autostart = true)
+                        .unwrap();
+                }
+            });
+            let b = &path;
+            scope.spawn(move || {
+                let state = state();
+                for _ in 0..30 {
+                    state
+                        .update_config_at(b, |cfg| cfg.win_key_locked = true)
+                        .unwrap();
+                }
+            });
+        });
+        let config: AppConfig = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        assert!(config.autostart && config.win_key_locked);
+        std::fs::remove_dir_all(path.parent().unwrap()).unwrap();
     }
 }

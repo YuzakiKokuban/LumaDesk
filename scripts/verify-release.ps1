@@ -1,13 +1,13 @@
 param([Parameter(Mandatory)][string]$Tag)
 $ErrorActionPreference = 'Stop'
 
-$manifest = Get-Content -LiteralPath 'Cargo.toml' -Raw
-$version = [regex]::Match($manifest, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
-if (!$version -or $Tag -cne "v$version") { throw 'Release tag does not match package version' }
-if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw 'Unsupported release version format' }
-if (!(Test-Path -LiteralPath "docs/releases/$version.md")) { throw 'Release notes are missing' }
+$versionJson = python (Join-Path $PSScriptRoot 'version.py') --tag $Tag
+if ($LASTEXITCODE -ne 0) { throw 'Unsupported release tag' }
+$versionInfo = $versionJson | ConvertFrom-Json
+$version = $versionInfo.version
+if (!(Test-Path -LiteralPath "docs/releases/$version.md") -and !(Test-Path -LiteralPath 'docs/releases/NOTES.md')) { throw 'Release notes are missing' }
 
-$branch = if ($version.Contains('-')) { 'dev' } else { 'main' }
+$branch = $versionInfo.branch
 git fetch origin "+refs/heads/${branch}:refs/remotes/origin/${branch}"
 if ($LASTEXITCODE -ne 0) { throw 'Could not fetch release branch' }
 $tagCommit = git rev-parse --verify "refs/tags/$Tag^{commit}"

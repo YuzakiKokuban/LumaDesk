@@ -8,12 +8,18 @@ namespace JiYaoChu.Ui;
 /// <summary>Set native content alignment before any Reactor controls mount.</summary>
 public static class NativeLayout
 {
+    internal static NavigationView? VerificationNavigation { get; private set; }
     public static void Configure()
     {
         var previousNavigation = NavigationViewElement.Descriptor.AfterChildrenMount;
         NavigationViewElement.Descriptor.WithAfterChildrenMount((in MountContext context, NavigationViewElement element, NavigationView control) =>
         {
             previousNavigation?.Invoke(in context, element, control);
+            if (Environment.GetCommandLineArgs().Any(arg => arg.StartsWith("--verify-shell=")))
+            {
+                VerificationNavigation = control;
+                control.Unloaded += (_, _) => { if (ReferenceEquals(VerificationNavigation, control)) VerificationNavigation = null; };
+            }
             control.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             control.VerticalContentAlignment = VerticalAlignment.Stretch;
             control.OpenPaneLength = 220;
@@ -65,7 +71,7 @@ public static class NativeLayout
             extent = viewer.ExtentWidth,
             horizontalOverflow = viewer.ScrollableWidth,
         };
-        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "JiYaoChu");
+        var directory = JiYaoChu.Services.StartupLog.DataDirectory;
         Directory.CreateDirectory(directory);
         File.WriteAllText(Path.Combine(directory, "layout-debug.json"), System.Text.Json.JsonSerializer.Serialize(report));
     }

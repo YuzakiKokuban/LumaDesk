@@ -56,7 +56,7 @@ public static class Backend
                     catch (Exception error) { StartupLog.Write(error); }
                 }
                 // First launch takes over by default. Explicit restore opts out.
-                var preference = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "JiYaoChu", "oem-auto-restore.optout");
+                var preference = Path.Combine(StartupLog.DataDirectory, "oem-auto-restore.optout");
                 if (data["backend"]?.GetValue<string>() != "mock" && !restoringOem && !File.Exists(preference))
                 {
                     try
@@ -154,7 +154,7 @@ public static class Backend
         return events;
     }
 
-    /// <summary>The 112 command names this build understands.</summary>
+    /// <summary>The commands supported by the loaded backend.</summary>
     public static Task<IReadOnlyList<string>> CommandNamesAsync()
         => CallAsync<IReadOnlyList<string>>("system.commands");
 }

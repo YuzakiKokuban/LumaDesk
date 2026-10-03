@@ -4,6 +4,9 @@
 #ifndef PublishDir
   #error PublishDir is required
 #endif
+#ifndef AppFileVersion
+  #error AppFileVersion is required
+#endif
 #define AppName "机耀处 · LumaDesk"
 #define AppExe "机耀处.exe"
 
@@ -33,7 +36,7 @@ WizardStyle=modern
 CloseApplications=yes
 RestartApplications=no
 LicenseFile=..\LICENSE
-VersionInfoVersion=0.2.0.3
+VersionInfoVersion={#AppFileVersion}
 
 [Languages]
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"

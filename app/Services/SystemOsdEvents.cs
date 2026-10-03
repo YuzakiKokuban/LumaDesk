@@ -66,6 +66,7 @@ internal static class SystemOsdEvents
         if (source > 2) return;
         var previous = _powerSource;
         _powerSource = source;
+        if (!previous.HasValue || previous.Value != source) PowerPolicy.OnPowerSource(source);
         // RegisterPowerSettingNotification first reports the current value.
         if (previous.HasValue && previous.Value != source) PublishPowerSource(source);
     }

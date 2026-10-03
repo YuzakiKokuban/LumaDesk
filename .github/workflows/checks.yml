@@ -1,0 +1,74 @@
+name: Quality checks
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust and policy tests
+    runs-on: windows-2025
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CARGO_TERM_COLOR: always
+      JIYAOCHU_FORCE_MOCK: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Prepare unified version
+        env:
+          BUILD_VERSION: ${{ inputs.version }}
+        run: |
+          $arguments = @('scripts/version.py', '--apply')
+          if ($env:BUILD_VERSION) { $arguments += @('--version', $env:BUILD_VERSION) }
+          python @arguments
+          exit $LASTEXITCODE
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: windows-checks
+          save-if: ${{ github.event_name != 'pull_request' && github.ref_type != 'tag' }}
+      - name: Isolate mock configuration
+        run: '"JIYAOCHU_DATA_DIR=$env:RUNNER_TEMP\LumaDesk-checks" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8'
+      - name: Rust checks
+        run: |
+          cargo fmt --all -- --check
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo clippy --locked --all-targets -- -D warnings
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo test --locked --all-targets
+          exit $LASTEXITCODE
+      - name: Protocol tests
+        run: python -m unittest discover -s reverse/native -p 'test_*.py'
+      - name: Release policy integration tests
+        run: python scripts/verify-release-policy.py
+      - name: Version, audit and release notes tests
+        run: python -m unittest discover -s scripts -p 'test_*.py'
+      - name: Source identity
+        run: python scripts/verify-source.py
+
+  workflows:
+    name: Workflow validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Validate GitHub Actions syntax
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+      - name: Verify release gates and reusable workflow contracts
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python scripts/verify-ci-policy.py

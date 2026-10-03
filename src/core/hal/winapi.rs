@@ -288,22 +288,31 @@ impl Wmi {
     /// This extrinsic event query has no WITHIN interval and never scans EC/WMI.
     pub fn watch_oem_hotkeys(
         &self,
-        ready: std::sync::mpsc::SyncSender<Result<(), String>>,
+        ready: impl Fn(Result<(), String>),
+        interrupted: impl Fn() -> bool,
         notify: impl Fn(u32),
     ) -> HalResult<()> {
-        self.watch_numeric_event("SELECT * FROM AcpiTest_EventULong", "ULong", ready, notify)
+        self.watch_numeric_event(
+            "SELECT * FROM AcpiTest_EventULong",
+            "ULong",
+            ready,
+            interrupted,
+            notify,
+        )
     }
 
     /// Windows pushes the resulting display brightness; no periodic query.
     pub fn watch_display_brightness(
         &self,
-        ready: std::sync::mpsc::SyncSender<Result<(), String>>,
+        ready: impl Fn(Result<(), String>),
+        interrupted: impl Fn() -> bool,
         notify: impl Fn(u32),
     ) -> HalResult<()> {
         self.watch_numeric_event(
             "SELECT * FROM WmiMonitorBrightnessEvent WHERE Active = TRUE",
             "Brightness",
             ready,
+            interrupted,
             notify,
         )
     }
@@ -312,7 +321,8 @@ impl Wmi {
         &self,
         query: &str,
         property: &str,
-        ready: std::sync::mpsc::SyncSender<Result<(), String>>,
+        ready: impl Fn(Result<(), String>),
+        interrupted: impl Fn() -> bool,
         notify: impl Fn(u32),
     ) -> HalResult<()> {
         let services = self
@@ -329,25 +339,35 @@ impl Wmi {
         };
         let enumerator = match subscription {
             Ok(value) => {
-                let _ = ready.send(Ok(()));
+                ready(Ok(()));
                 value
             }
             Err(error) => {
-                let _ = ready.send(Err(error.to_string()));
+                ready(Err(error.to_string()));
                 return Err(HalError::unavailable(error.to_string()));
             }
         };
         loop {
+            if interrupted() {
+                return Ok(());
+            }
             let mut batch: [Option<IWbemClassObject>; 1] = [None];
             let mut returned = 0;
-            // SAFETY: valid output slots; -1 waits for a pushed event, no polling.
-            unsafe { enumerator.Next(-1, &mut batch, &mut returned) }
+            // Bounded event wait allows reconnect after resume. No hardware query.
+            let status = unsafe { enumerator.Next(5_000, &mut batch, &mut returned) };
+            status
                 .ok()
                 .map_err(|error| HalError::unavailable(error.to_string()))?;
             if returned == 0 {
+                if status.0 == 0x00040004 {
+                    continue;
+                } // WBEM_S_TIMEDOUT
                 return Err(HalError::unavailable("WMI event subscription ended"));
             }
             if let Some(object) = &batch[0] {
+                if interrupted() {
+                    return Ok(());
+                }
                 let row = unsafe { read_object(object) };
                 if let Some(code) = row.f64_of(property) {
                     notify(code as u32);

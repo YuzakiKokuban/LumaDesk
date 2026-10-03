@@ -110,6 +110,7 @@ public sealed record AppConfig
     public byte PowerMode { get; init; }
     public byte PowerModeAc { get; init; }
     public byte PowerModeBattery { get; init; }
+    public bool AutoPowerMode { get; init; }
     public GpuMode GpuMode { get; init; } = GpuMode.Hybrid;
     public BatteryMode BatteryMode { get; init; } = BatteryMode.Balanced;
     public uint BatteryLimit { get; init; } = 100;
@@ -156,6 +157,7 @@ public sealed record PowerSettings
     public byte PowerMode { get; init; }
     public byte PowerModeAc { get; init; }
     public byte PowerModeBattery { get; init; }
+    public bool AutoPowerMode { get; init; }
     public double CpuTempTargetMin { get; init; }
     public double CpuTempTargetMax { get; init; }
     public double CpuPl4Margin { get; init; }

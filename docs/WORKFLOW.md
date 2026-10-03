@@ -49,8 +49,20 @@ git push "--force-with-lease=refs/heads/dev:$mergedDev" origin dev
 
 - 测试版：在已验证且属于 `dev` 的提交上创建 `v<版本>-beta.<序号>` 标签。
 - 正式版：在已合入 `main` 的提交上创建 `v<版本>` 标签。
-- 标签必须与 `Cargo.toml` 版本一致，前后端版本由构建脚本检查；发布说明位于 `docs/releases/<版本>.md`。
-- 标签触发完整 CI。发布前检查标签提交与检出提交一致，并验证其属于对应远程分支；通过后发布 ZIP、安装包及 SHA256。
+- 标签是发布版本的唯一入口，可以与 Cargo.toml 中的开发版本不同。CI 自动同步 Rust/C#、Cargo.lock 根包、安装器和 Windows 文件版本，不执行全量依赖升级。
+- 发布说明优先读取 `docs/releases/<版本>.md`，否则读取维护者更新的 `docs/releases/NOTES.md`；提交清单由 git-cliff 自动生成并附在人工说明之后。
+- 标签触发完整检查、依赖审计和 Windows 构建。发布前检查标签提交与检出提交一致，并验证其属于对应远程分支；全部通过后再次验证下载包的文件名及 SHA256，发布 ZIP、安装包及 SHA256。
 - 已发布标签不移动、不复用。修复后递增版本，创建新标签。
+
+发布示例：先完成对应验证、更新人工发布说明并合入 main，确认工作区干净且检出预期提交，再执行：
+
+```powershell
+git tag -a v0.2.0 -m "LumaDesk 0.2.0"
+./scripts/verify-release.ps1 -Tag v0.2.0
+# 上一步成功后再推送标签。
+git push origin v0.2.0
+```
+
+本地常规构建只需维护 Cargo.toml 中的开发版本，运行 `scripts/build.ps1` 会同步其他版本字段。发布不自动回写远程 dev；下轮开发时选择新的开发版本即可。详细工作流和文件版本映射见 [构建记录](BUILD.md)。
 
 紧急修复从 `main` 建立短期分支，经 PR 和 CI 后 rebase 合入 `main`，发布补丁版本；随后将 `dev` rebase 到最新 `main` 并重新验证。

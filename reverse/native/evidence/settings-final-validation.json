@@ -1,0 +1,64 @@
+{
+  "background_startup_reads": 0,
+  "background_memory": {
+    "working_mib": 12.7,
+    "private_mib": 107.26
+  },
+  "visible_reads": 4,
+  "visible_memory": {
+    "working_mib": 103.33,
+    "private_mib": 130.29
+  },
+  "maximized_and_half_screen_restore": true,
+  "narrow_window_dip": {
+    "width": 760,
+    "height": 600,
+    "scale": 2
+  },
+  "lighting_controls_and_scroll_preserved": true,
+  "system_controls_and_scroll_preserved": true,
+  "power_controls_preserved": true,
+  "all_pages_narrow_no_horizontal_overflow": true,
+  "failed_readback_keeps_settings": true,
+  "event_driven_power_rules": true,
+  "backup_and_diagnostics_export": true,
+  "diagnostics_path": "D:\\LumaDesk\\artifacts\\shell-test-config-4ed88a023a5e4de689d0d6b1001fd08a\\exports\\LumaDesk-diagnostics-20261003-164406-e595cdcd93eb4ed5986fdc6eb6cb2a16.zip",
+  "backup_path": "D:\\LumaDesk\\artifacts\\shell-test-config-4ed88a023a5e4de689d0d6b1001fd08a\\exports\\LumaDesk-settings-20261003-164406-359aba6b31b54e71977f2526eb5f61ec.zip",
+  "hidden_reads_before": 13,
+  "hidden_reads_after": 13,
+  "hidden_memory": {
+    "working_mib": 157.85,
+    "private_mib": 157.56
+  },
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "brightness_percentage_osd": true,
+  "hidden_event_reads": 17,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "osd_burst_does_not_collect": true,
+  "memory_collections": 1,
+  "last_collection_ms": 32.5959,
+  "reopen_ui_queue_ms": [
+    94.3808,
+    96.7782,
+    385.8744
+  ],
+  "idle_cpu_seconds_over_3s": 0.03125,
+  "final_hidden_memory": {
+    "working_mib": 162.27,
+    "private_mib": 150.95
+  },
+  "passed": true
+}

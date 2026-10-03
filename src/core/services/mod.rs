@@ -5,3 +5,4 @@ pub mod logging;
 pub mod models;
 pub mod oem;
 pub mod presets;
+pub mod subscriptions;

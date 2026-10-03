@@ -258,5 +258,6 @@ public sealed record GpuModeInfo
     public bool Supported { get; init; }
     public bool SupportsIgpu { get; init; }
     public bool PendingReboot { get; init; }
+    public bool RebootStatusKnown { get; init; }
     public string Reason { get; init; } = "";
 }

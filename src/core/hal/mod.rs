@@ -163,6 +163,7 @@ pub trait HardwareHal: Send + Sync {
                 supported: true,
                 supports_igpu: true,
                 pending_reboot: false,
+                reboot_status_known: true,
                 reason: String::new(),
             });
         }

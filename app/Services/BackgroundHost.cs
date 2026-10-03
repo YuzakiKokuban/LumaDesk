@@ -76,6 +76,7 @@ public static class BackgroundHost
             var startup = await Backend.InitializeAsync();
             var config = startup.Config.Read<AppConfig>() ?? new();
             OsdOverlay.Configure(config.Osd);
+            PowerPolicy.Start(config);
             if (Backend.BackendName != "mock") SystemOsdEvents.Start(_hwnd);
             if (config.WinKeyLocked)
                 await Backend.CallAsync("set_win_key_locked", new { locked = true });
@@ -98,6 +99,7 @@ public static class BackgroundHost
     public static void Show()
     {
         if (_window is null) return;
+        BackgroundMemory.CancelPending();
         SetVisible(true);
         ShowWindow(_hwnd, 9); // Restore a minimized window.
         _window.Show(true);
@@ -189,6 +191,8 @@ public static class BackgroundHost
         try
         {
             SystemOsdEvents.HandleWindowMessage(message, (nint)w, l);
+            if (message == 0x218 && w is 7 or 18) // Resume suspend / automatic resume.
+                _ = ResumeAsync();
             if (message == ActivateMessage) { Show(); return 0; }
             if (message == TaskbarCreated)
             {
@@ -225,15 +229,47 @@ public static class BackgroundHost
         {
             AppendMenu(menu, 0, 1, "打开机耀处");
             AppendMenu(menu, 0x800, 0, "");
+            AppendMenu(menu, 0, 10, "办公模式");
+            AppendMenu(menu, 0, 11, "均衡模式");
+            AppendMenu(menu, 0, 12, "狂暴模式");
+            AppendMenu(menu, 0, 13, "开启强冷");
+            AppendMenu(menu, 0, 14, "关闭强冷");
+            AppendMenu(menu, 0x800, 0, "");
             AppendMenu(menu, 0, 2, "退出机耀处");
             GetCursorPos(out var point);
             SetForegroundWindow(_hwnd);
             var selected = TrackPopupMenu(menu, 0x100 | 0x2, point.X, point.Y, 0, _hwnd, 0);
             if (selected == 1) Show();
             if (selected == 2) Exit();
+            if (selected is >= 10 and <= 14) _ = ApplyTrayAsync(selected);
             PostMessage(_hwnd, 0, 0, 0);
         }
         finally { DestroyMenu(menu); }
+    }
+
+    private static async Task ApplyTrayAsync(uint selection)
+    {
+        try
+        {
+            if (selection <= 12) await Backend.CallAsync("set_power_mode", new { mode = selection - 10 });
+            else await Backend.CallAsync("set_fan_boost", new { enabled = selection == 13 });
+            if (MachineStore.IsActive) MachineStore.Refresh();
+            OsdOverlay.Show("快捷设置", selection <= 12 ? PowerModes.Label((byte)(selection - 10)) : selection == 13 ? "强冷已开启" : "强冷已关闭");
+        }
+        catch (Exception error) { StartupLog.Write(error); OsdOverlay.Show("快捷设置失败", "请打开机耀处查看硬件状态"); }
+    }
+
+    private static async Task ResumeAsync()
+    {
+        try
+        {
+            if (_exiting || Backend.BackendName == "mock") return;
+            SystemOsdEvents.Stop();
+            SystemOsdEvents.Start(_hwnd);
+            await Backend.CallAsync("system.reconnect_events");
+            if (MachineStore.IsActive) MachineStore.Refresh();
+        }
+        catch (Exception error) { StartupLog.Write(error); }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

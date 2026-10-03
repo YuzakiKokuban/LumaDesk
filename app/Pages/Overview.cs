@@ -35,7 +35,8 @@ public sealed class OverviewPage : Component
             return Chrome.Page("状态概览", null, [.. sections]);
         }
 
-        if (failure is not null) sections.Add(Chrome.Notice("操作失败", failure, InfoBarSeverity.Error));
+        sections.Add(Chrome.Feedback(failure, state.LastUpdated is { } updated
+            ? $"更新于 {updated.ToLocalTime():HH:mm:ss}" + (state.IsStale ? " · 数据已过期" : "") : null));
         sections.Add(Readings(status, wide));
         sections.Add(Chrome.SectionCard("常用控制",
             Chrome.SettingRow("一键强冷", "临时提高风扇输出，关闭后恢复自动调节。",
@@ -59,7 +60,7 @@ public sealed class OverviewPage : Component
             notices.Add(Chrome.Notice("启动设置需要检查", configError, InfoBarSeverity.Warning));
         if (state.Error is { } error)
         {
-            notices.Add(Chrome.Notice("读取硬件状态失败", error, InfoBarSeverity.Error));
+            notices.Add(Chrome.Notice("硬件数据已过期", "当前保留上次成功读取的数据。" + error, InfoBarSeverity.Warning));
         }
 
         if (state.Status is { Elevated: false })

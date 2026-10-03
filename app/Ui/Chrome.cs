@@ -22,7 +22,7 @@ public static class Chrome
     /// <summary>A scrollable page with a heading and evenly spaced sections.</summary>
     public static Element Page(string title, string? subtitle, params Element[] sections)
     {
-        var body = new List<Element>(sections.Length + 1) { Header(title, subtitle) };
+        var body = new List<Element>(sections.Length + 1) { Header(title, subtitle).WithKey("page-heading") };
         body.AddRange(sections.Where(section => section is not null));
 
         return ScrollViewer(
@@ -39,7 +39,7 @@ public static class Chrome
         var lines = new List<Element> { TextBlock(title).FontSize(26).SemiBold() };
         if (!string.IsNullOrWhiteSpace(subtitle))
         {
-            lines.Add(Body(subtitle).Foreground(Theme.SecondaryText));
+            lines.Add(Body(subtitle).Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
         }
 
         return VStack(2, [.. lines]);
@@ -94,7 +94,7 @@ public static class Chrome
             .CornerRadius(12)
             .Background(Theme.CardBackground)
             .WithBorder(Theme.CardStroke, 1)
-            .Padding(16);
+            .Padding(16).WithKey("section:" + title);
 
     /// <summary>A label on the left, a value on the right, on one baseline.</summary>
     public static Element Field(string label, string value)
@@ -102,7 +102,7 @@ public static class Chrome
             columns: [GridSize.Px(140), GridSize.Star()],
             rows: [GridSize.Auto],
             Body(label).Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap).Grid(row: 0, column: 0),
-            Body(value).TextWrapping(TextWrapping.Wrap).Grid(row: 0, column: 1));
+            Body(value).TextWrapping(TextWrapping.Wrap).Grid(row: 0, column: 1)).WithKey("field:" + label);
 
     /// <summary>A setting: name and explanation on the left, a control on the right.</summary>
     public static Element SettingRow(string label, string? description, Element control)
@@ -114,7 +114,7 @@ public static class Chrome
                 description is null
                     ? null
                     : Caption(description).Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap)).Grid(row: 0, column: 0),
-            control.Grid(row: 0, column: 1).VAlign(VerticalAlignment.Center).Margin(16, 0, 0, 0));
+            control.Grid(row: 0, column: 1).VAlign(VerticalAlignment.Center).Margin(16, 0, 0, 0)).WithKey("setting:" + label);
 
     /// <summary>A thin rule between groups of settings.</summary>
     public static Element Rule()
@@ -126,7 +126,13 @@ public static class Chrome
 
     /// <summary>A full-width message strip, used for errors and warnings.</summary>
     public static Element Notice(string title, string message, InfoBarSeverity severity)
-        => InfoBar(title, message).Severity(severity).IsClosable(false);
+        => InfoBar(title, message).Severity(severity).IsClosable(false).WithKey("notice:" + title);
+
+    public static Element Feedback(string? error, string? status)
+        => VStack(0, error is null
+                ? Caption(status ?? " ").Foreground(Theme.SecondaryText)
+                : Caption(error).Foreground(Theme.SystemCritical).TextWrapping(TextWrapping.Wrap))
+            .MinHeight(22).WithKey("operation-feedback");
 
     /// <summary>
     /// One option in a set of mutually exclusive choices.
@@ -169,7 +175,7 @@ public static class Chrome
                 onClick)
             .SubtleButton().Padding(0).HAlign(HorizontalAlignment.Stretch)
             .AutomationName(title)
-            .IsEnabled(enabled);
+            .IsEnabled(enabled).WithKey("choice:" + title);
 
     /// <summary>Lays a set of <see cref="ChoiceCard"/>s out as equal columns.</summary>
     public static Element ChoiceRow(params Element[] cards)

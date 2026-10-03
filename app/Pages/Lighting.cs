@@ -11,20 +11,22 @@ using static Microsoft.UI.Reactor.Factories;
 
 namespace JiYaoChu.Pages;
 
-public sealed class LightingPage : Component
+public sealed class LightingPage : SettingsPage
 {
     public override Element Render()
     {
-        var (revision, setRevision) = UseState(0);
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
-        var resource = UseResource(_ => Backend.CallAsync<LightingState>("get_lighting_state"), deps: [revision]);
+        var (reader, resource) = UseSettings(() => Backend.CallAsync<LightingState>("get_lighting_state"));
         void Apply(LightingState state)
         {
             if (busy) return;
             Act.Fire("apply_keyboard_lighting",
-                () => Backend.CallAsync("apply_keyboard_lighting", new { lighting = state with { KbEngine = LightingEngine.Hardware, KbEffect = 0, FirmwareManaged = false } }),
-                (error, _) => { setFailure(error); if (error is null) { setRevision(revision + 1); MachineStore.Refresh(); } }, setBusy)();
+                async () => {
+                    try { await Backend.CallAsync("apply_keyboard_lighting", new { lighting = state with { KbEngine = LightingEngine.Hardware, KbEffect = 0, FirmwareManaged = false } }); }
+                    finally { await reader.RefreshAsync(); }
+                },
+                (error, _) => setFailure(error), setBusy)();
         }
         return resource.Match<Element>(
             () => Chrome.Page("键盘灯效", "正在读取键盘…", ProgressRing()),
@@ -34,7 +36,7 @@ public sealed class LightingPage : Component
                     Hex.Normalise(state.KbColor) == palette.Hex, !busy,
                     () => Apply(state with { KbColor = palette.Hex, Enabled = true, KbBrightness = Math.Max(1u, state.KbBrightness) }))).ToArray();
                 return Chrome.Page("键盘灯效", "耀世 15 Air · EC RGB",
-                    failure is null ? null! : Chrome.Notice("操作失败", failure, InfoBarSeverity.Error),
+                    Chrome.Feedback(failure ?? resource.Error, null),
                     state.FirmwareManaged ? Chrome.Notice("固件默认背光", "选择亮度或颜色即可接管。", InfoBarSeverity.Informational) : null!,
                     Chrome.SectionCard("背光",
                         Chrome.SettingRow("键盘背光", state.FirmwareManaged ? "固件默认" : "单色常亮",

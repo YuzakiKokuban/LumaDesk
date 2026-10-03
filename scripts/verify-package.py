@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import tomllib
 import zipfile
+from version import Version
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -69,12 +70,26 @@ def expected_icons():
     return images
 
 
+def verify_version_resource(embedded, info):
+    versions = [data for keys, data in embedded.items() if keys[0] == 16]
+    assert versions, "PE version resource is missing"
+    expected = tuple(map(int, info.file_version.split('.')))
+    for data in versions:
+        offset = data.index(struct.pack('<I', 0xFEEF04BD))
+        ms, ls = u32(data, offset + 8), u32(data, offset + 12)
+        actual = (ms >> 16, ms & 0xffff, ls >> 16, ls & 0xffff)
+        assert actual == expected, f"Windows file version differs: {actual} != {expected}"
+        assert info.version.encode('utf-16-le') in data, "Product version differs"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--archive", required=True)
+    parser.add_argument("--installer")
     args = parser.parse_args()
     archive_path = Path(args.archive).resolve()
     version = tomllib.loads((ROOT / "Cargo.toml").read_text(encoding="utf-8"))["package"]["version"]
+    info = Version.parse(version)
     assert archive_path.name == f"LumaDesk-{version}-win-x64.zip"
     checksum = archive_path.with_suffix(".zip.sha256").read_text(encoding="utf-8").split()[0]
     assert checksum == hashlib.sha256(archive_path.read_bytes()).hexdigest()
@@ -96,6 +111,7 @@ def main():
             assert len({name.casefold() for name in archive.namelist()}) == len(archive.namelist()), "Duplicate Windows paths"
             for filename in ["机耀处.exe", "jiyaochu-ctl.exe"]:
                 embedded = resources(archive.read(filename))
+                verify_version_resource(embedded, info)
                 actual = {hashlib.sha256(data).digest() for keys, data in embedded.items() if keys[0] == 3}
                 assert actual == icons, f"{filename}: embedded logo differs"
                 if filename == "机耀处.exe":
@@ -117,7 +133,13 @@ def main():
         # Release the DLL before TemporaryDirectory removes the extracted package.
         ctypes.windll.kernel32.FreeLibrary.argtypes = [ctypes.c_void_p]
         ctypes.windll.kernel32.FreeLibrary(ctypes.c_void_p(library._handle))
-    print(f"Verified LumaDesk {version}: archive, icons, administrator manifest, CLI, FFI")
+    if args.installer:
+        installer = Path(args.installer)
+        assert installer.name == f"LumaDesk-{version}-win-x64-Setup.exe", "Installer name differs"
+        verify_version_resource(resources(installer.read_bytes()), info)
+        checksum = Path(str(installer) + '.sha256').read_text(encoding='utf-8').split()[0]
+        assert checksum == hashlib.sha256(installer.read_bytes()).hexdigest(), "Installer checksum differs"
+    print(f"Verified LumaDesk {version}: archive, PE versions, icons, administrator manifest, CLI, FFI")
 
 
 if __name__ == "__main__":

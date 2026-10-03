@@ -208,6 +208,8 @@ impl Api {
     /// afterwards; a HAL that refuses one of them does not prevent the rest of
     /// the configuration from being stored, but the refusal is reported.
     pub fn save_app_config(&self, cfg: AppConfig) -> Result<(), String> {
+        let mut cfg = cfg;
+        cfg.sanitise();
         let mut warnings: Vec<String> = Vec::new();
 
         let hal = self.state.hal().clone();
@@ -226,10 +228,8 @@ impl Api {
             }
         }
 
-        self.state.with_config(|current| *current = cfg);
-
         self.state
-            .update_config(|_| {})
+            .update_config(|current| *current = cfg)
             .map_err(|error| format!("the configuration could not be saved: {error}"))?;
 
         if warnings.is_empty() {
@@ -258,11 +258,27 @@ impl Api {
     pub fn set_power_mode(&self, mode: u8) -> Result<(), String> {
         let mode = mode.min(3);
         self.state.hal().set_power_mode(mode).map_err(fail)?;
-        self.state.with_config(|config| config.power_mode = mode);
         self.state
-            .update_config(|_| {})
+            .update_config(|config| config.power_mode = mode)
             .map_err(|error| format!("the power mode was applied but not saved: {error}"))?;
         Ok(())
+    }
+
+    /// Stores opt-in AC/DC rules; the resident shell applies them on power events.
+    pub fn set_power_automation(
+        &self,
+        enabled: bool,
+        ac_mode: u8,
+        battery_mode: u8,
+    ) -> Result<(), String> {
+        if ac_mode > 2 || battery_mode > 2 {
+            return Err("自动档位仅支持办公、均衡和狂暴".into());
+        }
+        self.state.update_config(|config| {
+            config.auto_power_mode = enabled;
+            config.power_mode_ac = ac_mode;
+            config.power_mode_battery = battery_mode;
+        })
     }
 
     pub fn set_windows_power_mode(&self, mode: u8) -> Result<(), String> {
@@ -279,9 +295,8 @@ impl Api {
 
     pub fn set_fan_boost(&self, enabled: bool) -> Result<(), String> {
         self.state.hal().set_fan_boost(enabled).map_err(fail)?;
-        self.state.with_config(|config| config.fan_boost = enabled);
         self.state
-            .update_config(|_| {})
+            .update_config(|config| config.fan_boost = enabled)
             .map_err(|error| format!("fan boost was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -290,9 +305,7 @@ impl Api {
         let limit = limit.clamp(50, 100);
         self.state.hal().set_battery_limit(limit).map_err(fail)?;
         self.state
-            .with_config(|config| config.battery_limit = limit);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.battery_limit = limit)
             .map_err(|error| format!("the battery limit was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -314,9 +327,7 @@ impl Api {
             .set_active_windows_power_scheme(&guid)
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.high_perf_scheme = false);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.high_perf_scheme = false)
             .map_err(|error| format!("the scheme was applied but not recorded: {error}"))?;
         Ok(())
     }
@@ -504,9 +515,8 @@ impl Api {
         let parsed = GpuMode::from_wire_opt(&mode)
             .ok_or_else(|| format!("'{mode}' is not one of igpu / hybrid / dgpu"))?;
         self.state.hal().set_gpu_mode(parsed).map_err(fail)?;
-        self.state.with_config(|config| config.gpu_mode = parsed);
         self.state
-            .update_config(|_| {})
+            .update_config(|config| config.gpu_mode = parsed)
             .map_err(|error| format!("the GPU mode was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -553,9 +563,8 @@ impl Api {
             .hal()
             .set_display_monitor_refresh_rate(&device, rate)
             .map_err(fail)?;
-        self.state.with_config(|config| config.refresh_rate = rate);
         self.state
-            .update_config(|_| {})
+            .update_config(|config| config.refresh_rate = rate)
             .map_err(|error| format!("the refresh rate was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -574,9 +583,7 @@ impl Api {
 
     pub fn set_auto_min_refresh_on_battery(&self, enabled: bool) -> Result<(), String> {
         self.state
-            .with_config(|config| config.auto_min_refresh_on_battery = enabled);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.auto_min_refresh_on_battery = enabled)
             .map_err(|error| format!("the setting could not be saved: {error}"))?;
 
         if enabled {
@@ -596,9 +603,7 @@ impl Api {
             .set_display_tuning_enabled(enabled)
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.display_tuning_enabled = enabled);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.display_tuning_enabled = enabled)
             .map_err(|error| format!("the setting was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -737,9 +742,8 @@ impl Api {
             .hal()
             .apply_keyboard_lighting(&clean)
             .map_err(fail)?;
-        self.state.with_config(|config| config.lighting = clean);
         self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting = clean)
             .map_err(|error| format!("the lighting state was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -751,9 +755,7 @@ impl Api {
             .apply_logo_lighting(effect, &color)
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.lighting.logo_color = color);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.logo_color = color)
             .map_err(|error| format!("the logo colour was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -765,9 +767,7 @@ impl Api {
             .apply_hinge_lighting(speed, &color)
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.lighting.hinge_color = color);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.hinge_color = color)
             .map_err(|error| format!("the hinge colour was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -779,9 +779,7 @@ impl Api {
             .apply_lightbar_lighting(effect, &color)
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.lighting.lightbar_color = color);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.lightbar_color = color)
             .map_err(|error| format!("the lightbar colour was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -804,9 +802,7 @@ impl Api {
             .apply_four_zone_colors([&zones[0], &zones[1], &zones[2], &zones[3]])
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.lighting.four_zone_colors = zones);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.four_zone_colors = zones)
             .map_err(|error| format!("the zone colours were applied but not saved: {error}"))?;
         Ok(())
     }
@@ -818,9 +814,7 @@ impl Api {
             .set_lighting_sleep_timer(minutes)
             .map_err(fail)?;
         self.state
-            .with_config(|config| config.lighting.sleep_minutes = minutes);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.sleep_minutes = minutes)
             .map_err(|error| format!("the sleep timer was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -833,9 +827,7 @@ impl Api {
         let engine = LightingEngine::from_wire_opt(&engine)
             .ok_or_else(|| format!("'{engine}' is not one of hardware / betterrgb"))?;
         self.state
-            .with_config(|config| config.lighting.kb_engine = engine);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.kb_engine = engine)
             .map_err(|error| format!("the engine was not saved: {error}"))?;
         let lighting = self.state.with_config(|config| config.lighting.clone());
         self.state
@@ -855,9 +847,7 @@ impl Api {
             }
         };
         self.state
-            .with_config(|config| config.lighting.kb_fps = fps);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.lighting.kb_fps = fps)
             .map_err(|error| format!("the streaming rate was not saved: {error}"))?;
         Ok(())
     }
@@ -908,12 +898,11 @@ impl Api {
             "BRFX script '{id}' requested ({} bytes)",
             source.len()
         ));
-        self.state.with_config(|config| {
-            config.lighting.custom_script_id = Some(id.clone());
-            config.lighting.kb_engine = LightingEngine::BetterRgb;
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|config| {
+                config.lighting.custom_script_id = Some(id.clone());
+                config.lighting.kb_engine = LightingEngine::BetterRgb;
+            })
             .map_err(|error| format!("the script id was not saved: {error}"))?;
         let lighting = self.state.with_config(|config| config.lighting.clone());
         self.state
@@ -975,9 +964,7 @@ impl Api {
 
     pub fn set_water_cooler_enabled(&self, enabled: bool) -> Result<(), String> {
         self.state
-            .with_config(|config| config.water_cooler_enabled = enabled);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.water_cooler_enabled = enabled)
             .map_err(|error| format!("the setting was not saved: {error}"))?;
         self.state
             .hal()
@@ -1005,14 +992,13 @@ impl Api {
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
 
-        self.state.with_config(|config| {
-            config.cooler_strategy = strategy;
-            if !points.is_empty() {
-                config.cooler_curve_points = points.clone();
-            }
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|config| {
+                config.cooler_strategy = strategy;
+                if !points.is_empty() {
+                    config.cooler_curve_points = points.clone();
+                }
+            })
             .map_err(|error| format!("the strategy was not saved: {error}"))?;
 
         self.state
@@ -1050,9 +1036,7 @@ impl Api {
             .state
             .with_config(|config| config.cooler_curve_points.clone());
         self.state
-            .with_config(|config| config.cooler_strategy = strategy);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.cooler_strategy = strategy)
             .map_err(|error| format!("the strategy was not saved: {error}"))?;
         self.state
             .hal()
@@ -1196,9 +1180,7 @@ impl Api {
             return Err(format!("no profile preset named '{id}' exists"));
         }
         self.state
-            .with_config(|config| config.active_profile_id = id.clone());
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.active_profile_id = id.clone())
             .map_err(|error| format!("the active profile was not saved: {error}"))?;
         crate::core::services::logging::info(format!("active profile is now '{id}'"));
         Ok(())
@@ -1264,15 +1246,14 @@ impl Api {
             .hal()
             .apply_fan_curve_live(&preset.fan_curve, &preset.fan_curve);
 
-        self.state.with_config(|config| {
-            config.power_mode = mode;
-            config.active_profile_id = preset.id.clone();
-            if config.cooler_curve_points.is_empty() {
-                config.cooler_curve_points = preset.fan_curve.clone();
-            }
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|config| {
+                config.power_mode = mode;
+                config.active_profile_id = preset.id.clone();
+                if config.cooler_curve_points.is_empty() {
+                    config.cooler_curve_points = preset.fan_curve.clone();
+                }
+            })
             .map_err(|error| format!("the profile was applied but not saved: {error}"))?;
 
         match curve_result {
@@ -1312,9 +1293,7 @@ impl Api {
     pub fn set_win_key_locked(&self, locked: bool) -> Result<(), String> {
         self.state.hal().set_win_key_locked(locked).map_err(fail)?;
         self.state
-            .with_config(|config| config.win_key_locked = locked);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.win_key_locked = locked)
             .map_err(|error| format!("the setting was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -1322,9 +1301,7 @@ impl Api {
     pub fn set_fn_lock(&self, enabled: bool) -> Result<(), String> {
         self.state.hal().set_fn_lock(enabled).map_err(fail)?;
         self.state
-            .with_config(|config| config.fn_lock_enabled = enabled);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.fn_lock_enabled = enabled)
             .map_err(|error| format!("the setting was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -1332,9 +1309,7 @@ impl Api {
     pub fn set_usb_charge(&self, enabled: bool) -> Result<(), String> {
         self.state.hal().set_usb_charge(enabled).map_err(fail)?;
         self.state
-            .with_config(|config| config.usb_charge_enabled = enabled);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.usb_charge_enabled = enabled)
             .map_err(|error| format!("the setting was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -1342,9 +1317,7 @@ impl Api {
     pub fn set_ac_recovery(&self, enabled: bool) -> Result<(), String> {
         self.state.hal().set_ac_recovery(enabled).map_err(fail)?;
         self.state
-            .with_config(|config| config.ac_recovery_enabled = enabled);
-        self.state
-            .update_config(|_| {})
+            .update_config(|config| config.ac_recovery_enabled = enabled)
             .map_err(|error| format!("the setting was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -1449,9 +1422,8 @@ impl Api {
     pub fn set_autostart(&self, enabled: bool) -> Result<(), String> {
         apply_autostart(enabled)?;
 
-        self.state.with_config(|config| config.autostart = enabled);
         self.state
-            .update_config(|_| {})
+            .update_config(|config| config.autostart = enabled)
             .map_err(|error| format!("the autostart flag was not saved: {error}"))?;
         crate::core::services::logging::info(format!(
             "autostart {}",
@@ -1471,11 +1443,10 @@ impl Api {
         let (enabled, _) = crate::core::services::logging::current();
         let level = crate::core::services::logging::LogLevel::parse(&level);
         crate::core::services::logging::configure(enabled, level);
-        self.state.with_config(|config| {
-            config.log_enabled = level != crate::core::services::logging::LogLevel::Off
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|config| {
+                config.log_enabled = level != crate::core::services::logging::LogLevel::Off
+            })
             .map_err(|error| format!("the log level was not saved: {error}"))?;
         Ok(())
     }
@@ -1565,14 +1536,13 @@ impl Api {
     pub fn save_osd_config(&self, config: OsdConfig) -> Result<(), String> {
         let mut config = config;
         config.sanitise();
-        self.broadcast_osd_config(&config);
-        self.state.with_config(|current| {
-            current.osd = config.clone();
-            current.osd_enabled = config.enabled;
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|current| {
+                current.osd = config.clone();
+                current.osd_enabled = config.enabled;
+            })
             .map_err(|error| format!("the OSD configuration was not saved: {error}"))?;
+        self.broadcast_osd_config(&config);
         Ok(())
     }
 
@@ -1611,6 +1581,7 @@ impl Api {
             "power_mode": self.state.hal().get_power_mode().map_err(fail)?,
             "power_mode_ac": config.power_mode_ac,
             "power_mode_battery": config.power_mode_battery,
+            "auto_power_mode": config.auto_power_mode,
             "high_perf_scheme": config.high_perf_scheme,
             "cpu_safety_guard": config.cpu_safety_guard,
             "cpu_temp_target_min": config.cpu_temp_target_min,
@@ -1662,11 +1633,10 @@ impl Api {
         };
 
         hal_result.map_err(fail)?;
-        self.state.with_config(|config| {
-            let _ = presets::set_device_switch(config, &id, enabled);
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|config| {
+                let _ = presets::set_device_switch(config, &id, enabled);
+            })
             .map_err(|error| format!("the switch state was not saved: {error}"))?;
         Ok(())
     }
@@ -1683,16 +1653,15 @@ impl Api {
             }
         };
         self.state.hal().set_battery_mode(parsed).map_err(fail)?;
-        self.state.with_config(|config| {
-            config.battery_mode = parsed;
-            config.battery_limit = match parsed {
-                BatteryMode::LongLife => 60,
-                BatteryMode::Balanced => 80,
-                BatteryMode::Workstation => 100,
-            };
-        });
         self.state
-            .update_config(|_| {})
+            .update_config(|config| {
+                config.battery_mode = parsed;
+                config.battery_limit = match parsed {
+                    BatteryMode::LongLife => 60,
+                    BatteryMode::Balanced => 80,
+                    BatteryMode::Workstation => 100,
+                };
+            })
             .map_err(|error| format!("the battery mode was applied but not saved: {error}"))?;
         Ok(())
     }
@@ -1737,8 +1706,8 @@ impl Api {
         }
         self.state.set_oem_taken_over(enable);
         self.state
-            .with_config(|config| config.takeover_oem = enable);
-        let _ = self.state.update_config(|_| {});
+            .update_config(|config| config.takeover_oem = enable)
+            .map_err(|error| format!("OEM 状态已调整，但配置未保存：{error}"))?;
         if report.complete() {
             Ok(())
         } else {

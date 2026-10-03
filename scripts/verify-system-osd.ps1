@@ -62,6 +62,7 @@ try
     Marshal.WriteInt32(block, 16, 4);
     SystemOsdEvents.HandleWindowMessage(0x218, 0x8013, block);
     Require(EventBus.Events.Count == before, "Malformed/unrelated power messages displayed an OSD");
+    Require(PowerPolicy.Sources.SequenceEqual(new uint[] { 0, 1, 0 }), "Power rules missed the initial source or received duplicate/malformed transitions");
 
     // Keyboard input must report one toggle per press, even with auto-repeat.
     var states = (Dictionary<uint, bool>)Field("LockStates").GetValue(null)!;
@@ -122,6 +123,11 @@ namespace JiYaoChu.Interop
 }
 namespace JiYaoChu.Services
 {
+    public static class PowerPolicy
+    {
+        public static readonly List<uint> Sources = [];
+        public static void OnPowerSource(uint source) => Sources.Add(source);
+    }
     public static class EventBus
     {
         public static readonly List<BackendEvent> Events = [];

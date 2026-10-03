@@ -27,6 +27,8 @@ public sealed record MachineState
 
     /// <summary>Why the stored configuration could not be read, if it could not.</summary>
     public string? ConfigError { get; init; }
+    public DateTimeOffset? LastUpdated { get; init; }
+    public bool IsStale => Error is not null || LastUpdated is { } at && DateTimeOffset.UtcNow - at > TimeSpan.FromSeconds(5);
 
     /// <summary>True while a fresh snapshot is being read and none has ever arrived.</summary>
     public bool HasData => Status is not null;
@@ -167,6 +169,7 @@ public static class MachineStore
                         Loading = false,
                         Backend = bootstrap.Backend,
                         ConfigError = bootstrap.ConfigError,
+                        LastUpdated = DateTimeOffset.UtcNow,
                     });
 
                     foreach (var raised in events)

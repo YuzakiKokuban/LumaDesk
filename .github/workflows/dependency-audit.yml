@@ -1,0 +1,77 @@
+name: Dependency audit
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 2 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Restore audit tool
+        id: audit-cache
+        continue-on-error: true
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: cargo-audit-${{ runner.os }}-0.22.2
+      - name: Install pinned audit tool
+        if: steps.audit-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-audit --version 0.22.2 --locked
+      - name: Audit locked Rust dependencies
+        run: cargo audit --deny warnings
+      - name: Cache audit tool for branch builds
+        if: github.event_name != 'pull_request' && github.ref_type != 'tag' && steps.audit-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: cargo-audit-${{ runner.os }}-0.22.2
+
+  nuget:
+    name: NuGet dependency audit
+    runs-on: windows-2025
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: app/packages.*.lock.json
+      - name: Audit both frontend configurations
+        run: |
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          foreach ($configuration in @('Debug', 'Release')) {
+            $env:Configuration = $configuration
+            dotnet restore app/JiYaoChu.csproj --locked-mode "-p:Configuration=$configuration"
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            $report = dotnet package list --project app/JiYaoChu.csproj --no-restore --vulnerable --include-transitive --format json --output-version 1
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            $reportPath = "artifacts/nuget-audit-$configuration.json"
+            [IO.File]::WriteAllText($reportPath, ($report -join "`n"), [Text.UTF8Encoding]::new($false))
+            python scripts/verify-nuget-audit.py $reportPath
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+      - name: Save audit reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-audit
+          path: artifacts/nuget-audit-*.json
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,69 @@
+{
+  "background_startup_reads": 0,
+  "background_memory": {
+    "working_mib": 12.76,
+    "private_mib": 103.91
+  },
+  "visible_reads": 4,
+  "visible_memory": {
+    "working_mib": 103.96,
+    "private_mib": 133.32
+  },
+  "maximized_and_half_screen_restore": true,
+  "narrow_window_dip": {
+    "width": 760,
+    "height": 600,
+    "scale": 2
+  },
+  "lighting_controls_and_scroll_preserved": true,
+  "system_controls_and_scroll_preserved": true,
+  "power_controls_preserved": true,
+  "all_pages_narrow_no_horizontal_overflow": true,
+  "failed_readback_keeps_settings": true,
+  "event_driven_power_rules": true,
+  "backup_and_diagnostics_export": true,
+  "diagnostics_path": "D:\\LumaDesk\\artifacts\\shell-test-config-89898ee2984644439a6e90b2a9d3a3a0\\exports\\LumaDesk-diagnostics-20261003-143005-45eb6bee74854388b301b98c5aa436e7.zip",
+  "backup_path": "D:\\LumaDesk\\artifacts\\shell-test-config-89898ee2984644439a6e90b2a9d3a3a0\\exports\\LumaDesk-settings-20261003-143005-0a8d5e387c3d4d0cb5aa2c47a9760407.zip",
+  "hidden_reads_before": 12,
+  "hidden_reads_after": 12,
+  "hidden_memory": {
+    "working_mib": 157.25,
+    "private_mib": 157.35
+  },
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "brightness_percentage_osd": true,
+  "hidden_event_reads": 16,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "osd_burst_does_not_collect": true,
+  "memory_collections": 1,
+  "last_collection_ms": 12.4573,
+  "reopen_ui_queue_ms": [
+    92.7404,
+    355.759,
+    289.3183
+  ],
+  "memory_after_idle_cooldown": {
+    "working_mib": 4,
+    "private_mib": 147.85
+  },
+  "collections_after_idle": 2,
+  "idle_cpu_seconds_over_3s": 0.03125,
+  "final_hidden_memory": {
+    "working_mib": 6.07,
+    "private_mib": 147.85
+  },
+  "passed": true
+}

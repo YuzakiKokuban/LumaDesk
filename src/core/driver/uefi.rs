@@ -8,6 +8,32 @@ const MODE_OFFSET: usize = 0x62;
 static LOCK: Mutex<()> = Mutex::new(());
 static INITIAL_MODE: OnceLock<u8> = OnceLock::new();
 
+#[derive(Debug, Serialize, Deserialize)]
+struct ModeChange {
+    boot_id: String,
+    initial_mode: u8,
+    target_mode: u8,
+    variable: String,
+}
+
+impl ModeChange {
+    fn pending(&self, boot_id: Option<&str>, variable: &str, raw: u8) -> bool {
+        // An unavailable boot stamp must not erase a pending reboot warning.
+        self.variable == variable
+            && boot_id.is_none_or(|boot| boot == self.boot_id)
+            && raw != self.initial_mode
+    }
+}
+
+fn change_path() -> std::path::PathBuf {
+    crate::core::config::data_dir().join("mux-change.json")
+}
+fn saved_change() -> Option<ModeChange> {
+    std::fs::read(change_path())
+        .ok()
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GpuModeInfo {
     pub configured_mode: Option<GpuMode>,
@@ -18,6 +44,9 @@ pub struct GpuModeInfo {
     pub supported: bool,
     pub supports_igpu: bool,
     pub pending_reboot: bool,
+    /// Configured mode is not a measurement of the current display route.
+    #[serde(default)]
+    pub reboot_status_known: bool,
     pub reason: String,
 }
 
@@ -60,6 +89,23 @@ mod native {
     use windows::Win32::System::WindowsProgramming::{
         GetFirmwareEnvironmentVariableW, SetFirmwareEnvironmentVariableW,
     };
+
+    pub fn boot_id() -> Option<String> {
+        static BOOT: OnceLock<String> = OnceLock::new();
+        if let Some(value) = BOOT.get() {
+            return Some(value.clone());
+        }
+        let value = crate::core::hal::winapi::Wmi::first_row(
+            "ROOT\\CIMV2",
+            "SELECT LastBootUpTime FROM Win32_OperatingSystem",
+        )
+        .ok()
+        .flatten()
+        .and_then(|row| row.str_of("LastBootUpTime"))
+        .filter(|value| !value.is_empty())?;
+        let _ = BOOT.set(value.clone());
+        Some(value)
+    }
 
     fn wide(value: &str) -> Vec<u16> {
         value.encode_utf16().chain(Some(0)).collect()
@@ -180,6 +226,12 @@ mod native {
         let raw_mode = buffer[MODE_OFFSET];
         let configured_mode = decode(amd(), raw_mode);
         let initial = *INITIAL_MODE.get_or_init(|| raw_mode);
+        let boot = boot_id();
+        let change = saved_change();
+        let marker_unreadable = change.is_none() && change_path().exists();
+        let pending = change
+            .map(|change| change.pending(boot.as_deref(), variable, raw_mode))
+            .unwrap_or(raw_mode != initial || marker_unreadable);
         let dgpu = read("OemDgpuPresent").ok().and_then(|b| b.first().copied()) == Some(1);
         let supported = configured_mode.is_some() && dgpu;
         // The recovered iGPU board guard has not yet been mapped for every chassis.
@@ -193,7 +245,8 @@ mod native {
             raw_mode,
             supported,
             supports_igpu,
-            pending_reboot: raw_mode != initial,
+            pending_reboot: pending,
+            reboot_status_known: boot.is_some() && !marker_unreadable,
             reason: if !dgpu {
                 "固件未确认独立显卡，暂不提供 MUX 切换"
             } else if configured_mode.is_none() {
@@ -232,6 +285,24 @@ pub fn set_mode(project: Option<u8>, mode: GpuMode) -> HalResult<()> {
             return Ok(());
         }
         let updated = patch(&buffer, native::amd(), mode)?;
+        let boot = native::boot_id()
+            .ok_or_else(|| HalError::unavailable("无法取得系统启动标识，请稍后重试显卡模式保存"))?;
+        let initial_mode = saved_change()
+            .filter(|change| change.boot_id == boot && change.variable == info.variable)
+            .map(|change| change.initial_mode)
+            .unwrap_or(info.raw_mode);
+        let change = ModeChange {
+            boot_id: boot,
+            initial_mode,
+            target_mode: updated[MODE_OFFSET],
+            variable: info.variable.clone(),
+        };
+        // Persist intent before touching firmware so a crash cannot lose it.
+        crate::core::config::ensure_dir(&crate::core::config::data_dir())
+            .map_err(|e| HalError::io(e.to_string()))?;
+        let bytes = serde_json::to_vec(&change).map_err(|e| HalError::io(e.to_string()))?;
+        crate::core::config::write_atomic(&change_path(), &bytes)
+            .map_err(|e| HalError::io(e.to_string()))?;
         if info.variable == "OemMagicVariable" || info.ap_version >= 25 {
             native::write("OemMagicDoor", &[1])?;
         }
@@ -252,6 +323,22 @@ pub fn set_mode(project: Option<u8>, mode: GpuMode) -> HalResult<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pending_reboot_survives_process_restart_and_clears_only_on_new_boot_or_revert() {
+        let change = ModeChange {
+            boot_id: "boot-a".into(),
+            initial_mode: 4,
+            target_mode: 2,
+            variable: "OemMagicVariable".into(),
+        };
+        let bytes = serde_json::to_vec(&change).unwrap();
+        let restored: ModeChange = serde_json::from_slice(&bytes).unwrap();
+        assert!(restored.pending(Some("boot-a"), "OemMagicVariable", 2));
+        assert!(restored.pending(None, "OemMagicVariable", 2));
+        assert!(!restored.pending(Some("boot-b"), "OemMagicVariable", 2));
+        assert!(!restored.pending(Some("boot-a"), "OemMagicVariable", 4));
+        assert!(!restored.pending(Some("boot-a"), "UniWillVariable", 2));
+    }
     #[test]
     fn encodings_match_oem_constants() {
         assert_eq!(

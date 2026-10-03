@@ -409,6 +409,7 @@ pub struct AppConfig {
     pub power_mode: PowerModeId,
     pub power_mode_ac: PowerModeId,
     pub power_mode_battery: PowerModeId,
+    pub auto_power_mode: bool,
     pub fan_boost: bool,
     pub battery_limit: u32,
     pub battery_mode: BatteryMode,
@@ -453,6 +454,7 @@ impl Default for AppConfig {
             power_mode: 1,
             power_mode_ac: 2,
             power_mode_battery: 0,
+            auto_power_mode: false,
             fan_boost: false,
             battery_limit: 100,
             battery_mode: BatteryMode::Balanced,
@@ -688,10 +690,33 @@ pub fn save_config(cfg: &AppConfig) -> std::io::Result<()> {
     let dir = data_dir();
     ensure_dir(&dir)?;
     let path = config_path();
-    let tmp = path.with_extension("json.tmp");
     let text = serde_json::to_string_pretty(cfg)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-    std::fs::write(&tmp, text)?;
-    std::fs::rename(&tmp, &path)?;
-    Ok(())
+    write_atomic(&path, text.as_bytes())
+}
+
+/// Unique temporary files protect independent writers; sync before replacement.
+pub fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    use std::io::Write;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let tmp = path.with_extension(format!(
+        "tmp-{}-{}",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    let result = (|| {
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&tmp)?;
+        file.write_all(bytes)?;
+        file.sync_all()?;
+        drop(file);
+        std::fs::rename(&tmp, path)
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(&tmp);
+    }
+    result
 }
