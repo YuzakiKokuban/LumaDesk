@@ -55,7 +55,7 @@ windows = { version = "0.61", features = [
     "Win32_UI_ColorSystem",
     "Win32_UI_WindowsAndMessaging",
 ] }
-winreg = "0.55"
+winreg = "0.56"
 
 [build-dependencies]
 winresource = "0.1"
