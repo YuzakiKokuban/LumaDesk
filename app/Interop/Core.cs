@@ -28,6 +28,21 @@ public sealed class CoreException(string command, string message) : Exception(me
 public static class Core
 {
     private const string Library = "jiyaochu_core";
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void OemHotkeyCallback(uint code);
+    private static readonly OemHotkeyCallback HotkeyCallback = code =>
+    {
+        try { Microsoft.UI.Reactor.ReactorApp.UIDispatcher?.TryEnqueue(() => JiYaoChu.Services.BackgroundHost.OnOemHotkey(code)); }
+        catch (Exception error) { JiYaoChu.Services.StartupLog.Write(error); }
+    };
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    private static extern nint lumadesk_start_oem_hotkeys(OemHotkeyCallback callback);
+    public static void StartOemHotkeys()
+    {
+        if (Backend.BackendName == "mock") return;
+        Envelope(lumadesk_start_oem_hotkeys(HotkeyCallback), "start_oem_hotkeys");
+    }
 
     /// <summary>Envelope version this build speaks.</summary>
     public const int AbiVersion = 1;

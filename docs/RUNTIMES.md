@@ -9,6 +9,8 @@
 
 .NET Desktop Runtime 包含应用需要的 .NET Runtime，普通用户无需安装开发 SDK。Windows App SDK Runtime 是 WinUI 的运行组件，Windows 11 的系统版本本身不能代替它。
 
+安装程序始终要求管理员权限。点击“安装”时分别检测 x64 .NET 10 Runtime 和 Windows App SDK Runtime；缺失哪个组件就打开哪个官方下载页，完成依赖安装后可在原安装窗口重新点击“安装”。静默安装只返回缺失组件信息，不打开浏览器。
+
 安装组件后，打开 `机耀处.exe` 并允许管理员权限。机械革命的 UWACPIDriver 仍由原厂控制中心安装，机耀处不替换驱动。
 
 安装程序在安装前检查依赖，缺少组件时给出下载地址。便携版使用相同依赖。

@@ -117,6 +117,7 @@ pub const COMMANDS: &[&str] = &[
     "get_autostart",
     "set_autostart",
     "set_autostart_enabled",
+    "migrate_autostart_task",
     "set_log_level",
     "set_log_filter",
     "get_log_path",
@@ -137,6 +138,74 @@ pub const COMMANDS: &[&str] = &[
 ];
 
 static API: OnceLock<Api> = OnceLock::new();
+
+/// The desktop shell alone subscribes to firmware notifications. Command-line
+/// clients never start a resident watcher or a keyboard hook at initialization.
+#[no_mangle]
+pub extern "C" fn lumadesk_start_oem_hotkeys(callback: extern "C" fn(u32)) -> *mut c_char {
+    #[cfg(windows)]
+    {
+        static STARTED: OnceLock<Result<(), String>> = OnceLock::new();
+        let result = STARTED.get_or_init(|| {
+            let (sender, receiver) = std::sync::mpsc::sync_channel(1);
+            std::thread::Builder::new()
+                .name("oem-key-events".into())
+                .spawn(move || {
+                    let connection = crate::core::hal::winapi::Wmi::connect("ROOT\\WMI");
+                    match connection {
+                        Ok(wmi) => {
+                            if let Err(error) = wmi.watch_oem_hotkeys(sender, |code| {
+                                // OEM ECSpec OSD constants, plus the Fn+F1
+                                // notification captured on this model (0xCC).
+                                // Forward events only; no EC polling or plain
+                                // F-key interception is needed in the tray.
+                                if matches!(
+                                    code & 0xff,
+                                    0x04
+                                        | 0x05
+                                        | 0x14
+                                        | 0x15
+                                        | 0x35..=0x37
+                                        | 0x3b..=0x41
+                                        | 0xa4
+                                        | 0xa5
+                                        | 0xab
+                                        | 0xb0
+                                        | 0xb3
+                                        | 0xb4
+                                        | 0xb7
+                                        | 0xb8
+                                        | 0xba
+                                        | 0xc7
+                                        | 0xcc
+                                        | 0xcd
+                                        | 0xce
+                                ) && api().is_ok_and(|api| api.state().oem_taken_over())
+                                {
+                                    callback(code);
+                                }
+                            }) {
+                                log::warn!("OEM key subscription ended: {error}");
+                            }
+                        }
+                        Err(error) => {
+                            let _ = sender.send(Err(error.to_string()));
+                        }
+                    }
+                })
+                .map_err(|error| error.to_string())?;
+            receiver
+                .recv_timeout(std::time::Duration::from_secs(5))
+                .map_err(|error| error.to_string())?
+        });
+        respond(result.clone())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = callback;
+        respond::<()>(Err("OEM hotkeys require Windows".into()))
+    }
+}
 
 /// Builds (once) and hands back the process-wide backend.
 fn api() -> Result<&'static Api, String> {
@@ -413,6 +482,7 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         "get_autostart" => cmd!(api, args, get_autostart),
         "set_autostart" => cmd!(api, args, set_autostart, enabled: bool),
         "set_autostart_enabled" => cmd!(api, args, set_autostart_enabled, enabled: bool),
+        "migrate_autostart_task" => cmd!(api, args, migrate_autostart_task),
 
         // -- logging / OSD -------------------------------------------------
         "set_log_level" => cmd!(api, args, set_log_level, level: String),
@@ -470,16 +540,9 @@ pub extern "C" fn lumadesk_init() -> *mut c_char {
     let state = api.state();
     let config = state.config();
     let config_error = state.config_error();
-    let backend = api
-        .get_hardware_status()
-        .map(|status| {
-            if status.elevated {
-                "windows (elevated)"
-            } else {
-                "windows"
-            }
-        })
-        .unwrap_or("unavailable");
+    // Bootstrap must be safe while the main window is hidden. Telemetry belongs
+    // exclusively to the visible page's poller, never initialization.
+    let backend = state.hal().backend_name();
     respond(Ok(serde_json::json!({
         "config": config,
         "config_error": config_error,

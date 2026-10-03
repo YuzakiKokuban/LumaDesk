@@ -288,7 +288,7 @@ public static class DeviceSwitches
         "usb_charge" => "可在关机或休眠状态下支持USB端口持续供电，方便为手机或外设应急充电。",
         "ac_recovery" => "开启后在关机状态下，接通外部电源适配器瞬间主板自动开机启动系统。",
         "fn_lock" => "交换 F1-F12 的媒体键与功能键行为，游戏与外设直控常用。",
-        "win_key_lock" => "游戏模式：锁定 Windows 徽标键，防止全屏游戏中误触返回桌面。",
+        "win_key_lock" => "程序运行期间屏蔽左右 Windows 徽标键；退出程序后自动解除，重新启动会恢复设置。",
         "water_cooler" => "与蓝牙水冷魔盒联动；自改水冷或未原生支持的机型可在此强制开启。",
         "bios_advanced" => "向主板 UEFI NVRAM 同步写入高级菜单解锁标志位，重启后生效。",
         _ => "此开关未在本构建的设备开关表中声明。",
@@ -320,16 +320,18 @@ public static class SystemOptions
     /// <summary>The OSD theme options, as <c>(label, wire value)</c>.</summary>
     public static IReadOnlyList<(string Label, string Wire)> OsdThemes { get; } =
     [
-        ("电影字幕", "cinema"),
-        ("向右羽化", "fade"),
-        ("磨砂胶囊", "pill"),
+        ("深色", "dark"),
+        ("浅色", "light"),
     ];
 
     /// <summary>The OSD position options, as <c>(label, wire value)</c>.</summary>
     public static IReadOnlyList<(string Label, string Wire)> OsdPositions { get; } =
     [
-        ("左上角", "top-left"),
-        ("下方中央", "bottom-center"),
+        ("右下角", "bottom_right"),
+        ("左下角", "bottom_left"),
+        ("下方中央", "bottom_center"),
+        ("左上角", "top_left"),
+        ("右上角", "top_right"),
         ("屏幕正中", "center"),
     ];
 

@@ -292,7 +292,7 @@ fn sim_log(message: &str) {
 
 impl HardwareHal for MockHal {
     fn backend_name(&self) -> &'static str {
-        "simulator"
+        "mock"
     }
 
     // -------------------------------------------------------------- telemetry

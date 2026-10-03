@@ -807,7 +807,15 @@ impl HardwareHal for WindowsHal {
     // ----------------------------------------------------------- misc system
 
     fn set_win_key_locked(&self, locked: bool) -> HalResult<()> {
-        self.acpi.transaction(|ec| ec.set_bit(0x768, 0x01, locked))
+        #[cfg(windows)]
+        {
+            super::win_key::set_locked(locked)
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = locked;
+            self.vendor_feature("Windows key lock")
+        }
     }
 
     fn set_fn_lock(&self, enabled: bool) -> HalResult<()> {

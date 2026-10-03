@@ -97,7 +97,7 @@ public sealed record OsdConfig
 {
     public bool Enabled { get; init; } = true;
     public uint DurationMs { get; init; } = 2200;
-    public uint Opacity { get; init; } = 85;
+    public uint Opacity { get; init; } = 60;
     public string Position { get; init; } = "bottom_right";
     public string Theme { get; init; } = "dark";
     public bool ShowOnPowerChange { get; init; } = true;

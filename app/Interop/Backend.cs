@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using JiYaoChu.Services;
 
 namespace JiYaoChu.Interop;
 
@@ -46,11 +47,26 @@ public static class Backend
             return _bootstrap ??= await Task.Run(() =>
             {
                 var data = Core.Initialize();
+                var restoringOem = Environment.GetCommandLineArgs().Any(argument => string.Equals(argument, "--restore-oem", StringComparison.OrdinalIgnoreCase));
+                if (data["backend"]?.GetValue<string>() != "mock" && !restoringOem)
+                {
+                    // Update an older owned login task once, preserving its
+                    // enabled state and all other task metadata.
+                    try { Core.Call("migrate_autostart_task"); }
+                    catch (Exception error) { StartupLog.Write(error); }
+                }
                 // First launch takes over by default. Explicit restore opts out.
                 var preference = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "JiYaoChu", "oem-auto-restore.optout");
-                if (data["backend"]?.GetValue<string>() != "mock" && !Environment.GetCommandLineArgs().Any(argument => string.Equals(argument, "--restore-oem", StringComparison.OrdinalIgnoreCase)) && !File.Exists(preference))
+                if (data["backend"]?.GetValue<string>() != "mock" && !restoringOem && !File.Exists(preference))
                 {
-                    try { Core.Call("toggle_oem_service", JsonSerializer.SerializeToNode(new { enable = true }, Core.Json)); }
+                    try
+                    {
+                        // Reuse an existing takeover instead of enumerating OEM
+                        // processes and tasks again on every background launch.
+                        var oem = Core.Call("get_oem_status");
+                        if (oem["taken_over"]?.GetValue<bool>() != true)
+                            Core.Call("toggle_oem_service", JsonSerializer.SerializeToNode(new { enable = true }, Core.Json));
+                    }
                     catch (Exception error) {
                         JiYaoChu.Services.StartupLog.Write(error);
                         data["config_error"] = "自动接管未完成：" + error.Message;
@@ -106,7 +122,10 @@ public static class Backend
     public static async Task<JsonNode> CallNodeAsync(string command, object? arguments = null)
     {
         var payload = arguments is null ? null : JsonSerializer.SerializeToNode(arguments, Core.Json);
-        return await Task.Run(() => Core.Call(command, payload)).ConfigureAwait(false);
+        var result = await Task.Run(() => Core.Call(command, payload)).ConfigureAwait(false);
+        foreach (var raised in await DrainEventsAsync().ConfigureAwait(false)) EventBus.Raise(raised);
+        EventBus.Raise(new BackendEvent("command://applied", JsonSerializer.SerializeToNode(new { command, arguments = payload }, Core.Json)));
+        return result;
     }
 
     /// <summary>Runs one command that returns nothing useful.</summary>

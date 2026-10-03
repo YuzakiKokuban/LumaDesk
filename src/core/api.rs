@@ -1439,6 +1439,13 @@ impl Api {
         Ok(crate::core::autostart::is_enabled())
     }
 
+    pub fn migrate_autostart_task(&self) -> Result<(), String> {
+        if self.state.hal().backend_name() == "mock" {
+            return Ok(());
+        }
+        crate::core::autostart::ensure_background_launch()
+    }
+
     pub fn set_autostart(&self, enabled: bool) -> Result<(), String> {
         apply_autostart(enabled)?;
 
@@ -1625,14 +1632,16 @@ impl Api {
     /// needs, including which switches this machine can actually honour.
     pub fn get_device_switches(&self) -> Result<Vec<DeviceSwitch>, String> {
         let config = config_snapshot(&self.state);
-        let vendor_driver = self.state.acpi().available();
-        let mut switches = presets::device_switches(&config, vendor_driver);
+        // The only implemented switch is an OS keyboard hook. Reading it must
+        // not probe the vendor driver, including when a hotkey arrives hidden.
+        let win_key_supported = cfg!(windows) || self.state.hal().backend_name() == "mock";
+        let mut switches = presets::device_switches(&config, win_key_supported);
         for switch in &mut switches {
             if switch.id == "win_key_lock" {
-                if let Ok(value) = self.state.acpi().read_ec(0x768) {
-                    switch.enabled = value & 1 != 0;
-                } else if self.state.hal().backend_name() != "mock" {
-                    switch.supported = false;
+                #[cfg(windows)]
+                if self.state.hal().backend_name() != "mock" {
+                    switch.supported = true;
+                    switch.enabled = crate::core::hal::win_key::locked();
                 }
             }
         }
@@ -1739,9 +1748,11 @@ impl Api {
 
     /// Extra call kept for compatibility: the takeover state.
     pub fn get_oem_status(&self) -> Result<serde_json::Value, String> {
+        let taken_over = crate::core::services::oem::takeover_active();
+        self.state.set_oem_taken_over(taken_over);
         Ok(serde_json::json!({
-            "taken_over": crate::core::services::oem::takeover_active(),
-            "marker": crate::core::services::oem::takeover_active(),
+            "taken_over": taken_over,
+            "marker": taken_over,
             "marker_path": crate::core::services::oem::marker_path().to_string_lossy(),
         }))
     }

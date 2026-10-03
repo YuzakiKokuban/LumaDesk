@@ -278,3 +278,5 @@ pub fn create_hal() -> std::sync::Arc<dyn HardwareHal> {
         std::sync::Arc::new(mock::MockHal::new())
     }
 }
+#[cfg(windows)]
+pub mod win_key;

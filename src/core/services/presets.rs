@@ -646,7 +646,7 @@ fn normalise_script_name(name: &str) -> String {
 /// that does nothing.
 pub fn device_switches(
     config: &AppConfig,
-    vendor_driver: bool,
+    win_key_supported: bool,
 ) -> Vec<crate::core::hal::DeviceSwitch> {
     let switch =
         |id: &str, name: &str, enabled: bool, supported: bool| crate::core::hal::DeviceSwitch {
@@ -674,7 +674,7 @@ pub fn device_switches(
             "win_key_lock",
             "Windows key lock",
             config.win_key_locked,
-            vendor_driver,
+            win_key_supported,
         ),
         switch(
             "water_cooler",

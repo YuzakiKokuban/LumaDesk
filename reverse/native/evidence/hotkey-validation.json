@@ -1,0 +1,11 @@
+{
+  "machine": "耀世 15 Air / EC 0x1A",
+  "provider": "ROOT\\WMI / AcpiTest_EventULong / ACPI\\PNP0C14\\1_0",
+  "method": "User pressed the requested physical Fn combinations while extrinsic WMI notifications were recorded; no EC polling was used.",
+  "fn_f1": { "utc": "2026-10-02T09:07:01.2787080Z", "code": 204, "hex": "0xCC", "action": "show resident window when OEM is taken over" },
+  "fn_f3": [
+    { "utc": "2026-10-02T15:00:35.4164124Z", "code": 64, "hex": "0x40", "action": "lock Windows keys" },
+    { "utc": "2026-10-02T15:00:35.6035100Z", "code": 165, "hex": "0xA5", "action": "deduplicated companion status update" }
+  ],
+  "limits": "Capture verifies firmware event mapping. Final administrator-hosted hotkey behavior has not been manually retested in this round."
+}

@@ -26,9 +26,19 @@ NVIDIA 动态加载 `%SystemRoot%\System32\nvml.dll`，只调用查询接口，�
 
 库名 `jiyaochu_core.dll`。导出为 lumadesk_init、lumadesk_call、lumadesk_drain_events、lumadesk_free、lumadesk_abi_version，ABI 为 1。
 
+新增 `lumadesk_start_oem_hotkeys`，由桌面宿主传入进程生命周期内保持存活的 C 回调。独立线程通过 `ExecNotificationQuery` 订阅 `AcpiTest_EventULong`，没有 WITHIN 轮询间隔；阻塞等待推送后通知 UI，接管状态关闭时忽略热键。
+
 命令和 JSON 字段为 snake_case。响应为 `{"ok":true,"data":...}` 或 `{"ok":false,"error":"..."}`。UTF-8 返回指针须由 lumadesk_free 释放。get_gpu_mode_info 提供来源、平台、APVersion、模式及支持状态；restart_system 只能由明确操作触发。
 
 Core.cs 管理指针；Backend.cs 将阻塞调用放在线程池；MachineStore 发布轮询快照。读取失败不能以旧配置充当真实固件状态。
+
+MachineStore 只在主窗口可见时读取遥测。后台启动、关闭收起和最小化均暂停 CPU / GPU / EC 等状态轮询。Rust 初始化只读取配置和后端标识；桌面启动还会检查 OEM 接管标记、执行必要的首次接管，并迁移既有的本程序登录任务。
+
+后台保留托盘和事件订阅：ACPI `AcpiTest_EventULong` 提供 Fn 通知；Windows 低级键盘钩子提供 Caps Lock / Num Lock / Scroll Lock 通知；`RegisterPowerSettingNotification` 接收电源来源变化；Core Audio 回调接收音量和默认通信麦克风的静音变化。音频设备只在订阅建立和默认设备变更时解析，不进行定时扫描。后台收到通知即可显示 OSD，不恢复硬件遥测。Win 键锁使用事件拦截，不依赖 EC 768 状态位。
+
+OSD 默认不透明度为 60%，可保存 20%–100% 的任意整数值；DWM 负责窗口圆角，禁用系统默认边框颜色，避免与卡片边缘叠加。窗口不激活、不进入窗口切换器且允许点击穿透，显示时长结束后隐藏。
+
+登录任务迁移通过显式 `migrate_autostart_task` 命令在桌面初始化时执行一次。只处理同用户、Highest / Interactive、单一 Exec、绝对路径与当前机耀处.exe 相同且无旧参数的 `LumaDesk` 任务，将参数补为 `--background`。以原 CIM 任务对象更新，保留启用状态、触发器、主体、工作目录和其他设置；不存在的任务或自定义参数不被修改。
 
 ## 数据
 

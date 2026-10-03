@@ -1,0 +1,23 @@
+{
+  "background_startup_reads": 0,
+  "visible_reads": 4,
+  "hidden_reads_before": 4,
+  "hidden_reads_after": 4,
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "hidden_event_reads": 9,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "passed": true
+}

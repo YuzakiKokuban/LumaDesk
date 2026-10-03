@@ -362,7 +362,7 @@ pub struct OsdConfig {
     pub enabled: bool,
     pub theme: String,
     pub position: String,
-    /// 0..100
+    /// 20..100 percent; the window remains readable at the lower bound.
     pub opacity: u32,
     pub duration_ms: u32,
     pub show_on_power_change: bool,
@@ -375,7 +375,7 @@ impl Default for OsdConfig {
             enabled: true,
             theme: "dark".into(),
             position: "bottom_right".into(),
-            opacity: 85,
+            opacity: 60,
             duration_ms: 2_200,
             show_on_power_change: true,
             show_on_refresh_change: true,
@@ -385,13 +385,17 @@ impl Default for OsdConfig {
 
 impl OsdConfig {
     pub fn sanitise(&mut self) {
-        self.opacity = self.opacity.min(100);
+        self.opacity = self.opacity.clamp(20, 100);
         // Keep the popup visible long enough to read but never permanent.
         self.duration_ms = self.duration_ms.clamp(600, 15_000);
-        if self.theme.trim().is_empty() {
+        if !matches!(self.theme.as_str(), "dark" | "light") {
             self.theme = "dark".into();
         }
-        if self.position.trim().is_empty() {
+        self.position = self.position.replace('-', "_");
+        if !matches!(
+            self.position.as_str(),
+            "top_left" | "top_right" | "bottom_left" | "bottom_right" | "bottom_center" | "center"
+        ) {
             self.position = "bottom_right".into();
         }
     }

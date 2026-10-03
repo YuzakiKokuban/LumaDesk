@@ -284,6 +284,54 @@ pub struct Wmi {
 }
 
 impl Wmi {
+    /// Subscribe to firmware notifications, blocking until an event arrives.
+    /// This extrinsic event query has no WITHIN interval and never scans EC/WMI.
+    pub fn watch_oem_hotkeys(
+        &self,
+        ready: std::sync::mpsc::SyncSender<Result<(), String>>,
+        notify: impl Fn(u32),
+    ) -> HalResult<()> {
+        let services = self
+            .services
+            .as_ref()
+            .ok_or_else(|| HalError::unavailable("WMI closed"))?;
+        let subscription = unsafe {
+            services.ExecNotificationQuery(
+                &BSTR::from("WQL"),
+                &BSTR::from("SELECT * FROM AcpiTest_EventULong"),
+                WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+                None::<&IWbemContext>,
+            )
+        };
+        let enumerator = match subscription {
+            Ok(value) => {
+                let _ = ready.send(Ok(()));
+                value
+            }
+            Err(error) => {
+                let _ = ready.send(Err(error.to_string()));
+                return Err(HalError::unavailable(error.to_string()));
+            }
+        };
+        loop {
+            let mut batch: [Option<IWbemClassObject>; 1] = [None];
+            let mut returned = 0;
+            // SAFETY: valid output slots; -1 waits for a pushed event, no polling.
+            unsafe { enumerator.Next(-1, &mut batch, &mut returned) }
+                .ok()
+                .map_err(|error| HalError::unavailable(error.to_string()))?;
+            if returned == 0 {
+                return Err(HalError::unavailable("OEM event subscription ended"));
+            }
+            if let Some(object) = &batch[0] {
+                let row = unsafe { read_object(object) };
+                if let Some(code) = row.f64_of("ULong") {
+                    notify(code as u32);
+                }
+            }
+        }
+    }
+
     /// Connects to the given WMI namespace (usually `ROOT\WMI` or `ROOT\CIMV2`).
     pub fn connect(namespace: &str) -> HalResult<Self> {
         // SAFETY: `CoInitializeEx` with a null reserved pointer is the

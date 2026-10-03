@@ -79,6 +79,12 @@ jobs:
         run: ./scripts/build.ps1 -NoRestore
       - name: Verify package
         run: python scripts/verify-package.py --archive (Get-ChildItem artifacts/LumaDesk-*-win-x64.zip).FullName
+      - name: Verify installer dependency detection
+        run: python scripts/verify-installer-dependencies.py
+      - name: Verify event-driven system OSD
+        run: ./scripts/verify-system-osd.ps1 -SkipNativeAudio
+      - name: Verify background login task migration
+        run: python scripts/verify-autostart-migration.py
       - name: Verify installation and uninstallation
         run: ./scripts/verify-installer.ps1 -Installer (Get-ChildItem artifacts/LumaDesk-*-Setup.exe).FullName -Directory "$env:RUNNER_TEMP\LumaDesk-installed"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

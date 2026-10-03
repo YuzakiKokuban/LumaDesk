@@ -52,6 +52,15 @@ public static class MachineStore
 
     private static MachineState _snapshot = new();
     private static int _started;
+    private static int _active;
+    private static long _hardwareReads;
+    internal static long HardwareReads => Interlocked.Read(ref _hardwareReads);
+    public static bool IsActive => Volatile.Read(ref _active) != 0;
+
+    public static void SetActive(bool active)
+    {
+        if (Interlocked.Exchange(ref _active, active ? 1 : 0) != (active ? 1 : 0)) Refresh();
+    }
 
     /// <summary>The current reading. Safe to call from any thread.</summary>
     public static MachineState Snapshot
@@ -135,12 +144,20 @@ public static class MachineStore
         {
             while (!Stopping.IsCancellationRequested)
             {
+                if (!IsActive)
+                {
+                    await Nudge.WaitAsync(Stopping.Token).ConfigureAwait(false);
+                    continue;
+                }
                 var started = Environment.TickCount64;
                 try
                 {
                     var bootstrap = await Backend.InitializeAsync().ConfigureAwait(false);
+                    if (!IsActive) continue;
+                    Interlocked.Increment(ref _hardwareReads);
                     var status = await Backend.CallAsync<HardwareStatus>("get_hardware_status")
                         .ConfigureAwait(false);
+                    if (!IsActive) continue;
                     var events = await Backend.DrainEventsAsync().ConfigureAwait(false);
 
                     Publish(state => state with

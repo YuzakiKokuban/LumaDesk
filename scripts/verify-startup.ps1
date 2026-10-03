@@ -27,8 +27,9 @@ try {
     Invoke-Core set_autostart_enabled '{"enabled":true}' | Out-Null
     if (!(Invoke-Core get_autostart)) { throw 'Enable did not take effect' }
     $task = Get-ScheduledTask -TaskPath '\' -TaskName LumaDesk
-    $report.task = @{ run_level=[string]$task.Principal.RunLevel; logon_type=[string]$task.Principal.LogonType; execute=$task.Actions[0].Execute; trigger=$task.Triggers[0].CimClass.CimClassName }
+    $report.task = @{ run_level=[string]$task.Principal.RunLevel; logon_type=[string]$task.Principal.LogonType; execute=$task.Actions[0].Execute; arguments=$task.Actions[0].Arguments; trigger=$task.Triggers[0].CimClass.CimClassName }
     if ($task.Principal.RunLevel -ne 'Highest' -or $task.Actions[0].Execute -ne $application -or $report.task.trigger -ne 'MSFT_TaskLogonTrigger') { throw 'Invalid logon task' }
+    if ($task.Actions[0].Arguments -ne '--background') { throw 'Logon task must start in background mode' }
     Start-ScheduledTask -TaskPath '\' -TaskName LumaDesk
     $deadline = [DateTime]::UtcNow.AddSeconds(25)
     do {

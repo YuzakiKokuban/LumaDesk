@@ -28,6 +28,10 @@ public sealed class SystemPage : Component
         var (failure, setFailure) = UseState<string?>(null);
         var (applied, setApplied) = UseState<string?>(null);
         var (revision, setRevision) = UseState(0);
+        UseEffect(() => EventBus.Subscribe(raised =>
+        {
+            if (raised.Name == "shell://win-key-changed") setRevision(revision + 1);
+        }), revision);
         var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
 
         var bundle = UseResource(_ => FetchAsync(), deps: [revision]);
@@ -265,7 +269,7 @@ public sealed class SystemPage : Component
         body.Add(Chrome.Field("高级 BIOS 菜单", "尚未接入"));
         body.Add(FlagRow(
             "开机自启",
-            "通过计划任务在登录后以管理员权限启动。",
+            "通过计划任务在登录后以管理员权限启动到托盘，不主动打开界面。",
             bundle.Autostart,
             bundle.AutostartError,
             value => Act.Fire(
@@ -364,6 +368,40 @@ public sealed class SystemPage : Component
     // ------------------------------------------------------------------ OSD
 
     private static Element OsdSection(OsdConfig? osd, string? error, bool busy, Action<bool> setBusy, Act.Report settle)
-        => Chrome.SectionCard("屏幕提示", Caption("独立 OSD 弹窗仍在适配，当前操作结果显示在页面内。")
-            .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
+    {
+        if (osd is null)
+            return Chrome.SectionCard("屏幕提示", Chrome.Notice("读取失败", error ?? "无法读取 OSD 设置。", InfoBarSeverity.Warning));
+
+        void Save(OsdConfig next)
+        {
+            if (next == osd || busy) return;
+            Act.Fire("save_osd_config", () => Backend.CallAsync("save_osd_config", new { config = next }), settle, setBusy)();
+        }
+        var durations = new uint[] { 1000, 2200, 4000, 6000 };
+        return Chrome.SectionCard("屏幕提示",
+            Caption("提示窗不抢焦点，显示后自动消失。收起主窗口后暂停硬件监控，重新打开时恢复。")
+                .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
+            Chrome.SettingRow("启用 OSD", "显示 Fn 功能、锁定键、音量、亮度与供电变化提示。",
+                ToggleSwitch(Optional<bool>.Of(osd.Enabled), enabled => Save(osd with { Enabled = enabled })).IsEnabled(!busy)),
+            Chrome.Rule(),
+            Chrome.SettingRow("位置", "在鼠标所在屏幕的工作区域内显示。",
+                ComboBox(SystemOptions.OsdPositions.Select(item => item.Label).ToArray(), Optional<int>.Of(SystemOptions.OsdPositionIndex(osd.Position)),
+                    index => { if (index >= 0 && index < SystemOptions.OsdPositions.Count) Save(osd with { Position = SystemOptions.OsdPositions[index].Wire }); }).IsEnabled(!busy)),
+            Chrome.SettingRow("外观", "选择提示窗配色。",
+                ComboBox(SystemOptions.OsdThemes.Select(item => item.Label).ToArray(), Optional<int>.Of(SystemOptions.OsdThemeIndex(osd.Theme)),
+                    index => { if (index >= 0 && index < SystemOptions.OsdThemes.Count) Save(osd with { Theme = SystemOptions.OsdThemes[index].Wire }); }).IsEnabled(!busy)),
+            Chrome.SettingRow("显示时间", "连续操作时重新开始计时。",
+                ComboBox(new[] { "1 秒", "2.2 秒", "4 秒", "6 秒" }, Optional<int>.Of(Math.Max(0, Array.IndexOf(durations, osd.DurationMs))),
+                    index => { if (index >= 0 && index < durations.Length) Save(osd with { DurationMs = durations[index] }); }).IsEnabled(!busy)),
+            Chrome.SettingRow("不透明度 (%)", "自定义 20–100%，默认 60%。数值越小，提示窗越透明。",
+                NumberBox(Optional<double>.Of(osd.Opacity), value =>
+                {
+                    if (double.IsFinite(value)) Save(osd with { Opacity = (uint)Math.Clamp(Math.Round(value), 20, 100) });
+                }).Range(20, 100).SpinButtons().AutomationName("OSD 不透明度百分比").Width(120).IsEnabled(!busy)),
+            Chrome.SettingRow("性能与供电变化", "提示电源插拔；主窗口打开时也提示档位与强冷变化。",
+                ToggleSwitch(Optional<bool>.Of(osd.ShowOnPowerChange), enabled => Save(osd with { ShowOnPowerChange = enabled })).IsEnabled(!busy)),
+            HStack(8,
+                Button("预览性能提示", Act.Fire("trigger_osd_preview", () => Backend.CallAsync("trigger_osd_preview", new { kind = "power" }), settle)).IsEnabled(osd.Enabled && !busy),
+                Button("预览背光提示", Act.Fire("trigger_osd_preview", () => Backend.CallAsync("trigger_osd_preview", new { kind = "brightness" }), settle)).IsEnabled(osd.Enabled && !busy)));
+    }
 }

@@ -18,6 +18,8 @@ public static class NativeLayout
             control.VerticalContentAlignment = VerticalAlignment.Stretch;
             control.OpenPaneLength = 220;
             control.CompactPaneLength = 48;
+            control.Loaded += (_, _) => JiYaoChu.Services.BackgroundHost.Attach(
+                Microsoft.UI.Windowing.AppWindow.GetFromWindowId(control.XamlRoot.ContentIslandEnvironment.AppWindowId));
             if (control.Content is FrameworkElement content)
             {
                 content.HorizontalAlignment = HorizontalAlignment.Stretch;

@@ -32,6 +32,17 @@ if (Environment.GetCommandLineArgs().Skip(1).Any(argument =>
     }
 }
 
+// A second launch brings the resident instance forward instead of starting
+// another poller or installing another keyboard hook.
+var instanceName = "Local\\LumaDesk-" + System.Security.Principal.WindowsIdentity.GetCurrent().User!.Value;
+using var instanceMutex = new System.Threading.Mutex(true, instanceName, out var firstInstance);
+if (!firstInstance)
+{
+    if (!Environment.GetCommandLineArgs().Contains("--background"))
+        WindowMetrics.ActivateExisting();
+    return;
+}
+
 AppDomain.CurrentDomain.UnhandledException += (_, args) =>
 {
     if (args.ExceptionObject is Exception error) StartupLog.Write(error);
@@ -42,7 +53,9 @@ try
 {
     using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
     var principal = new System.Security.Principal.WindowsPrincipal(identity);
-    if (!principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator))
+    var isolatedShellVerification = Environment.GetEnvironmentVariable("JIYAOCHU_FORCE_MOCK") == "1"
+        && Environment.GetCommandLineArgs().Any(arg => arg.StartsWith("--verify-shell="));
+    if (!principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator) && !isolatedShellVerification)
         throw new UnauthorizedAccessException("机耀处需要管理员权限，请启动机耀处.exe 并接受权限请求。");
     NativeLayout.Configure();
     ReactorApp.Run<App>("机耀处 · LumaDesk", width: initialSize.Width, height: initialSize.Height);
@@ -55,6 +68,11 @@ catch (Exception error)
 
 static class WindowMetrics
 {
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern uint RegisterWindowMessage(string message);
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(nint hwnd, uint message, nuint w, nint l);
+    public static void ActivateExisting() => PostMessage(0xffff, RegisterWindowMessage("LumaDesk.Activate"), 0, 0);
     private const int SpiGetWorkArea = 0x0030;
     private const int BaseWidth = 1180;
     private const int BaseHeight = 820;
