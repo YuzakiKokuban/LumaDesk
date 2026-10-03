@@ -86,7 +86,7 @@ def main():
             names = {name.casefold() for name in archive.namelist()}
             required = {"机耀处.exe", "机耀处.pri", "jiyaochu_core.dll", "jiyaochu-ctl.exe",
                         "Microsoft.WindowsAppRuntime.Bootstrap.dll", "机耀处.runtimeconfig.json",
-                        "RUNTIMES.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md"}
+                        "RUNTIMES.md", "README.md", "README_en.md", "LICENSE"}
             required = {name.casefold() for name in required}
             assert required <= names, f"Missing files: {required - names}"
             assert not ({"coreclr.dll", "hostfxr.dll", "microsoft.ui.xaml.dll"} & names), "Shared runtimes were bundled"

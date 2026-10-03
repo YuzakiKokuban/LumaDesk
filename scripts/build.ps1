@@ -25,7 +25,6 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'WinUI publish failed' }
     Copy-Item -LiteralPath 'target\release\jiyaochu-ctl.exe' -Destination $publishDir
     Copy-Item -LiteralPath 'README.md','README_en.md','LICENSE' -Destination $publishDir
-    Copy-Item -LiteralPath 'THIRD_PARTY_NOTICES.md' -Destination $publishDir
     Copy-Item -LiteralPath 'docs/RUNTIMES.md' -Destination $publishDir
     $archivePath = Join-Path $projectRoot "artifacts\LumaDesk-$Version-win-x64.zip"
     Compress-Archive -Path (Join-Path $publishDir '*') -DestinationPath $archivePath -Force
