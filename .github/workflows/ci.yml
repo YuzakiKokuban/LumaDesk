@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Configure test environment
         run: '"JIYAOCHU_DATA_DIR=$env:RUNNER_TEMP\LumaDesk-test-config" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8'
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
           cache: true
