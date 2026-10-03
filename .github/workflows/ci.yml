@@ -26,7 +26,7 @@ jobs:
     env:
       JIYAOCHU_FORCE_MOCK: '1'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Configure test environment
         run: '"JIYAOCHU_DATA_DIR=$env:RUNNER_TEMP\LumaDesk-test-config" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8'
       - uses: actions/setup-dotnet@v5
@@ -107,7 +107,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Download verified package and publish
         shell: pwsh
         env:
