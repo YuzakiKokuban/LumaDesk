@@ -48,6 +48,7 @@ with tempfile.TemporaryDirectory(prefix="lumadesk-task-migration-") as temp:
         ("renamed-foreign-directory", lambda t: t["Actions"][0].update(Execute=str(folder / "other" / "机耀处.exe")), False),
         ("disabled-owned", lambda t: t["Settings"].update(Enabled=False), True),
         ("case-normalized", lambda t: t["Actions"][0].update(Execute=str(executable).upper()), True),
+        ("quoted-current-path", lambda t: t["Actions"][0].update(Execute='"' + str(executable) + '"'), True),
         ("already-background", lambda t: t["Actions"][0].update(Arguments="--background"), False),
         ("custom-arguments", lambda t: t["Actions"][0].update(Arguments="--layout-check"), False),
         ("foreign-path", lambda t: t["Actions"][0].update(Execute=str(folder / "other.exe")), False),
@@ -75,9 +76,10 @@ with tempfile.TemporaryDirectory(prefix="lumadesk-task-migration-") as temp:
         assert output.exists() == migrate, (name, "unexpected modification")
         if migrate:
             expected = copy.deepcopy(candidate)
-            expected["Actions"][0]["Execute"] = str(executable)
+            if name.startswith("renamed-"):
+                expected["Actions"][0]["Execute"] = str(executable)
             expected["Actions"][0]["Arguments"] = "--background"
             actual = json.loads(output.read_text(encoding="utf-8-sig"))
-            assert actual == expected, (name, "migration changed other task metadata")
+            assert actual == expected, (name, "migration changed other task metadata", actual, expected)
         print(json.dumps({"case": name, "migrated": migrate, "passed": True}))
 print("Owned task migration and metadata preservation verified; no registered task was changed")

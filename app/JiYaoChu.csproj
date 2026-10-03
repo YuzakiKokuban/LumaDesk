@@ -28,8 +28,8 @@
     <SelfContained>false</SelfContained>
 
     <AssemblyName>LumaDesk</AssemblyName>
-    <Version>0.2.0-beta.4</Version>
-    <FileVersion>0.2.0.20004</FileVersion>
+    <Version>0.2.0-beta.5</Version>
+    <FileVersion>0.2.0.20005</FileVersion>
     <Product>机耀处</Product>
     <Company>JiYaoChu</Company>
     <Copyright>Copyright (c) 2026 由崎黑板</Copyright>

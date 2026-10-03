@@ -42,7 +42,9 @@ switch($env:LUMADESK_STARTUP_ACTION) {
    } catch { $owned=$false }
    if ($owned -and ([string]::IsNullOrWhiteSpace($existing.Arguments) -or
        ($renamed -and $existing.Arguments -eq '--background'))) {
-    $existing.Execute=$target
+    # Canonical paths are for ownership comparison, not for rewriting an
+    # unchanged action (case, quotes and Windows short paths must survive).
+    if ($renamed) { $existing.Execute=$env:LUMADESK_STARTUP_EXE }
     $existing.Arguments='--background'
     $task.Actions=@($existing)
     Set-ScheduledTask -InputObject $task | Out-Null

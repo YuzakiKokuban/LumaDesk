@@ -14,7 +14,7 @@ dotnet build app/JiYaoChu.csproj -c Debug --no-restore
 
 ```powershell
 ./scripts/build.ps1
-python scripts/verify-package.py --archive artifacts/LumaDesk-0.2.0-beta.4-win-x64.zip
+python scripts/verify-package.py --archive artifacts/LumaDesk-0.2.0-beta.5-win-x64.zip
 ```
 
 构建脚本需要 Python 3.12 或更新版本。`scripts/version.py` 从 Cargo.toml 读取本地版本，自动同步 Cargo.lock 根包、C# 产品版本和 Windows 文件版本；不更新依赖。`build.ps1 -Version <version>` 可以显式指定并同步构建版本。安装器版本和 SHA256 文件名均由同一入口生成。
