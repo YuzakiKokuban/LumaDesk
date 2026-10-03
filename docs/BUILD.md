@@ -43,7 +43,9 @@ dotnet build app/JiYaoChu.csproj -c Debug -p:RestoreLockedMode=true "-p:Applicat
 
 ## CI/CD
 
-[Build and release](../.github/workflows/ci.yml) 在 main 推送、PR、手动运行时执行：
+分支职责、rebase 合并及版本发布约定见 [开发工作流](WORKFLOW.md)。正式版标签的提交必须属于 `main`，预览版必须属于 `dev`。
+
+[Build and release](../.github/workflows/ci.yml) 在 main/dev 推送、目标为 main/dev 的 PR、版本标签推送及手动运行时执行：
 
 1. Rust 格式、Clippy、单元与 FFI 测试。
 2. Python EC/MUX 离线测试。
