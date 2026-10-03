@@ -4,6 +4,14 @@
 
 ## 自动检查
 
+### beta.3 窗口、亮度与内存
+
+- Rust 31 项与 Clippy 通过，新增亮度事件 uint8 解码测试。
+- [Release 模拟报告](../reverse/native/evidence/window-brightness-memory-validation.json)：打开后最大化、还原后宽高各半并居中；后台亮度通知显示实际百分比，固件补充通知不会覆盖该值；反复开关和 OSD 后硬件读取保持暂停。
+- Windows 本机 `WmiMonitorBrightnessEvent` 原生订阅建立成功，测试未写入屏幕亮度。物理 Fn+F11/F12 通知的完整往返尚未再次人工确认。
+- Release 模拟后端后台工作集约 29–42MiB，私有提交约 132MiB；完整数据和适用范围见 [性能记录](PERFORMANCE.md)。
+- 安装器管理员权限与禁止降级设置保持有效，新增 `InitializeSetup` 管理员检查；安装 EXE 编译和包检查通过。
+
 ### 本次 OSD / 后台更新
 
 后台 OSD 的来源为固件和 Windows 推送事件，独立于 MachineStore 遥测。新增 Caps Lock / Num Lock / Scroll Lock、电源来源、音量与默认通信麦克风静音通知；无状态的 Fn 通知仅显示变更提示。完整 Fn 组合、真实供电插拔和音频设备切换仍需实机验证，下列模拟报告不替代这些物理操作。

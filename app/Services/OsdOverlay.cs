@@ -18,6 +18,8 @@ public static class OsdOverlay
     private static OsdConfig _config = new();
     private static HardwareStatus? _previous;
     private static bool _started;
+    private static volatile bool _shown;
+    internal static bool IsVisible => _shown;
     private static readonly Dictionary<string, long> SystemNoticeTimes = [];
     internal static (string Title, string Detail) VisibleNotice => (_title?.Text ?? "", _detail?.Text ?? "");
     internal static int BorderConfigurationResult { get; private set; }
@@ -101,6 +103,8 @@ public static class OsdOverlay
                 }
                 else if (command is "set_refresh_rate" && _config.ShowOnRefreshChange)
                     Show("屏幕刷新率", "设置已应用");
+                else if (command == "set_display_brightness" && args?["level"]?.GetValue<uint>() is { } level)
+                    ShowNotice("屏幕亮度", $"{Math.Min(level, 100)}%", "brightness");
                 break;
         }
     }
@@ -133,6 +137,7 @@ public static class OsdOverlay
         _window!.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(x, y, width, height));
         ApplyOpacity(hwnd);
         _window.AppWindow.Show(false);
+        _shown = true;
         // Show() can restore WinUI's dialog frame. Remove its client inset
         // after showing so the XAML card fills the entire rounded window.
         SetWindowLongPtr(hwnd, -16, (nint)(GetWindowLongPtr(hwnd, -16).ToInt64() & ~0x00c40000L));
@@ -184,7 +189,12 @@ public static class OsdOverlay
         _timer.Tick += (_, _) => Hide();
     }
 
-    private static void Hide() { _timer?.Stop(); _window?.AppWindow.Hide(); }
+    private static void Hide()
+    {
+        _timer?.Stop(); _window?.AppWindow.Hide();
+        _shown = false;
+        BackgroundMemory.ReleaseWhenHidden();
+    }
     public static void Close()
     {
         Hide();

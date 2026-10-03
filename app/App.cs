@@ -13,9 +13,8 @@ using System.Runtime.InteropServices;
 // To learn more about Reactor, the Reactor project structure, and more about
 // our project templates, see: https://github.com/microsoft/microsoft-ui-reactor
 //
-// The width matters: WinUI's NavigationView switches to icon-only compact mode
-// below 1008 px, and this sidebar carries Chinese labels that mean nothing as
-// bare glyphs, so open at a width that keeps the pane expanded.
+// The restored bounds are centered at half the monitor resolution by the
+// native shell; normal opening maximizes the window.
 if (Environment.GetCommandLineArgs().Skip(1).Any(argument =>
         string.Equals(argument, "--restore-oem", StringComparison.OrdinalIgnoreCase)))
 {
@@ -35,6 +34,11 @@ if (Environment.GetCommandLineArgs().Skip(1).Any(argument =>
 // A second launch brings the resident instance forward instead of starting
 // another poller or installing another keyboard hook.
 var instanceName = "Local\\LumaDesk-" + System.Security.Principal.WindowsIdentity.GetCurrent().User!.Value;
+var isolatedShellVerification = Environment.GetEnvironmentVariable("JIYAOCHU_FORCE_MOCK") == "1"
+    && Environment.GetCommandLineArgs().Any(arg => arg.StartsWith("--verify-shell="));
+if (isolatedShellVerification)
+    instanceName += "-verify-" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JIYAOCHU_DATA_DIR") ?? "")))[..16];
 using var instanceMutex = new System.Threading.Mutex(true, instanceName, out var firstInstance);
 if (!firstInstance)
 {
@@ -53,8 +57,6 @@ try
 {
     using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
     var principal = new System.Security.Principal.WindowsPrincipal(identity);
-    var isolatedShellVerification = Environment.GetEnvironmentVariable("JIYAOCHU_FORCE_MOCK") == "1"
-        && Environment.GetCommandLineArgs().Any(arg => arg.StartsWith("--verify-shell="));
     if (!principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator) && !isolatedShellVerification)
         throw new UnauthorizedAccessException("机耀处需要管理员权限，请启动机耀处.exe 并接受权限请求。");
     NativeLayout.Configure();
@@ -155,6 +157,8 @@ class App : Component
     {
         // Idempotent; the first render starts the poll loop.
         MachineStore.Start();
+        var shell = UseExternalStore(BackgroundHost.SubscribeVisibility, () => BackgroundHost.Visibility);
+        var visible = shell.Visible;
 
         var nav = UseNavigation(AppRoute.Status);
         var (isPaneOpen, setIsPaneOpen) = UseState(true);
@@ -184,7 +188,9 @@ class App : Component
             Transition = NavigationTransition.Fade(TimeSpan.FromMilliseconds(160)),
             CacheMode = NavigationCacheMode.Disabled,
         };
-        var navView = (NavigationView([.. items], host) with
+        // Unmount the current page while hidden so controls, page resources
+        // and subscriptions can be collected; navigation selection is retained.
+        var navView = (NavigationView([.. items], visible ? host : Grid(columns: [], rows: [])) with
         {
             IsSettingsVisible = false,
             IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed,
@@ -199,6 +205,8 @@ class App : Component
         .IsPaneOpen(isPaneOpen, setIsPaneOpen)
         .Flex(grow: 1, basis: 0);
 
+        if (!visible && shell.Attached)
+            return Grid(columns: [], rows: []);
         return Grid(columns: [GridSize.Star()], rows: [GridSize.Auto, GridSize.Star()],
             titleBar.Grid(row: 0, column: 0), navView.Grid(row: 1, column: 0))
             .Backdrop(BackdropKind.Mica);

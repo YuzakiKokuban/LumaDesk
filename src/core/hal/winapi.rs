@@ -291,6 +291,30 @@ impl Wmi {
         ready: std::sync::mpsc::SyncSender<Result<(), String>>,
         notify: impl Fn(u32),
     ) -> HalResult<()> {
+        self.watch_numeric_event("SELECT * FROM AcpiTest_EventULong", "ULong", ready, notify)
+    }
+
+    /// Windows pushes the resulting display brightness; no periodic query.
+    pub fn watch_display_brightness(
+        &self,
+        ready: std::sync::mpsc::SyncSender<Result<(), String>>,
+        notify: impl Fn(u32),
+    ) -> HalResult<()> {
+        self.watch_numeric_event(
+            "SELECT * FROM WmiMonitorBrightnessEvent WHERE Active = TRUE",
+            "Brightness",
+            ready,
+            notify,
+        )
+    }
+
+    fn watch_numeric_event(
+        &self,
+        query: &str,
+        property: &str,
+        ready: std::sync::mpsc::SyncSender<Result<(), String>>,
+        notify: impl Fn(u32),
+    ) -> HalResult<()> {
         let services = self
             .services
             .as_ref()
@@ -298,7 +322,7 @@ impl Wmi {
         let subscription = unsafe {
             services.ExecNotificationQuery(
                 &BSTR::from("WQL"),
-                &BSTR::from("SELECT * FROM AcpiTest_EventULong"),
+                &BSTR::from(query),
                 WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
                 None::<&IWbemContext>,
             )
@@ -321,11 +345,11 @@ impl Wmi {
                 .ok()
                 .map_err(|error| HalError::unavailable(error.to_string()))?;
             if returned == 0 {
-                return Err(HalError::unavailable("OEM event subscription ended"));
+                return Err(HalError::unavailable("WMI event subscription ended"));
             }
             if let Some(object) = &batch[0] {
                 let row = unsafe { read_object(object) };
-                if let Some(code) = row.f64_of("ULong") {
+                if let Some(code) = row.f64_of(property) {
                     notify(code as u32);
                 }
             }
@@ -588,8 +612,8 @@ unsafe fn read_variant(value: &VARIANT) -> WmiValue {
         11 => WmiValue::Bool(payload.boolVal.as_bool()),
         // VT_I2 / VT_I4
         2 | 3 => WmiValue::Num(f64::from(VariantToInt32WithDefault(value, 0))),
-        // VT_UI2 / VT_UI4
-        18 | 19 => WmiValue::Num(f64::from(VariantToUInt32WithDefault(value, 0))),
+        // VT_UI1 / VT_UI2 / VT_UI4 (brightness events are uint8).
+        17..=19 => WmiValue::Num(f64::from(VariantToUInt32WithDefault(value, 0))),
         // VT_I8
         20 => WmiValue::Num(VariantToInt32WithDefault(value, 0) as f64),
         // VT_UI8
@@ -601,6 +625,25 @@ unsafe fn read_variant(value: &VARIANT) -> WmiValue {
         // VT_EMPTY / VT_NULL
         0 | 1 => WmiValue::Null,
         _ => WmiValue::Null,
+    }
+}
+
+#[cfg(test)]
+mod brightness_event_tests {
+    use super::*;
+
+    #[test]
+    fn byte_brightness_variants_preserve_percentage() {
+        for percent in [0u8, 65, 100] {
+            let mut value = VARIANT::default();
+            // SAFETY: initialise the uint8 tag and its matching primitive payload.
+            unsafe {
+                let payload = &mut *value.Anonymous.Anonymous;
+                payload.vt = windows::Win32::System::Variant::VT_UI1;
+                payload.Anonymous.bVal = percent;
+                assert_eq!(read_variant(&value).to_f64(), Some(f64::from(percent)));
+            }
+        }
     }
 }
 

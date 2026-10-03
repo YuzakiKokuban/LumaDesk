@@ -16,6 +16,21 @@ public static class BackgroundHost
     private static bool _trayReady;
     private static bool _keyChangePending;
     private static long _lastKeyChange;
+    private static volatile bool _visible = !Environment.GetCommandLineArgs().Contains("--background");
+    private static event Action? VisibilityChanged;
+    public static bool IsVisible => _visible;
+    public static (bool Visible, bool Attached) Visibility => (_visible, _hwnd != 0);
+    public static Action SubscribeVisibility(Action listener)
+    {
+        VisibilityChanged += listener;
+        return () => VisibilityChanged -= listener;
+    }
+    private static void SetVisible(bool visible)
+    {
+        if (_visible == visible) return;
+        _visible = visible;
+        VisibilityChanged?.Invoke();
+    }
     private const uint TrayMessage = 0x8001;
     private static readonly uint TaskbarCreated = RegisterWindowMessage("TaskbarCreated");
     private static readonly uint ActivateMessage = RegisterWindowMessage("LumaDesk.Activate");
@@ -26,6 +41,11 @@ public static class BackgroundHost
     {
         if (_window is not null) return;
         _window = window;
+        var screen = DisplayArea.GetFromWindowId(window.Id, DisplayAreaFallback.Primary).OuterBounds;
+        var width = screen.Width / 2;
+        var height = screen.Height / 2;
+        window.MoveAndResize(new Windows.Graphics.RectInt32(screen.X + (screen.Width - width) / 2,
+            screen.Y + (screen.Height - height) / 2, width, height));
         _hwnd = Microsoft.UI.Win32Interop.GetWindowFromWindowId(window.Id);
         if (!SetWindowSubclass(_hwnd, Callback, 1, 0))
             throw new InvalidOperationException("无法安装托盘窗口回调。");
@@ -42,7 +62,10 @@ public static class BackgroundHost
         OsdOverlay.Start();
         var background = Environment.GetCommandLineArgs().Contains("--background");
         MachineStore.SetActive(!background || !_trayReady);
+        SetVisible(!background || !_trayReady);
         if (background && _trayReady) window.Hide();
+        else if (window.Presenter is OverlappedPresenter presenter) presenter.Maximize();
+        VisibilityChanged?.Invoke();
         _ = InitializeAsync();
     }
 
@@ -56,7 +79,16 @@ public static class BackgroundHost
             if (Backend.BackendName != "mock") SystemOsdEvents.Start(_hwnd);
             if (config.WinKeyLocked)
                 await Backend.CallAsync("set_win_key_locked", new { locked = true });
-            await Task.Run(Core.StartOemHotkeys);
+            // Optional subscriptions are independent: an absent OEM provider
+            // must not prevent Windows brightness notifications or startup.
+            await Task.Run(() =>
+            {
+                try { Core.StartDisplayBrightness(); }
+                catch (Exception error) { StartupLog.Write(error); }
+                try { Core.StartOemHotkeys(); }
+                catch (Exception error) { StartupLog.Write(error); }
+            });
+            BackgroundMemory.ReleaseWhenHidden();
             if (Environment.GetCommandLineArgs().FirstOrDefault(arg => arg.StartsWith("--verify-shell=")) is { } verification)
                 await ShellVerification.RunAsync(verification["--verify-shell=".Length..]);
         }
@@ -66,8 +98,10 @@ public static class BackgroundHost
     public static void Show()
     {
         if (_window is null) return;
+        SetVisible(true);
         ShowWindow(_hwnd, 9); // Restore a minimized window.
         _window.Show(true);
+        if (_window.Presenter is OverlappedPresenter presenter) presenter.Maximize();
         SetForegroundWindow(_hwnd);
         MachineStore.SetActive(true);
     }
@@ -103,8 +137,10 @@ public static class BackgroundHost
     {
         if (_window is null || !_trayReady) return;
         MachineStore.SetActive(false);
+        SetVisible(false);
         OsdOverlay.ResetObservation();
         _window.Hide();
+        BackgroundMemory.ReleaseWhenHidden();
     }
 
     public static void Exit()

@@ -112,6 +112,11 @@ internal static class SystemOsdEvents
         else Publish("volume", "音量", muted ? "已静音" : $"{Math.Clamp((int)Math.Round(volume * 100), 0, 100)}%");
     }
 
+    internal static void PublishDisplayBrightness(uint percent)
+    {
+        if (percent <= 100) Publish("brightness", "屏幕亮度", $"{percent}%");
+    }
+
     private static void Publish(string kind, string title, string detail)
         => EventBus.Raise(new BackendEvent("osd://system", new JsonObject { ["kind"] = kind, ["title"] = title, ["detail"] = detail }));
 

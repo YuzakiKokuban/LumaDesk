@@ -33,7 +33,7 @@ WizardStyle=modern
 CloseApplications=yes
 RestartApplications=no
 LicenseFile=..\LICENSE
-VersionInfoVersion=0.2.0.2
+VersionInfoVersion=0.2.0.3
 
 [Languages]
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
@@ -60,6 +60,7 @@ english.MissingNet=Missing x64 .NET 10 Runtime.
 english.MissingWinUI=Missing x64 Windows App SDK Runtime 2.5.1 or newer 2.x stable version.
 english.DownloadOpened=The official download page for each missing component has been opened. Install the components, then click Install again.
 english.RuntimeCheckFailed=Unable to check runtime dependencies. Install the required components and retry.
+english.AdminRequired=Administrator permissions are required to install LumaDesk. Please accept the Windows elevation request.
 english.RuntimeRequired=Install the x64 .NET 10 Desktop Runtime and Windows App SDK Runtime 2.5.1 (or a newer 2.x stable version), then run this installer again.%n%n.NET: https://dotnet.microsoft.com/en-us/download/dotnet/10.0%nWinUI: https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
 chinesesimplified.DesktopShortcut=创建桌面快捷方式
 chinesesimplified.Shortcuts=快捷方式：
@@ -68,11 +69,19 @@ chinesesimplified.MissingNet=缺少 x64 .NET 10 Runtime。
 chinesesimplified.MissingWinUI=缺少 x64 Windows App SDK Runtime 2.5.1 或更新的 2.x 稳定版。
 chinesesimplified.DownloadOpened=已打开缺失组件的官方下载页。安装组件后，点击“安装”重新检测。
 chinesesimplified.RuntimeCheckFailed=无法检测运行依赖，请安装所需组件后重试。
+chinesesimplified.AdminRequired=安装机耀处需要管理员权限，请接受 Windows 权限请求。
 chinesesimplified.RuntimeRequired=请先安装 x64 的 .NET 10 Desktop Runtime 和 Windows App SDK Runtime 2.5.1（或更新的 2.x 稳定版），然后重新运行安装程序。%n%n.NET：https://dotnet.microsoft.com/en-us/download/dotnet/10.0%nWinUI：https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
 
 [Code]
 var
   NetDownloadOpened, WinUIDownloadOpened: Boolean;
+
+function InitializeSetup(): Boolean;
+begin
+  Result := IsAdminInstallMode and IsAdminLoggedOn;
+  if not Result then
+    SuppressibleMsgBox(CustomMessage('AdminRequired'), mbCriticalError, MB_OK, IDOK);
+end;
 
 function OpenDownload(URL: String): Boolean;
 var

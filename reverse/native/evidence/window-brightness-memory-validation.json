@@ -1,0 +1,42 @@
+{
+  "background_startup_reads": 0,
+  "background_memory": {
+    "working_mib": 34.21,
+    "private_mib": 104.86
+  },
+  "visible_reads": 4,
+  "visible_memory": {
+    "working_mib": 101.06,
+    "private_mib": 130.56
+  },
+  "maximized_and_half_screen_restore": true,
+  "hidden_reads_before": 4,
+  "hidden_reads_after": 4,
+  "hidden_memory": {
+    "working_mib": 28.78,
+    "private_mib": 137.7
+  },
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "brightness_percentage_osd": true,
+  "hidden_event_reads": 8,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "idle_cpu_seconds_over_3s": 0,
+  "final_hidden_memory": {
+    "working_mib": 42,
+    "private_mib": 131.57
+  },
+  "passed": true
+}

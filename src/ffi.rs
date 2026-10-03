@@ -139,6 +139,48 @@ pub const COMMANDS: &[&str] = &[
 
 static API: OnceLock<Api> = OnceLock::new();
 
+/// Event-only display brightness subscription for the resident desktop shell.
+#[no_mangle]
+pub extern "C" fn lumadesk_start_display_brightness(callback: extern "C" fn(u32)) -> *mut c_char {
+    #[cfg(windows)]
+    {
+        static STARTED: OnceLock<Result<(), String>> = OnceLock::new();
+        let result = STARTED.get_or_init(|| {
+            let (sender, receiver) = std::sync::mpsc::sync_channel(1);
+            std::thread::Builder::new()
+                .name("display-brightness-events".into())
+                .spawn(
+                    move || match crate::core::hal::winapi::Wmi::connect("ROOT\\WMI") {
+                        Ok(wmi) => {
+                            if let Err(error) = wmi.watch_display_brightness(sender, |percent| {
+                                if percent <= 100 {
+                                    callback(percent);
+                                }
+                            }) {
+                                log::warn!("Display brightness subscription ended: {error}");
+                            }
+                        }
+                        Err(error) => {
+                            let _ = sender.send(Err(error.to_string()));
+                        }
+                    },
+                )
+                .map_err(|error| error.to_string())?;
+            receiver
+                .recv_timeout(std::time::Duration::from_secs(5))
+                .map_err(|error| error.to_string())?
+        });
+        respond(result.clone())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = callback;
+        respond::<()>(Err(
+            "Display brightness notifications require Windows".into()
+        ))
+    }
+}
+
 /// The desktop shell alone subscribes to firmware notifications. Command-line
 /// clients never start a resident watcher or a keyboard hook at initialization.
 #[no_mangle]

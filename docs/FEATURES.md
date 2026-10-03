@@ -33,7 +33,7 @@
 | Fn+F6 / Fn+F7 | 键盘背光调低 / 调高 | 固件亮度档位或变更通知 |
 | Fn+F8 | 静音 | Windows 音频通知；固件 MUTE |
 | Fn+F9 / Fn+F10 | 音量减小 / 增大 | Windows 实际音量通知；固件音量事件 |
-| Fn+F11 / Fn+F12 | 屏幕亮度减小 / 增大 | 固件亮度事件，仅提示方向 |
+| Fn+F11 / Fn+F12 | 屏幕亮度百分比 | Windows WmiMonitorBrightnessEvent 实际值；固件事件提示方向作为补充 |
 | Caps Lock / Num Lock / Scroll Lock | 已开启 / 已关闭 | Windows 键盘事件 |
 | 连接或断开电源 | 电源 / 电池 / 备用电源 | Windows 电源来源通知 |
 

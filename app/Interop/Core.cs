@@ -44,6 +44,19 @@ public static class Core
         Envelope(lumadesk_start_oem_hotkeys(HotkeyCallback), "start_oem_hotkeys");
     }
 
+    private static readonly OemHotkeyCallback BrightnessCallback = level =>
+    {
+        try { JiYaoChu.Services.SystemOsdEvents.PublishDisplayBrightness(level); }
+        catch (Exception error) { JiYaoChu.Services.StartupLog.Write(error); }
+    };
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    private static extern nint lumadesk_start_display_brightness(OemHotkeyCallback callback);
+    public static void StartDisplayBrightness()
+    {
+        if (Backend.BackendName == "mock") return;
+        Envelope(lumadesk_start_display_brightness(BrightnessCallback), "start_display_brightness");
+    }
+
     /// <summary>Envelope version this build speaks.</summary>
     public const int AbiVersion = 1;
 

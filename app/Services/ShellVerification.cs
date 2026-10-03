@@ -13,6 +13,12 @@ internal static class ShellVerification
         if (!passed) throw new InvalidOperationException(reason);
     }
 
+    private static object MemorySample()
+    {
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+        return new { working_mib = Math.Round(process.WorkingSet64 / 1048576.0, 2), private_mib = Math.Round(process.PrivateMemorySize64 / 1048576.0, 2) };
+    }
+
     public static async Task RunAsync(string reportPath)
     {
         var report = new Dictionary<string, object>();
@@ -24,11 +30,24 @@ internal static class ShellVerification
             Require(main != 0 && !IsWindowVisible(main), "Background startup opened a window");
             Require(!MachineStore.IsActive && MachineStore.HardwareReads == 0, "Background startup scanned hardware");
             report["background_startup_reads"] = MachineStore.HardwareReads;
+            report["background_memory"] = MemorySample();
             BackgroundHost.Show();
             await Task.Delay(3500);
             Require(MachineStore.IsActive && MachineStore.HardwareReads > 0, "Opening the page did not resume polling");
             report["visible_reads"] = MachineStore.HardwareReads;
+            report["visible_memory"] = MemorySample();
             Require(main != 0 && IsWindowVisible(main), "Main window is missing");
+            Require(IsZoomed(main), "Opening the window did not maximize it");
+            ShowWindow(main, 9);
+            await Task.Delay(350);
+            GetWindowRect(main, out var restored);
+            var screen = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(main), Microsoft.UI.Windowing.DisplayAreaFallback.Primary).OuterBounds;
+            Require(restored.Right - restored.Left == screen.Width / 2 && restored.Bottom - restored.Top == screen.Height / 2,
+                "Restored window is not half the display resolution");
+            Require(Math.Abs(restored.Left - (screen.X + screen.Width / 4)) <= 1 && Math.Abs(restored.Top - (screen.Y + screen.Height / 4)) <= 1,
+                "Restored window is not centered");
+            report["maximized_and_half_screen_restore"] = true;
+            BackgroundHost.Show();
             PostMessage(main, 0x10, 0, 0); // Close button / WM_CLOSE.
             await Task.Delay(1500);
             Require(!IsWindowVisible(main) && !MachineStore.IsActive, "Close did not hide to the tray");
@@ -37,6 +56,7 @@ internal static class ShellVerification
             Require(MachineStore.HardwareReads == reads, "Hidden window kept scanning hardware");
             report["hidden_reads_before"] = reads;
             report["hidden_reads_after"] = MachineStore.HardwareReads;
+            report["hidden_memory"] = MemorySample();
             PostMessage(main, 0x8001, 1, 0x203); // Native tray double-click callback.
             await Task.Delay(1000);
             Require(IsWindowVisible(main) && MachineStore.IsActive, "Tray double click did not reopen the page");
@@ -90,6 +110,11 @@ internal static class ShellVerification
             SystemOsdEvents.PublishAudioState(false, false, 0.42f);
             OsdOverlay.OnFirmwareNotice(0x36);
             Require(OsdOverlay.VisibleNotice.Detail == "42%", "Firmware companion replaced the actual volume");
+            SystemOsdEvents.PublishDisplayBrightness(65);
+            OsdOverlay.OnFirmwareNotice(0x14);
+            Require(OsdOverlay.VisibleNotice.Title == "屏幕亮度" && OsdOverlay.VisibleNotice.Detail == "65%",
+                "Brightness event did not display the actual percentage");
+            report["brightness_percentage_osd"] = true;
             SystemOsdEvents.PublishPowerSource(0);
             SystemOsdEvents.PublishPowerSource(1);
             Require(OsdOverlay.VisibleNotice.Title == "供电状态" && OsdOverlay.VisibleNotice.Detail.Contains("电池"),
@@ -123,6 +148,14 @@ internal static class ShellVerification
                 "Repeating the Fn+F3 packet did not unlock");
             Require(MachineStore.HardwareReads == reads, "Hidden Win-key changes restarted scanning");
             report["fn_f3_packet_toggle"] = true;
+            using (var process = System.Diagnostics.Process.GetCurrentProcess())
+            {
+                var before = process.TotalProcessorTime;
+                await Task.Delay(3000);
+                process.Refresh();
+                report["idle_cpu_seconds_over_3s"] = (process.TotalProcessorTime - before).TotalSeconds;
+                report["final_hidden_memory"] = MemorySample();
+            }
             report["passed"] = true;
         }
         catch (Exception error) { report["passed"] = false; report["error"] = error.ToString(); }
@@ -136,6 +169,7 @@ internal static class ShellVerification
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint FindWindow(string? className, string title);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hwnd);
+    [DllImport("user32.dll")] private static extern bool IsZoomed(nint hwnd);
     [DllImport("user32.dll")] private static extern bool PostMessage(nint hwnd, uint message, nuint w, nint l);
     [DllImport("user32.dll")] private static extern bool ShowWindow(nint hwnd, int command);
     [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
