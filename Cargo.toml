@@ -33,7 +33,7 @@ dirs = "7"
 # Only the Win32 surface the core actually calls. Everything Direct2D /
 # DirectWrite / DWM / HiDpi belonged to the archived self-drawn UI and is gone,
 # which keeps the DLL small.
-windows = { version = "0.61", features = [
+windows = { version = "0.62", features = [
     "Foundation",
     "Win32_Foundation",
     "Win32_Graphics_Gdi",
