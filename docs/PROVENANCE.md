@@ -8,4 +8,4 @@
 
 `assets/LumaDesk.svg` 是用户提供的原始 Logo，保持原始字节、路径与配色。生成的 PNG 和 ICO 使用白色圆角矩形底衬。
 
-第三方材料的版权和许可列在 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md)。
+本项目采用 [Mozilla Public License 2.0](../LICENSE)。
