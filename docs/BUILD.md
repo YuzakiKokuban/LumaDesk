@@ -59,7 +59,11 @@ dotnet build app/JiYaoChu.csproj -c Debug -p:RestoreLockedMode=true "-p:Applicat
 
 发布版本接受 `X.Y.Z` 以及 `X.Y.Z-alpha.N`、`X.Y.Z-beta.N`、`X.Y.Z-rc.N`（N 为 1–9999），拒绝前导零和 build metadata。Windows 文件版本使用第四段表示阶段：alpha 为 10000+N、beta 为 20000+N、rc 为 30000+N、正式版为 65535，保证同版本的正式版高于预览版。
 
-git-cliff 依据 cliff.toml 从标签提交生成更新日志；发布说明组合人工说明与提交清单。优先读取 `docs/releases/<version>.md`，否则读取 `docs/releases/NOTES.md`。人工说明仍需维护支持机型、实机验证范围、已知限制与升级注意事项。CI 不自动修改远程 dev，也不发送第三方通知。工作流使用隔离模拟后端，不访问开发者机器的 OEM 服务或 EC。
+git-cliff 依据 cliff.toml 从标签提交生成更新日志；发布说明组合人工说明与提交清单。优先读取 `docs/releases/<version>.md`，否则读取 `docs/releases/NOTES.md`。人工说明仍需维护支持机型、实机验证范围、已知限制与升级注意事项。CI 不自动修改远程 dev。工作流使用隔离模拟后端，不访问开发者机器的 OEM 服务或 EC。
+
+推送到 `dev` 并通过 `Windows x64` 后，[Telegram 交付工作流](../.github/workflows/telegram.yml) 下载该次构建的四个产物，再次核对 SHA256，只发送 EXE 安装器到 [测试频道](https://t.me/BLBDSBD)。发送的文件名加入 `dev` 与短提交号，正文包含版本、提交号、SHA256、CI 链接及最近三条提交，便于区分相同开发版本。PR、main 推送和手动 CI 不发送文件。
+
+正式版与预发布版在 GitHub Release 成功发布后，复用同一交付工作流，发送原始安装器文件名和 Release 链接。仅发送任务获得 `TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID` 两个仓库 Actions Secret，凭据不进入源代码、安装包或检查/打包任务；机器人须拥有目标频道的发帖权限。发送失败会使交付任务失败，GitHub 已发布的版本不会被删除；网络结果不明确时不自动重发，确认频道后再重跑发送任务。
 
 ## 实机验证
 

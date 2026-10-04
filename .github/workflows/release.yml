@@ -98,3 +98,12 @@ jobs:
           if [ "$PRERELEASE" = 'true' ]; then extra+=(--prerelease); fi
           gh release create "$RELEASE_TAG" release-files/* --verify-tag \
             --notes-file artifacts/release-notes.md --title "LumaDesk $RELEASE_VERSION" "${extra[@]}"
+
+  telegram:
+    needs: [metadata, publish]
+    uses: ./.github/workflows/telegram.yml
+    with:
+      channel: ${{ needs.metadata.outputs.prerelease == 'true' && 'prerelease' || 'stable' }}
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

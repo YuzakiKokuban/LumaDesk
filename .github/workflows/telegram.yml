@@ -1,0 +1,39 @@
+name: Deliver installer to Telegram
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        type: string
+        required: true
+    secrets:
+      TELEGRAM_BOT_TOKEN:
+        required: true
+      TELEGRAM_CHAT_ID:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    name: Send verified installer
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v8
+        with:
+          name: LumaDesk-win-x64
+          path: telegram-files
+      - name: Verify and send installer
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DELIVERY_CHANNEL: ${{ inputs.channel }}
+        run: python scripts/notify-telegram.py --directory telegram-files --channel "$DELIVERY_CHANNEL"

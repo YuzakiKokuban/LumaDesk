@@ -7,7 +7,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def check(ci, release, build, checks, audit):
+def check(ci, release, build, checks, audit, telegram):
     gate = ci["jobs"]["windows"]
     if gate.get("name") != "Windows x64" or gate.get("if") != "always()" or set(gate["needs"]) != {"checks", "audit", "package"}:
         raise ValueError("Merge gate must aggregate every check, including skipped failures")
@@ -32,11 +32,29 @@ def check(ci, release, build, checks, audit):
             raise ValueError(f"Required Windows verification missing: {required}")
     if release["concurrency"]["cancel-in-progress"] != "false":
         raise ValueError("Release runs must not cancel an in-progress publication")
+    dev_delivery = ci["jobs"]["telegram"]
+    if dev_delivery.get("if") != "github.event_name == 'push' && github.ref == 'refs/heads/dev'" or dev_delivery["needs"] != "windows":
+        raise ValueError("Development delivery must only follow a successful dev push gate")
+    release_delivery = release["jobs"]["telegram"]
+    if set(release_delivery["needs"]) != {"metadata", "publish"} or release_delivery.get("if"):
+        raise ValueError("Release delivery must follow a successful publication")
+    for caller in (dev_delivery, release_delivery):
+        if caller["uses"] != "./.github/workflows/telegram.yml" or set(caller["secrets"]) != {"TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"}:
+            raise ValueError("Telegram credentials must remain scoped to the delivery workflow")
+    for workflow in (ci, release):
+        for name, job in workflow["jobs"].items():
+            if name != "telegram" and "secrets" in job:
+                raise ValueError("Build/check jobs must not receive delivery credentials")
+    if "workflow_call" not in telegram["on"] or telegram["permissions"] != {"contents": "read"}:
+        raise ValueError("Delivery must be a reusable read-only GitHub workflow")
+    commands = "\n".join(step.get("run", "") for step in telegram["jobs"]["send"]["steps"])
+    if "notify-telegram.py" not in commands:
+        raise ValueError("Verified installer delivery is missing")
 
 
 def load():
     return tuple(yaml.load((ROOT / ".github/workflows" / name).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
-                 for name in ("ci.yml", "release.yml", "build.yml", "checks.yml", "dependency-audit.yml"))
+                 for name in ("ci.yml", "release.yml", "build.yml", "checks.yml", "dependency-audit.yml", "telegram.yml"))
 
 
 class PolicyTests(unittest.TestCase):
@@ -69,6 +87,16 @@ class PolicyTests(unittest.TestCase):
 
     def test_release_build_cannot_use_development_version(self):
         self.workflows[1]["jobs"]["package"]["with"]["version"] = ""
+        with self.assertRaises(ValueError):
+            check(*self.workflows)
+
+    def test_pr_delivery_cannot_receive_credentials(self):
+        del self.workflows[0]["jobs"]["telegram"]["if"]
+        with self.assertRaises(ValueError):
+            check(*self.workflows)
+
+    def test_release_delivery_cannot_precede_publication(self):
+        self.workflows[1]["jobs"]["telegram"]["needs"].remove("publish")
         with self.assertRaises(ValueError):
             check(*self.workflows)
 

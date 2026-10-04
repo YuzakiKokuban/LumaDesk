@@ -40,3 +40,13 @@ jobs:
           if failed:
               raise SystemExit('Required jobs did not pass: ' + ', '.join(failed))
           PY
+  telegram:
+    # PRs and main cache builds never receive notification credentials.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    needs: windows
+    uses: ./.github/workflows/telegram.yml
+    with:
+      channel: dev
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
