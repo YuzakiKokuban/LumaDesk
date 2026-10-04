@@ -84,6 +84,7 @@ pub struct MockHal {
     lighting: Mutex<LightingState>,
     cfg: Mutex<AppConfig>,
     brightness: AtomicU32,
+    refresh_rate: AtomicU32,
     display_tuning: AtomicBool,
     color_calibration: AtomicBool,
     last_tick_ms: AtomicU64,
@@ -124,6 +125,7 @@ impl MockHal {
             lighting: Mutex::new(LightingState::default()),
             cfg: Mutex::new(AppConfig::default()),
             brightness: AtomicU32::new(70),
+            refresh_rate: AtomicU32::new(165),
             display_tuning: AtomicBool::new(false),
             color_calibration: AtomicBool::new(false),
             last_tick_ms: AtomicU64::new(0),
@@ -332,7 +334,8 @@ impl HardwareHal for MockHal {
                 percent: round1(sim.battery_percent),
                 charging: sim.on_ac
                     && sim.battery_percent < self.battery_limit.load(Ordering::Relaxed) as f64,
-                limit: self.battery_limit.load(Ordering::Relaxed),
+                limit: Some(self.battery_limit.load(Ordering::Relaxed)),
+                limit_error: None,
                 health_percent: Some(96.4),
             },
             device: DeviceStatus {
@@ -385,12 +388,15 @@ impl HardwareHal for MockHal {
     }
 
     fn battery_status(&self, limit: u32) -> HalResult<BatteryStatus> {
+        let _ = limit;
+        let limit = self.battery_limit.load(Ordering::Relaxed);
         let sim = self.snapshot();
         Ok(BatteryStatus {
             on_ac: sim.on_ac,
             percent: round1(sim.battery_percent),
             charging: sim.on_ac && sim.battery_percent < limit as f64,
-            limit,
+            limit: Some(limit),
+            limit_error: None,
             health_percent: Some(96.4),
         })
     }
@@ -536,14 +542,27 @@ impl HardwareHal for MockHal {
     // ---------------------------------------------------------------- display
 
     fn switch_refresh_rate(&self, hz: u32) -> HalResult<()> {
-        sim_log(&format!("switch_refresh_rate({hz})"));
-        Ok(())
+        let display = self.display_list()?.remove(0);
+        self.set_display_monitor_refresh_rate(&display.device_name, hz)
     }
 
     fn set_display_monitor_refresh_rate(&self, device_name: &str, hz: u32) -> HalResult<()> {
+        let display = self
+            .display_list()?
+            .into_iter()
+            .find(|display| display.device_name.eq_ignore_ascii_case(device_name))
+            .ok_or_else(|| {
+                HalError::unavailable(format!("no display named '{device_name}' is attached"))
+            })?;
+        if !display.available_hz.contains(&hz) {
+            return Err(HalError::unsupported(format!(
+                "{device_name} does not support {hz} Hz"
+            )));
+        }
         sim_log(&format!(
             "set_display_monitor_refresh_rate({device_name}, {hz})"
         ));
+        self.refresh_rate.store(hz, Ordering::Relaxed);
         Ok(())
     }
 
@@ -847,7 +866,7 @@ impl HardwareHal for MockHal {
         Ok(vec![DisplayInfo {
             device_name: r"\\.\DISPLAY1".into(),
             friendly_name: "Simulated internal panel".into(),
-            current_hz: 165,
+            current_hz: self.refresh_rate.load(Ordering::Relaxed),
             available_hz: vec![60, 120, 144, 165],
         }])
     }
@@ -941,5 +960,37 @@ impl MockHal {
     /// surface for the few callers that downcast.
     pub fn unsupported(reason: &str) -> HalError {
         HalError::unsupported(reason)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display_controls_read_back_applied_values_and_reject_invalid_targets() {
+        let hal = MockHal::new();
+        let display = hal.display_list().unwrap().remove(0);
+        hal.set_display_monitor_refresh_rate(&display.device_name, 60)
+            .unwrap();
+        assert_eq!(hal.display_list().unwrap()[0].current_hz, 60);
+        hal.switch_refresh_rate(144).unwrap();
+        assert_eq!(hal.display_list().unwrap()[0].current_hz, 144);
+        assert!(hal
+            .set_display_monitor_refresh_rate("missing-display", 60)
+            .is_err());
+        assert!(hal
+            .set_display_monitor_refresh_rate(&display.device_name, 123)
+            .is_err());
+        assert_eq!(hal.display_list().unwrap()[0].current_hz, 144);
+        hal.set_display_brightness(37).unwrap();
+        assert_eq!(hal.display_brightness().unwrap(), 37);
+    }
+
+    #[test]
+    fn battery_readback_does_not_echo_an_unapplied_configuration_limit() {
+        let hal = MockHal::new();
+        hal.set_battery_limit(60).unwrap();
+        assert_eq!(hal.battery_status(100).unwrap().limit, Some(60));
     }
 }

@@ -6,7 +6,7 @@ $principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.Wind
 $env:JIYAOCHU_FORCE_MOCK = '1'
 $env:JIYAOCHU_DATA_DIR = Join-Path (Split-Path $reportPath -Parent) ('shell-test-config-' + [guid]::NewGuid().ToString('N'))
 $previewPath = [IO.Path]::ChangeExtension($reportPath, '.preview.json')
-foreach ($file in @($reportPath, $previewPath, ($reportPath + '.lighting.png'), ($reportPath + '.system.png'), ($reportPath + '.tuning.png'), ($reportPath + '.gpu.png'), ($reportPath + '.overview.png'))) { if (Test-Path -LiteralPath $file) { Remove-Item -LiteralPath $file } }
+foreach ($file in @($reportPath, $previewPath, ($reportPath + '.lighting.png'), ($reportPath + '.colors.png'), ($reportPath + '.system.png'), ($reportPath + '.restore.png'), ($reportPath + '.tuning.png'), ($reportPath + '.gpu.png'), ($reportPath + '.display.png'), ($reportPath + '.overview.png'), ($reportPath + '.trends.png'))) { if (Test-Path -LiteralPath $file) { Remove-Item -LiteralPath $file } }
 $arguments = '--background "--verify-shell=' + $reportPath + '"'
 $executable = Join-Path $directory 'LumaDesk.exe'
 if (!$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -and
@@ -14,14 +14,20 @@ if (!$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     throw 'Run from an elevated shell, or build an isolated asInvoker mock test host as documented in BUILD.md.'
 }
 $app = Start-Process -FilePath $executable -ArgumentList $arguments -WorkingDirectory $directory -WindowStyle Hidden -PassThru
+if (-not ('LumaDeskCapture' -as [type])) {
+    Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class LumaDeskCapture { [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr window, IntPtr dc, uint flags); }'
+}
 try {
-    $deadline = [DateTime]::UtcNow.AddSeconds(150)
+    $deadline = [DateTime]::UtcNow.AddSeconds(180)
     while ([DateTime]::UtcNow -lt $deadline -and !(Test-Path -LiteralPath $reportPath)) {
         Start-Sleep -Milliseconds 100
         $app.Refresh()
         if ($app.HasExited -and !(Test-Path -LiteralPath $reportPath)) { throw 'Application exited before completing shell verification; see ui-errors.log' }
         if (Test-Path -LiteralPath $previewPath) {
-            $preview = Get-Content -LiteralPath $previewPath -Raw | ConvertFrom-Json
+            $previewStream = [IO.File]::Open($previewPath, [IO.FileMode]::Open, [IO.FileAccess]::Read, ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+            $previewReader = [IO.StreamReader]::new($previewStream)
+            try { $preview = $previewReader.ReadToEnd() | ConvertFrom-Json }
+            finally { $previewReader.Dispose() }
             if ($preview.page_bounds -and $preview.page_capture_path -and !(Test-Path -LiteralPath $preview.page_capture_path)) {
                 $capturePath = [IO.Path]::GetFullPath($preview.page_capture_path)
                 if ((Split-Path $capturePath -Parent) -ne (Split-Path $reportPath -Parent)) { throw 'Screenshot path is outside the report directory' }
@@ -30,7 +36,9 @@ try {
                 $bitmap = [Drawing.Bitmap]::new([int]($r.Right - $r.Left), [int]($r.Bottom - $r.Top))
                 $graphics = [Drawing.Graphics]::FromImage($bitmap)
                 try {
-                    $graphics.CopyFromScreen($r.Left, $r.Top, 0, 0, $bitmap.Size)
+                    $dc = $graphics.GetHdc()
+                    try { if (![LumaDeskCapture]::PrintWindow([IntPtr]([long]$preview.page_handle), $dc, 2)) { throw 'Application window capture failed' } }
+                    finally { $graphics.ReleaseHdc($dc) }
                     $bitmap.Save($capturePath, [Drawing.Imaging.ImageFormat]::Png)
                 } finally { $graphics.Dispose(); $bitmap.Dispose() }
             }

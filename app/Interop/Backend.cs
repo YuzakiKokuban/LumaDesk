@@ -124,7 +124,9 @@ public static class Backend
         var payload = arguments is null ? null : JsonSerializer.SerializeToNode(arguments, Core.Json);
         var result = await Task.Run(() => Core.Call(command, payload)).ConfigureAwait(false);
         foreach (var raised in await DrainEventsAsync().ConfigureAwait(false)) EventBus.Raise(raised);
-        EventBus.Raise(new BackendEvent("command://applied", JsonSerializer.SerializeToNode(new { command, arguments = payload }, Core.Json)));
+        var appliedArguments = command == "restore_app_settings"
+            ? new JsonObject { ["cfg"] = result.DeepClone() } : payload;
+        EventBus.Raise(new BackendEvent("command://applied", JsonSerializer.SerializeToNode(new { command, arguments = appliedArguments }, Core.Json)));
         return result;
     }
 

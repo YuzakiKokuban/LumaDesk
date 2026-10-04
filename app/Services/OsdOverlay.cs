@@ -20,7 +20,7 @@ public static class OsdOverlay
     private static bool _started;
     private static volatile bool _shown;
     internal static bool IsVisible => _shown;
-    internal static bool WatchPhysicalProfile => _config.Enabled && _config.ShowOnPowerChange;
+    internal static bool WatchPhysicalProfile => _config.Enabled && _config.ShowOnPowerChange && _config.WatchPhysicalProfile;
     private static readonly Dictionary<string, long> SystemNoticeTimes = [];
     internal static (string Title, string Detail) VisibleNotice => (_title?.Text ?? "", _detail?.Text ?? "");
     internal static int BorderConfigurationResult { get; private set; }

@@ -11,6 +11,7 @@ public static class NativeLayout
     internal static NavigationView? VerificationNavigation { get; private set; }
     public static void Configure()
     {
+        TrendGraph.Configure();
         var previousNavigation = NavigationViewElement.Descriptor.AfterChildrenMount;
         NavigationViewElement.Descriptor.WithAfterChildrenMount((in MountContext context, NavigationViewElement element, NavigationView control) =>
         {
@@ -24,6 +25,19 @@ public static class NativeLayout
             control.VerticalContentAlignment = VerticalAlignment.Stretch;
             control.OpenPaneLength = 220;
             control.CompactPaneLength = 48;
+            void SizePowerIcon()
+            {
+                foreach (var item in control.MenuItems.OfType<NavigationViewItem>())
+                    if (item.Tag?.ToString() == "tuning" && item.Icon is FontIcon icon)
+                    {
+                        icon.FontSize = 28;
+                        // FontIcon scales its glyph to its layout slot; enlarge both.
+                        icon.Width = 24;
+                        icon.Height = 24;
+                    }
+            }
+            SizePowerIcon();
+            control.Loaded += (_, _) => SizePowerIcon();
             control.Loaded += (_, _) => JiYaoChu.Services.BackgroundHost.Attach(
                 Microsoft.UI.Windowing.AppWindow.GetFromWindowId(control.XamlRoot.ContentIslandEnvironment.AppWindowId));
             if (control.Content is FrameworkElement content)

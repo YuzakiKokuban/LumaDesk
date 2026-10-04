@@ -104,13 +104,22 @@ pub fn apply(driver: &AcpiDriver, state: &LightingState) -> HalResult<()> {
             // Clear welcome animation and pulse the OEM RGB update trigger.
             ec.write_command(0x767, (before[5] & !0x80) | 0x20)
         })();
-        if result.is_err() {
-            for i in 0..5 {
-                let _ = ec.write_verified(REGISTERS[i], before[i]);
+        let mut snapshot: Vec<_> = REGISTERS.into_iter().zip(before).collect();
+        snapshot[5].1 |= 0x20;
+        super::rollback::recover(result, &snapshot, |address, value| {
+            match address {
+                0x767 => ec.write_command(address, value),
+                // The submission bit can self-clear during recovery too.
+                0x78c => {
+                    ec.write_command(address, value)?;
+                    if ec.read(address)? & !0x10 != value & !0x10 {
+                        return Err(HalError::io("键盘亮度恢复读回不一致"));
+                    }
+                    Ok(())
+                }
+                _ => ec.write_verified(address, value),
             }
-            let _ = ec.write_command(0x767, before[5] | 0x20);
-        }
-        result
+        })
     })
 }
 

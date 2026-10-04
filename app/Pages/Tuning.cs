@@ -28,6 +28,13 @@ public sealed class TuningPage : SettingsPage
         var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
 
         var (reader, settings) = UseSettings(() => Backend.CallAsync<PowerSettings>("get_power_settings"));
+        UseEffect(() => EventBus.Subscribe(raised =>
+        {
+            if (raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() is
+                "set_power_mode" or "set_power_automation" or "set_windows_power_mode" or "set_active_windows_power_scheme" or "restore_app_settings")
+                reader.Refresh();
+        }), []);
+        UseEffect(() => { if (machine.HasData) reader.Refresh(); }, $"{machine.Status?.PowerMode}|{machine.Status?.WindowsPowerScheme}");
         var working = busy || settings.Refreshing;
 
         // One callback for "a write landed": refresh the live snapshot and force
@@ -91,9 +98,6 @@ public sealed class TuningPage : SettingsPage
         return Chrome.SectionCard(
             "机械革命性能档位",
             Chrome.Field("当前档位", settings.PowerMode is null ? "未知（固件返回了未识别档位）" : PowerModes.Label(settings.PowerMode)),
-            settings.PowerModeError is { } error
-                ? Chrome.Notice("仅性能档位暂不可读", error, InfoBarSeverity.Warning)
-                : (Element)VStack(),
             Body("办公适合日常轻负载，均衡兼顾性能与噪声，狂暴用于高负载。")
                 .Foreground(Theme.SecondaryText).TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap),
             Chrome.ChoiceRow(cards));
@@ -139,7 +143,8 @@ public sealed class TuningPage : SettingsPage
             "电池养护",
             Chrome.Field("当前电量", $"{Chrome.Number(battery?.Percent, "0.#")} %"
                 + (battery is null ? "" : battery.Charging ? " · 正在充电" : battery.OnAc ? " · 已连接电源" : " · 使用电池")),
-            Chrome.Field("充电上限", battery is null ? "—" : $"{battery.Limit} %"),
+            Chrome.Field("充电上限（硬件读回）", battery?.Limit is { } limit ? $"{limit} %" : "未知"),
+            battery?.LimitError is { } limitError ? Caption(limitError).Foreground(Theme.SecondaryText).TextWrapping(Microsoft.UI.Xaml.TextWrapping.Wrap) : (Element)VStack(),
             Chrome.Field("电池健康", battery?.HealthPercent is { } health
                 ? $"{Chrome.Number(health, "0.#")} %"
                 : "未知（固件未提供设计容量）"),

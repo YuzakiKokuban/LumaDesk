@@ -7,3 +7,4 @@ pub mod uefi;
 pub use acpi::{AcpiDriver, AcpiStatus};
 pub mod keyboard;
 pub mod performance;
+pub(crate) mod rollback;

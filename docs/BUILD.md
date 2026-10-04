@@ -14,7 +14,7 @@ dotnet build app/JiYaoChu.csproj -c Debug --no-restore
 
 ```powershell
 ./scripts/build.ps1
-python scripts/verify-package.py --archive artifacts/LumaDesk-0.2.0-beta.5-win-x64.zip
+python scripts/verify-package.py --archive artifacts/LumaDesk-0.2.0-beta.5-win-x64.zip --installer artifacts/LumaDesk-0.2.0-beta.5-win-x64-Setup.exe
 ```
 
 构建脚本需要 Python 3.12 或更新版本。`scripts/version.py` 从 Cargo.toml 读取本地版本，自动同步 Cargo.lock 根包、C# 产品版本和 Windows 文件版本；不更新依赖。`build.ps1 -Version <version>` 可以显式指定并同步构建版本。安装器版本和 SHA256 文件名均由同一入口生成。
@@ -25,6 +25,7 @@ python scripts/verify-package.py --archive artifacts/LumaDesk-0.2.0-beta.5-win-x
 
 ```powershell
 python scripts/verify-win-key.py --library target/debug/jiyaochu_core.dll
+python scripts/verify-preferences.py --library target/debug/jiyaochu_core.dll
 python scripts/verify-installer-dependencies.py
 python scripts/verify-autostart-migration.py
 ./scripts/verify-shell.ps1 -ApplicationDirectory app/bin/Debug/net10.0-windows10.0.26100.0/win-x64
@@ -88,5 +89,7 @@ python scripts/verify-oem-restore.py
 ## 设置体验回归
 
 使用上述隔离 asInvoker 宿主，在运行 verify-shell.ps1 前设置 `JIYAOCHU_VERIFY_SETTINGS=1`，验证控件保持挂载、滚动位置、局部读回、自动档位和导出。本地会保存全部页面的屏幕截图；无可交互桌面时可设置 `JIYAOCHU_VERIFY_SCREENSHOTS=0`，仍检查原生控件树和布局。`JIYAOCHU_VERIFY_MEMORY_IDLE=1` 额外等待清理冷却期，记录持续空闲后的工作集。
+
+设置回归还覆盖外部档位变化、自定义颜色输入、显示刷新率与亮度读回、趋势缺值与隐藏断点、备份恢复和非法归档。`verify-preferences.py` 在独立进程及数据目录验证日志关闭/重新启用/重启持久化，以及恢复应用偏好时不修改设备与系统设置。
 
 `python scripts/verify-notification-recovery.py --library target/release/jiyaochu_core.dll --output artifacts/notification-recovery-validation.json` 被动订阅本机 WMI 并验证重连，不能证明实际 Fn 操作或睡眠恢复。它不写 EC，也不改变亮度。

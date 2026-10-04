@@ -22,6 +22,13 @@ internal static class PowerPolicy
         {
             if (raised.Name != "command://applied") return;
             var command = raised.Payload?["command"]?.GetValue<string>();
+            if (command == "restore_app_settings" && raised.Payload?["arguments"]?["cfg"].Read<AppConfig>() is { } restored)
+            {
+                // Restoring preferences must not immediately apply a device rule.
+                _config = restored;
+                ++_revision;
+                return;
+            }
             if (command == "set_power_automation" && raised.Payload?["arguments"] is { } arguments)
             {
                 _config = _config with {

@@ -28,6 +28,7 @@ public sealed record MachineState
     /// <summary>Why the stored configuration could not be read, if it could not.</summary>
     public string? ConfigError { get; init; }
     public DateTimeOffset? LastUpdated { get; init; }
+    public IReadOnlyList<TrendSample> Trends { get; init; } = [];
     public bool IsStale => Error is not null || LastUpdated is { } at && DateTimeOffset.UtcNow - at > TimeSpan.FromSeconds(5);
 
     /// <summary>True while a fresh snapshot is being read and none has ever arrived.</summary>
@@ -56,12 +57,20 @@ public static class MachineStore
     private static int _started;
     private static int _active;
     private static long _hardwareReads;
+    private static readonly TrendHistory History = new();
     internal static long HardwareReads => Interlocked.Read(ref _hardwareReads);
     public static bool IsActive => Volatile.Read(ref _active) != 0;
 
     public static void SetActive(bool active)
     {
+        if (!active) History.MarkGap();
         if (Interlocked.Exchange(ref _active, active ? 1 : 0) != (active ? 1 : 0)) Refresh();
+    }
+
+    public static void ClearTrends()
+    {
+        History.Clear();
+        Publish(state => state with { Trends = [] });
     }
 
     /// <summary>The current reading. Safe to call from any thread.</summary>
@@ -162,6 +171,9 @@ public static class MachineStore
                     if (!IsActive) continue;
                     var events = await Backend.DrainEventsAsync().ConfigureAwait(false);
 
+                    var updated = DateTimeOffset.UtcNow;
+                    History.Record(updated, status, IsActive, BackgroundHost.IsVisible);
+
                     Publish(state => state with
                     {
                         Status = status,
@@ -169,7 +181,8 @@ public static class MachineStore
                         Loading = false,
                         Backend = bootstrap.Backend,
                         ConfigError = bootstrap.ConfigError,
-                        LastUpdated = DateTimeOffset.UtcNow,
+                        LastUpdated = updated,
+                        Trends = History.Snapshot(),
                     });
 
                     foreach (var raised in events)
@@ -179,6 +192,7 @@ public static class MachineStore
                 }
                 catch (Exception error)
                 {
+                    History.MarkGap();
                     // A refused read is reportable, not fatal: keep the last good
                     // snapshot on screen and say why it is stale.
                     Publish(state => state with { Error = error.Message, Loading = false });

@@ -67,12 +67,6 @@ impl WindowsHal {
         &self.acpi
     }
 
-    /// True when the vendor EC device opens. This is what decides whether the
-    /// vendor-dependent features are advertised as supported.
-    fn vendor_driver_ready(&self) -> bool {
-        self.acpi.available()
-    }
-
     /// Refuse feature-specific protocols that are not implemented yet.
     fn vendor_feature(&self, capability: &str) -> HalResult<()> {
         Err(self.acpi.protocol_unsupported(capability))
@@ -257,30 +251,34 @@ impl HardwareHal for WindowsHal {
     }
 
     fn battery_status(&self, limit: u32) -> HalResult<BatteryStatus> {
+        let _ = limit;
         #[cfg(windows)]
         {
             let snapshot = winapi::power_snapshot()?;
             let health = self.battery_health_percent()?;
+            let applied_limit = self.acpi.transaction(|ec| {
+                crate::core::driver::performance::require_project(ec.read(0x740)?)?;
+                let value = ec.read(0x7b9)?;
+                if !(50..=100).contains(&value) {
+                    return Err(HalError::io(format!(
+                        "EC battery limit {value}% is outside 50-100%"
+                    )));
+                }
+                Ok(u32::from(value))
+            });
+            let limit_error = applied_limit.as_ref().err().map(ToString::to_string);
             Ok(BatteryStatus {
                 percent: snapshot.percent,
                 charging: snapshot.charging,
                 on_ac: snapshot.on_ac,
-                // The *applied* limit would have to be read back from the EC.
-                // We echo the configured value, which is what the UI shows.
-                limit: self
-                    .acpi
-                    .read_ec(0x7B9)
-                    .ok()
-                    .filter(|v| (50..=100).contains(v))
-                    .map(u32::from)
-                    .unwrap_or(limit),
+                limit: applied_limit.ok(),
+                limit_error,
                 health_percent: health,
             })
         }
 
         #[cfg(not(windows))]
         {
-            let _ = limit;
             Err(HalError::unavailable("battery state requires Windows"))
         }
     }
@@ -352,7 +350,9 @@ impl HardwareHal for WindowsHal {
     }
 
     fn support_flags(&self) -> HalResult<SupportFlags> {
-        let vendor = self.vendor_driver_ready();
+        let project = self.acpi.read_ec(0x740).ok();
+        let validated =
+            project.is_some_and(|p| crate::core::driver::performance::require_project(p).is_ok());
 
         #[cfg(windows)]
         let has_displays = winapi::displays()
@@ -363,15 +363,15 @@ impl HardwareHal for WindowsHal {
 
         // Advertise only implemented paths; a reachable driver alone is insufficient.
         Ok(SupportFlags {
-            fan_boost: vendor,
-            battery_limit: vendor,
+            fan_boost: validated,
+            battery_limit: validated,
             water_cooler: false,
             four_zone: false,
             logo: false,
             hinge: false,
             lightbar: false,
             bios_advanced: false,
-            gpu_switching: crate::core::driver::uefi::info(self.acpi.read_ec(0x740).ok())
+            gpu_switching: crate::core::driver::uefi::info(project)
                 .map(|v| v.supported)
                 .unwrap_or(false),
             // Display tuning is the gamma ramp: real, no driver needed.
@@ -396,7 +396,10 @@ impl HardwareHal for WindowsHal {
     }
 
     fn set_fan_boost(&self, enabled: bool) -> HalResult<()> {
-        self.acpi.transaction(|ec| ec.set_bit(0x751, 0x40, enabled))
+        self.acpi.transaction(|ec| {
+            crate::core::driver::performance::require_project(ec.read(0x740)?)?;
+            ec.set_bit(0x751, 0x40, enabled)
+        })
     }
 
     fn toggle_fan_curve_control(
@@ -418,16 +421,13 @@ impl HardwareHal for WindowsHal {
     }
 
     fn set_fan_ramp_rate(&self, speed_ms: u32) -> HalResult<()> {
-        let value = if speed_ms == 0 {
-            0x81
-        } else {
-            0x80 | (speed_ms.clamp(100, 12700) / 100) as u8
-        };
-        self.acpi.transaction(|ec| ec.write_verified(0x787, value))
+        let _ = speed_ms;
+        self.vendor_feature("fan ramp rate (protocol has not been validated)")
     }
 
     fn set_fan_isolated_output(&self, enabled: bool) -> HalResult<()> {
-        self.acpi.transaction(|ec| ec.set_bit(0x7C5, 0x80, enabled))
+        let _ = enabled;
+        self.vendor_feature("isolated fan output (protocol has not been validated)")
     }
 
     fn set_sleep_auto_off(&self, enabled: bool) -> HalResult<()> {
@@ -450,6 +450,7 @@ impl HardwareHal for WindowsHal {
         }
         // Charge thresholds are stored in the recovered UniWill EC registers.
         self.acpi.transaction(|ec| {
+            crate::core::driver::performance::require_project(ec.read(0x740)?)?;
             let limit = limit as u8;
             let mode = if limit >= 95 {
                 1
@@ -469,15 +470,16 @@ impl HardwareHal for WindowsHal {
                 limit.saturating_sub(5),
                 (before[3] & 8) | mode,
             ];
-            for (i, address) in addresses.iter().enumerate() {
-                if let Err(error) = ec.write_verified(*address, values[i]) {
-                    for (address, value) in addresses.iter().zip(before) {
-                        let _ = ec.write_verified(*address, value);
-                    }
-                    return Err(error);
+            let result = (|| {
+                for (i, address) in addresses.iter().enumerate() {
+                    ec.write_verified(*address, values[i])?;
                 }
-            }
-            Ok(())
+                Ok(())
+            })();
+            let snapshot: Vec<_> = addresses.into_iter().zip(before).collect();
+            crate::core::driver::rollback::recover(result, &snapshot, |address, value| {
+                ec.write_verified(address, value)
+            })
         })
     }
 

@@ -11,12 +11,13 @@ A Windows control center for Mechrevo laptops, built with WinUI 3 and a Rust har
 
 ## Features
 
-- **Performance and cooling**: Office, Balanced and Beast profiles, fan boost, and CPU, GPU and fan monitoring.
-- **Keyboard backlight**: on/off control, four brightness levels and eight solid color presets.
+- **Performance and cooling**: Office, Balanced and Beast profiles, fan boost, CPU/GPU/fan monitoring, and five-minute trends while the window is visible.
+- **Keyboard backlight**: on/off control, four brightness levels, eight solid color presets and custom hexadecimal colors.
 - **Power management**: 60%, 80% and 100% charging limits, Windows power modes and power plans; optional performance rules for AC and battery power.
 - **GPU modes**: hybrid, discrete and integrated output settings, applied after a restart.
 - **Desktop integration**: system tray with quick controls, elevated startup, Windows key lock, and hotkey and system status OSD.
-- **Diagnostics and backups**: export version, notification health, recent logs and settings.
+- **Display settings**: supported refresh rates and built-in screen brightness, confirmed by readback after applying.
+- **Diagnostics and backups**: export version, notification health, recent logs and settings; preview and restore current or legacy backups with an automatic backup before restoration.
 - **OEM software management**: control center takeover and restoration.
 
 See [feature support](docs/FEATURES.md) and [verification records](docs/VALIDATION.md) for hardware coverage. GPU switching across a restart, visible backlight behavior and charging cutoff remain unverified.

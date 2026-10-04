@@ -116,9 +116,9 @@ static class WindowMetrics
 enum AppRoute
 {
     Status,
-    Gpu,
     Tuning,
     Lighting,
+    Display,
     System,
 }
 
@@ -127,27 +127,28 @@ class App : Component
 
     static string RouteToTag(AppRoute route) => route switch
     {
-        AppRoute.Gpu => "gpu",
         AppRoute.Tuning => "tuning",
         AppRoute.Lighting => "lighting",
+        AppRoute.Display => "display",
         AppRoute.System => "system",
         _ => "status",
     };
 
     static AppRoute TagToRoute(string? tag) => tag switch
     {
-        "gpu" => AppRoute.Gpu,
+        "gpu" => AppRoute.Display,
         "tuning" => AppRoute.Tuning,
         "lighting" => AppRoute.Lighting,
+        "display" => AppRoute.Display,
         "system" => AppRoute.System,
         _ => AppRoute.Status,
     };
 
     static Element RouteToPage(AppRoute route) => route switch
     {
-        AppRoute.Gpu => Component<GpuPage>(),
         AppRoute.Tuning => Component<TuningPage>(),
         AppRoute.Lighting => Component<LightingPage>(),
+        AppRoute.Display => Component<DisplayPage>(),
         AppRoute.System => Component<SystemPage>(),
         _ => Component<OverviewPage>(),
     };
@@ -166,7 +167,7 @@ class App : Component
         var items = new List<NavigationViewItemData>
         {
             NavItem("状态概览", icon: "Home", tag: "status"),
-            NavItem("显卡模式", icon: "\uE7F4", tag: "gpu"),
+            NavItem("显示设置", icon: "\uE7F4", tag: "display"),
             NavItem("电源与电池", icon: "\uE83F", tag: "tuning"),
             NavItem("键盘灯效", icon: "\uE765", tag: "lighting"),
         };

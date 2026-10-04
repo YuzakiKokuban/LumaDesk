@@ -26,15 +26,16 @@ internal static class SettingsVerification
     }
     private static void Invoke(Button button)
         => ((IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke)).Invoke();
-    private static async Task CaptureAsync(ScrollViewer viewer, string path, string reportPath)
+    private static async Task CaptureAsync(ScrollViewer viewer, string path, string reportPath, double offset = 0)
     {
-        viewer.ChangeView(null, 0, null, disableAnimation: true);
+        viewer.ChangeView(null, offset, null, disableAnimation: true);
         await Task.Delay(120);
         Require(viewer.ScrollableWidth < 1, "Page overflows horizontally at a narrow width");
         if (Environment.GetEnvironmentVariable("JIYAOCHU_VERIFY_SCREENSHOTS") == "0") return;
         GetWindowRect(BackgroundHost.Handle, out var bounds);
         await WritePreviewAsync(Path.ChangeExtension(reportPath, ".preview.json"), System.Text.Json.JsonSerializer.Serialize(new {
-            page_capture_path = path, page_bounds = new { bounds.Left, bounds.Top, bounds.Right, bounds.Bottom } }));
+            page_capture_path = path, page_handle = BackgroundHost.Handle.ToInt64(),
+            page_bounds = new { bounds.Left, bounds.Top, bounds.Right, bounds.Bottom } }));
         await WaitAsync(() => File.Exists(path), "Native page screenshot was not captured");
     }
     internal static async Task WritePreviewAsync(string path, string json)
@@ -61,7 +62,21 @@ internal static class SettingsVerification
     public static async Task RunAsync(Dictionary<string, object> report, string reportPath)
     {
         Require(Backend.BackendName == "mock", "Settings checks require an isolated mock backend");
+        foreach (var (input, expected) in new[] { ("#12ABEF", "#12abef"), (" 123456 ", "#123456"), ("000000", "#000000"), ("#FFFFFF", "#ffffff") })
+            Require(KeyboardColor.TryParse(input, out var parsed) && parsed == expected, "Valid keyboard color was not parsed: " + input);
+        foreach (var input in new[] { "", "#abc", "#12345", "#1234567", "#GG0011", "red", "#12 34EF", "##123456" })
+            Require(!KeyboardColor.TryParse(input, out _), "Invalid keyboard color accepted: " + input);
+        Require(!OsdOverlay.WatchPhysicalProfile, "Background profile polling is enabled by default");
+        report["strict_keyboard_color_parser"] = true;
+        report["background_profile_polling_default_off"] = true;
+        await DisplayTrendVerification.RunAsync(report);
         var nav = NativeLayout.VerificationNavigation!;
+        var menu = nav.MenuItems.OfType<NavigationViewItem>().ToArray();
+        Require(menu.Length == 5 && menu.Count(item => item.Tag?.ToString() == "display") == 1 && menu.All(item => item.Tag?.ToString() != "gpu"), "Display and GPU navigation were not merged");
+        var powerIcon = menu.First(item => item.Tag?.ToString() == "tuning").Icon as FontIcon;
+        Require(powerIcon is { FontSize: >= 28, Width: >= 24, Height: >= 24 }, "Power navigation icon was not enlarged");
+        report["display_gpu_navigation_merged"] = true;
+        report["power_navigation_icon_enlarged"] = true;
         // Deliberately make the page short enough to scroll.
         var window = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(nav.XamlRoot.ContentIslandEnvironment.AppWindowId);
         var original = window.Size;
@@ -76,62 +91,115 @@ internal static class SettingsVerification
                 brightness = Tree(lighting).OfType<Button>().FirstOrDefault(button => AutomationProperties.GetName(button) == "亮度 低" && button.IsEnabled);
                 return brightness is not null;
             }, "Lighting settings did not load: " + string.Join(" | ", Tree(lighting).OfType<TextBlock>().Select(text => text.Text)));
+            brightness!.Focus(FocusState.Programmatic);
             lighting.ChangeView(null, Math.Min(120, lighting.ScrollableHeight), null, disableAnimation: true);
             await Task.Delay(150);
             var offset = lighting.VerticalOffset;
-            var unloaded = false;
-            brightness!.Unloaded += (_, _) => unloaded = true;
-            brightness.Focus(FocusState.Programmatic);
+            var lightingUnloaded = false;
+            brightness.Unloaded += (_, _) => lightingUnloaded = true;
             Invoke(brightness);
             await Task.Delay(25);
-            Require(Tree(lighting).Contains(brightness) && !unloaded, "Applying brightness unmounted the controls");
+            Require(Tree(lighting).Contains(brightness) && !lightingUnloaded, "Applying brightness unmounted the controls");
             await WaitAsync(() => brightness.IsEnabled, "Brightness readback did not finish");
             await Task.Delay(100);
-            Require(!unloaded && ReferenceEquals(lighting, Tree(nav).OfType<ScrollViewer>().First(scroll => scroll.Content is DependencyObject content && Tree(content).Contains(brightness))), "Lighting page was replaced");
+            Require(!lightingUnloaded && ReferenceEquals(lighting, Tree(nav).OfType<ScrollViewer>().First(scroll => scroll.Content is DependencyObject content && Tree(content).Contains(brightness))), "Lighting page was replaced");
             Require(Math.Abs(lighting.VerticalOffset - offset) < 2, "Applying lighting reset the scroll position");
             Require((await Backend.CallAsync<LightingState>("get_lighting_state")).KbBrightness == 1, "Brightness write/readback failed");
             report["lighting_controls_and_scroll_preserved"] = true;
+            var customHex = Tree(lighting).OfType<TextBox>().FirstOrDefault(box => AutomationProperties.GetName(box) == "键盘颜色代码");
+            var applyHex = Tree(lighting).OfType<Button>().FirstOrDefault(button => AutomationProperties.GetName(button) == "应用自定义键盘颜色");
+            Require(customHex is not null && applyHex is not null, "Custom keyboard color controls missing");
+            customHex!.Text = "#12ABEF";
+            await WaitAsync(() => applyHex!.IsEnabled, "Valid keyboard hex color was rejected");
+            Invoke(applyHex!);
+            await WaitAsync(() => applyHex!.IsEnabled && (Tree(lighting).OfType<TextBlock>().Any(text => text.Text == "当前颜色：#12ABEF")), "Custom keyboard color did not read back");
+            Require((await Backend.CallAsync<LightingState>("get_lighting_state")).KbColor == "#12abef", "Custom keyboard color was not applied");
+            customHex.Text = "#GG0011";
+            await WaitAsync(() => !applyHex!.IsEnabled, "Invalid keyboard hex color can write hardware");
+            Require((await Backend.CallAsync<LightingState>("get_lighting_state")).KbColor == "#12abef", "Invalid color altered hardware");
+            report["custom_keyboard_hex_validated_and_applied"] = true;
+            customHex.Text = "#12ABEF";
             await CaptureAsync(lighting, reportPath + ".lighting.png", reportPath);
+            await CaptureAsync(lighting, reportPath + ".colors.png", reportPath, lighting.ScrollableHeight);
 
             var system = await NavigateAsync("system", "系统");
             ToggleSwitch? osdToggle = null;
             await WaitAsync(() => { osdToggle = Tree(system).OfType<ToggleSwitch>().LastOrDefault(); return osdToggle is not null && osdToggle.IsEnabled; }, "System settings did not load");
             // Prefer a stable, mounted numeric control whose value writes OSD configuration.
             var opacity = Tree(system).OfType<NumberBox>().First();
+            opacity.Focus(FocusState.Programmatic);
+            await Task.Delay(100);
             system.ChangeView(null, Math.Min(300, system.ScrollableHeight), null, disableAnimation: true);
             await Task.Delay(150);
             offset = system.VerticalOffset;
-            unloaded = false;
-            opacity.Unloaded += (_, _) => unloaded = true;
+            var systemUnloaded = false;
+            opacity.Unloaded += (_, _) => systemUnloaded = true;
             opacity.Value = 61;
             await Task.Delay(25);
-            Require(!unloaded && Tree(system).Contains(opacity), "Applying OSD unmounted system settings");
+            Require(!systemUnloaded && Tree(system).Contains(opacity), "Applying OSD unmounted system settings");
             await WaitAsync(() => opacity.IsEnabled, "OSD readback did not finish");
             await Task.Delay(100);
-            Require(!unloaded && Math.Abs(system.VerticalOffset - offset) < 2, "Applying OSD replaced the page or reset scrolling");
+            Require(!systemUnloaded && Math.Abs(system.VerticalOffset - offset) < 2, $"Applying OSD replaced the page or reset scrolling (unloaded={systemUnloaded}, before={offset}, after={system.VerticalOffset})");
             Require((await Backend.CallAsync<OsdConfig>("get_osd_config")).Opacity == 61, "OSD opacity did not save");
             await Backend.CallAsync("save_osd_config", new { config = (await Backend.CallAsync<OsdConfig>("get_osd_config")) with { Opacity = 60 } });
             report["system_controls_and_scroll_preserved"] = true;
             await CaptureAsync(system, reportPath + ".system.png", reportPath);
+            await CaptureAsync(system, reportPath + ".restore.png", reportPath, system.ScrollableHeight);
 
             var tuning = await NavigateAsync("tuning", "电源管理");
             Button? office = null;
             await WaitAsync(() => { office = Tree(tuning).OfType<Button>().FirstOrDefault(button => AutomationProperties.GetName(button) == "办公" && button.IsEnabled); return office is not null; }, "Power settings did not load");
-            unloaded = false;
-            office!.Unloaded += (_, _) => unloaded = true;
+            var powerUnloaded = false;
+            office!.Unloaded += (_, _) => powerUnloaded = true;
             Invoke(office);
             await Task.Delay(25);
-            Require(!unloaded, "Applying power mode unmounted the controls");
+            Require(!powerUnloaded, "Applying power mode unmounted the controls");
             await WaitAsync(() => office.IsEnabled, "Power readback did not finish");
-            Require(!unloaded && (await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 0, "Power mode did not update in place");
+            Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 0, "Power mode write/readback differs");
+            Require(!powerUnloaded && Tree(tuning).Contains(office), "Power mode update replaced the selected control");
             report["power_controls_preserved"] = true;
+            await Backend.CallAsync("set_power_mode", new { mode = (byte)2 });
+            MachineStore.Refresh();
+            await WaitAsync(() => Tree(tuning).OfType<Button>().Any(button => AutomationProperties.GetName(button) == "狂暴" && Tree(button).OfType<TextBlock>().Any(text => text.Text == "✓ 当前")), "External power change did not update selected card");
+            Require(!powerUnloaded && Tree(tuning).Contains(office) && Tree(nav).Contains(tuning), "External power change replaced mounted controls");
+            report["external_power_selection_synchronised"] = true;
             await CaptureAsync(tuning, reportPath + ".tuning.png", reportPath);
 
-            var gpu = await NavigateAsync("gpu", "显卡模式");
-            await WaitAsync(() => Tree(gpu).OfType<Button>().Any(button => AutomationProperties.GetName(button) == "保存显卡模式"), "GPU settings did not load");
-            await CaptureAsync(gpu, reportPath + ".gpu.png", reportPath);
+            var display = await NavigateAsync("display", "显示设置");
+            await WaitAsync(() => Tree(display).OfType<Button>().Any(button => AutomationProperties.GetName(button) == "保存显卡模式"), "Merged GPU settings did not load");
+            var originalGpuMode = (await Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info")).ConfiguredMode;
+            ComboBox? rates = null;
+            await WaitAsync(() => { rates = Tree(display).OfType<ComboBox>().FirstOrDefault(box => AutomationProperties.GetName(box) == "显示刷新率" && box.IsEnabled); return rates is not null; }, "Display settings did not load");
+            rates!.SelectedIndex = 0;
+            var applyRate = Tree(display).OfType<Button>().First(button => AutomationProperties.GetName(button) == "应用显示刷新率");
+            await WaitAsync(() => applyRate.IsEnabled, "Refresh rate selection cannot be applied");
+            Invoke(applyRate);
+            await WaitAsync(() => Tree(display).OfType<TextBlock>().Any(text => text.Text == "刷新率调整已完成"), "Refresh rate did not finish with actual readback");
+            Require((await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 60, "Display refresh was not applied");
+            var panelBrightness = Tree(display).OfType<NumberBox>().First(box => AutomationProperties.GetName(box) == "内置屏幕亮度百分比");
+            panelBrightness.Value = 37;
+            var applyPanelBrightness = Tree(display).OfType<Button>().First(button => AutomationProperties.GetName(button) == "应用内置屏幕亮度");
+            await WaitAsync(() => applyPanelBrightness.IsEnabled, "Panel brightness cannot be applied");
+            Invoke(applyPanelBrightness);
+            await WaitAsync(() => Tree(display).OfType<TextBlock>().Any(text => text.Text == "屏幕亮度调整已完成"), "Panel brightness did not finish with actual readback");
+            Require(await Backend.CallAsync<uint>("get_display_brightness") == 37, "Panel brightness readback differs");
+            Require((await Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info")).ConfiguredMode == originalGpuMode, "Brightness or refresh adjustment changed GPU output mode");
+            report["display_controls_apply_and_readback"] = true;
+            await CaptureAsync(display, reportPath + ".display.png", reportPath);
+            var gpuHeading = Tree(display).OfType<TextBlock>().First(text => text.Text == "显卡输出模式");
+            var gpuOffset = gpuHeading.TransformToVisual(display).TransformPoint(new Windows.Foundation.Point()).Y + display.VerticalOffset - 30;
+            await CaptureAsync(display, reportPath + ".gpu.png", reportPath, Math.Max(0, gpuOffset));
             var overview = await NavigateAsync("status", "状态概览");
             await CaptureAsync(overview, reportPath + ".overview.png", reportPath);
+            var plots = Tree(overview).OfType<TrendGraphControl>().ToArray();
+            Require(plots.Length == 3 && plots.All(plot => AutomationProperties.GetName(plot).Contains("最近五分钟趋势")), "Native trend graphs did not mount with accessible summaries");
+            var plotOffset = plots[0].TransformToVisual(overview).TransformPoint(new Windows.Foundation.Point()).Y + overview.VerticalOffset - 70;
+            await CaptureAsync(overview, reportPath + ".trends.png", reportPath, Math.Max(0, plotOffset));
+            Require(plots.Any(plot => Tree(plot).OfType<Microsoft.UI.Xaml.Shapes.Polyline>().Any()), "Native trend graph did not draw sample lines");
+            var previousCount = MachineStore.Snapshot.Trends.Count;
+            Invoke(Tree(overview).OfType<Button>().First(button => AutomationProperties.GetName(button) == "清空最近五分钟趋势"));
+            await WaitAsync(() => MachineStore.Snapshot.Trends.Count < previousCount, "Clear trends button did not clear retained samples");
+            report["native_trends_render_and_clear"] = true;
             report["all_pages_narrow_no_horizontal_overflow"] = true;
 
             // Failure keeps the last good resource rather than showing a blank page.
@@ -159,6 +227,7 @@ internal static class SettingsVerification
             report["backup_and_diagnostics_export"] = true;
             report["diagnostics_path"] = diagnostics;
             report["backup_path"] = backup;
+            await RestoreVerification.RunAsync(report);
             await NavigateAsync("status", "状态概览");
         }
         finally { window.Resize(original); }

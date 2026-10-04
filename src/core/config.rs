@@ -224,7 +224,9 @@ pub struct BatteryStatus {
     pub charging: bool,
     #[serde(default)]
     pub on_ac: bool,
-    pub limit: u32,
+    pub limit: Option<u32>,
+    #[serde(default)]
+    pub limit_error: Option<String>,
     pub health_percent: Option<f64>,
 }
 
@@ -234,7 +236,8 @@ impl Default for BatteryStatus {
             percent: 0.0,
             charging: false,
             on_ac: false,
-            limit: 100,
+            limit: None,
+            limit_error: None,
             health_percent: None,
         }
     }
@@ -368,6 +371,8 @@ pub struct OsdConfig {
     pub opacity: u32,
     pub duration_ms: u32,
     pub show_on_power_change: bool,
+    /// Explicitly opt in to reading the physical profile key while hidden.
+    pub watch_physical_profile: bool,
     pub show_on_refresh_change: bool,
 }
 
@@ -380,6 +385,7 @@ impl Default for OsdConfig {
             opacity: 60,
             duration_ms: 2_200,
             show_on_power_change: true,
+            watch_physical_profile: false,
             show_on_refresh_change: true,
         }
     }
@@ -721,4 +727,28 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
         let _ = std::fs::remove_file(&tmp);
     }
     result
+}
+
+#[cfg(test)]
+mod status_tests {
+    use super::*;
+
+    #[test]
+    fn absent_battery_limit_serialises_as_unknown() {
+        let value = serde_json::to_value(BatteryStatus::default()).unwrap();
+        assert!(value["limit"].is_null());
+        assert!(value["limit_error"].is_null());
+        let old = serde_json::json!({"percent": 50, "charging": false, "limit": 80,
+            "health_percent": null});
+        let status: BatteryStatus = serde_json::from_value(old).unwrap();
+        assert_eq!(status.limit, Some(80));
+        assert_eq!(status.limit_error, None);
+    }
+
+    #[test]
+    fn old_osd_preferences_do_not_enable_background_profile_reads() {
+        let config: OsdConfig = serde_json::from_str(r#"{"show_on_power_change":true}"#).unwrap();
+        assert!(config.show_on_power_change);
+        assert!(!config.watch_physical_profile);
+    }
 }

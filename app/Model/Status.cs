@@ -80,7 +80,8 @@ public sealed record BatteryStatus
     public double Percent { get; init; }
     public bool Charging { get; init; }
     public bool OnAc { get; init; }
-    public uint Limit { get; init; } = 100;
+    public uint? Limit { get; init; }
+    public string? LimitError { get; init; }
 
     /// <summary>Full capacity as a share of design capacity, when both are known.</summary>
     public double? HealthPercent { get; init; }

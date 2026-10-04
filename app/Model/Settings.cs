@@ -102,6 +102,7 @@ public sealed record OsdConfig
     public string Theme { get; init; } = "dark";
     public bool ShowOnPowerChange { get; init; } = true;
     public bool ShowOnRefreshChange { get; init; } = true;
+    public bool WatchPhysicalProfile { get; init; }
 }
 
 /// <summary>The full persisted application configuration.</summary>

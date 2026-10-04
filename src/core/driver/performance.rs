@@ -5,17 +5,19 @@ use super::AcpiDriver;
 use crate::core::error::{HalError, HalResult};
 const REGISTERS: [u16; 8] = [0x751, 0x7ab, 0x783, 0x784, 0x785, 0x45b, 0x726, 0x727];
 
-fn require_model(driver: &AcpiDriver) -> HalResult<()> {
-    if driver.read_ec(0x740)? != 0x1a {
+pub(crate) fn require_project(project: u8) -> HalResult<()> {
+    if project != 0x1a {
         return Err(HalError::unsupported(
-            "OEM 性能档位当前仅适配耀世 15 Air / 0x1A",
+            "当前 EC 控制仅适配已验证的耀世 15 Air / 0x1A",
         ));
     }
     Ok(())
 }
 pub fn read(driver: &AcpiDriver) -> HalResult<u8> {
-    require_model(driver)?;
-    decode(driver.read_ec(0x751)?)
+    driver.transaction(|ec| {
+        require_project(ec.read(0x740)?)?;
+        decode(ec.read(0x751)?)
+    })
 }
 
 fn decode(register: u8) -> HalResult<u8> {
@@ -35,7 +37,6 @@ fn decode(register: u8) -> HalResult<u8> {
 }
 
 pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
-    require_model(driver)?;
     let value = match mode {
         0 => 0xa0,
         1 => 0,
@@ -43,6 +44,7 @@ pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
         _ => return Err(HalError::unsupported("OEM 自定义档位尚未实现")),
     };
     driver.transaction(|ec| {
+        require_project(ec.read(0x740)?)?;
         let mut before = [0u8; 8];
         for (i, address) in REGISTERS.iter().enumerate() {
             before[i] = ec.read(*address)?;
@@ -71,19 +73,28 @@ pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
                 (trigger & !0x08) | 0x20 | if mode == 0 { 8 } else { 0 },
             )
         })();
-        if result.is_err() {
-            for (i, address) in REGISTERS.iter().enumerate() {
-                let _ = ec.write_verified(*address, before[i]);
+        let mut snapshot: Vec<_> = REGISTERS.into_iter().zip(before).collect();
+        snapshot.push((0x767, trigger | 0x20));
+        super::rollback::recover(result, &snapshot, |address, value| {
+            if address == 0x767 {
+                ec.write_command(address, value)
+            } else {
+                ec.write_verified(address, value)
             }
-            let _ = ec.write_command(0x767, trigger | 0x20);
-        }
-        result
+        })
     })
 }
 
 #[cfg(test)]
 mod tests {
-    use super::decode;
+    use super::{decode, require_project};
+
+    #[test]
+    fn ec_controls_require_the_validated_project() {
+        for project in 0..=255 {
+            assert_eq!(require_project(project).is_ok(), project == 0x1a);
+        }
+    }
 
     #[test]
     fn physical_key_profiles_ignore_bit_five_and_full_fan_state() {

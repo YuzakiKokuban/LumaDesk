@@ -1,0 +1,106 @@
+{
+  "background_startup_reads": 0,
+  "background_memory": {
+    "working_mib": 12.71,
+    "private_mib": 86.25
+  },
+  "visible_reads": 4,
+  "visible_memory": {
+    "working_mib": 147.77,
+    "private_mib": 134.3
+  },
+  "window_title": "\u673A\u8000\u5904",
+  "executable": "LumaDesk.exe",
+  "maximized_and_half_screen_restore": true,
+  "strict_keyboard_color_parser": true,
+  "background_profile_polling_default_off": true,
+  "display_policy_checks": true,
+  "trend_bounded_visible_history_checks": true,
+  "display_gpu_navigation_merged": true,
+  "power_navigation_icon_enlarged": true,
+  "narrow_window_dip": {
+    "width": 760,
+    "height": 600,
+    "scale": 2
+  },
+  "lighting_controls_and_scroll_preserved": true,
+  "custom_keyboard_hex_validated_and_applied": true,
+  "system_controls_and_scroll_preserved": true,
+  "power_controls_preserved": true,
+  "external_power_selection_synchronised": true,
+  "display_controls_apply_and_readback": true,
+  "native_trends_render_and_clear": true,
+  "all_pages_narrow_no_horizontal_overflow": true,
+  "failed_readback_keeps_settings": true,
+  "event_driven_power_rules": true,
+  "backup_and_diagnostics_export": true,
+  "diagnostics_path": "D:\\LumaDesk\\artifacts\\shell-test-config-9ca2205201c94841a1a0e8937afc6b6f\\exports\\LumaDesk-diagnostics-20261005-013951-7ea710fc6bdf46dbb79740ee569b2ae1.zip",
+  "backup_path": "D:\\LumaDesk\\artifacts\\shell-test-config-9ca2205201c94841a1a0e8937afc6b6f\\exports\\LumaDesk-settings-20261005-013951-f34833a1700243baa32d0cf92bb11830.zip",
+  "settings_backup_restore": {
+    "passed": true,
+    "checks": [
+      "v2 export includes colors and large repetitive script, all hashes verify",
+      "preferences restore updates OSD/automation/files, preserves hardware/system state, broadcasts effective cfg, issues no hardware writes",
+      "explicit supported mock hardware restore uses actual commands and parameters",
+      "locked config causes persistence failure, rolls back assets, preserves memory/disk preferences and saved pre-restore backup",
+      "v1 backup without manifest accepted with hardware compatibility disabled",
+      "legacy compressed repetitive script accepted within streamed size bounds",
+      "legacy OSD mirror-only settings migrate to nested config",
+      "changed archive rejected before backup/write",
+      "traversal, duplicate paths/JSON keys, links, unknown files/fields, wrong JSON types, huge entries rejected",
+      "partial file-commit failure rolls back preceding writes"
+    ],
+    "archive": "D:\\LumaDesk\\artifacts\\shell-test-config-9ca2205201c94841a1a0e8937afc6b6f\\exports\\LumaDesk-settings-20261005-013951-de028cad39924e01b4e5c117fa0597dd.zip",
+    "pre_restore_backup": "D:\\LumaDesk\\artifacts\\shell-test-config-9ca2205201c94841a1a0e8937afc6b6f\\exports\\LumaDesk-settings-20261005-013951-fc89873a935845a1acecc13204fbfa2b.zip",
+    "hardware_result": [
+      "\u6062\u590D\u524D\u5907\u4EFD\uFF1AD:\\LumaDesk\\artifacts\\shell-test-config-9ca2205201c94841a1a0e8937afc6b6f\\exports\\LumaDesk-settings-20261005-013951-b075335e0b474784bb79a9c1390c2c3e.zip",
+      "\u5DF2\u6062\u590D\u5E94\u7528\u504F\u597D\u548C 2 \u4E2A\u8D44\u6599\u6587\u4EF6\u3002\u786C\u4EF6\u9009\u9879\u3001\u81EA\u542F\u3001\u5B98\u65B9\u63A5\u7BA1\u4E0E\u663E\u5361\u5207\u6362\u8BA1\u5212\u4FDD\u7559\u5F53\u524D\u503C\u3002",
+      "\u6027\u80FD\u6863\u4F4D\uFF1A\u5DF2\u6062\u590D\u3002",
+      "\u5145\u7535\u4E0A\u9650\uFF1A\u5DF2\u6062\u590D\u3002",
+      "\u5F3A\u51B7\uFF1A\u5DF2\u6062\u590D\u3002",
+      "\u952E\u76D8\u80CC\u5149\uFF1A\u5F53\u524D\u8BBE\u5907\u672A\u786E\u8BA4\u652F\u6301\uFF0C\u5DF2\u8DF3\u8FC7\u3002",
+      "Win \u952E\u9501\uFF1A\u5DF2\u6062\u590D\u3002",
+      "\u786C\u4EF6\u6062\u590D\u7ED3\u679C\u9010\u9879\u5217\u51FA\uFF1B\u672A\u64CD\u4F5C MUX\u3001\u5B98\u65B9\u670D\u52A1\u3001\u767B\u5F55\u4EFB\u52A1\u6216\u91CD\u542F\u3002"
+    ]
+  },
+  "hidden_trends_paused": true,
+  "hidden_reads_before": 15,
+  "hidden_reads_after": 15,
+  "hidden_memory": {
+    "working_mib": 328.41,
+    "private_mib": 294.69
+  },
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "brightness_percentage_osd": true,
+  "touchpad_state_osd": true,
+  "fn_lock_and_microphone_state_osd": true,
+  "hidden_event_reads": 19,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "osd_burst_does_not_collect": true,
+  "memory_collections": 1,
+  "last_collection_ms": 13.1012,
+  "reopen_ui_queue_ms": [
+    285.6716,
+    284.8511,
+    299.2888
+  ],
+  "idle_cpu_seconds_over_3s": 0,
+  "final_hidden_memory": {
+    "working_mib": 327.43,
+    "private_mib": 294.43
+  },
+  "passed": true
+}

@@ -40,6 +40,35 @@ fn config_snapshot(state: &AppState) -> AppConfig {
     state.config()
 }
 
+fn update_log_preferences(config: &mut AppConfig, level: &str) {
+    let level = crate::core::services::logging::LogLevel::parse(level);
+    config.log_enabled = level != crate::core::services::logging::LogLevel::Off;
+    config.log_level = level.as_str().into();
+}
+
+/// Backup preferences never overwrite state describing applied device controls.
+fn merge_app_preferences(current: &mut AppConfig, imported: &AppConfig) {
+    current.osd = imported.osd.clone();
+    current.osd_enabled = imported.osd.enabled;
+    current.osd_theme = imported.osd.theme.clone();
+    current.osd_position = imported.osd.position.clone();
+    current.log_enabled = imported.log_enabled;
+    current.log_level = imported.log_level.clone();
+    current.auto_power_mode = imported.auto_power_mode;
+    current.power_mode_ac = imported.power_mode_ac;
+    current.power_mode_battery = imported.power_mode_battery;
+    current.auto_min_refresh_on_battery = imported.auto_min_refresh_on_battery;
+    current.active_profile_id = imported.active_profile_id.clone();
+    current.lighting.custom_script_id = imported.lighting.custom_script_id.clone();
+}
+
+fn configure_logging(config: &AppConfig) {
+    crate::core::services::logging::configure(
+        config.log_enabled,
+        crate::core::services::logging::LogLevel::parse(&config.log_level),
+    );
+}
+
 /// Runs `powercfg` with the given arguments and no console window.
 ///
 /// Used by the power-option calls; the caller is responsible for applying the
@@ -177,6 +206,7 @@ pub struct Api {
 impl Api {
     /// Wraps a fully built [`AppState`].
     pub fn new(state: AppState) -> Self {
+        configure_logging(&state.config());
         Self { state }
     }
 
@@ -184,6 +214,15 @@ impl Api {
     /// errors. The rest of the surface goes through the methods below.
     pub fn state(&self) -> &AppState {
         &self.state
+    }
+
+    /// The simulator must never query or change host services and login tasks.
+    fn system_or_mock<T>(&self, mock: impl FnOnce() -> T, system: impl FnOnce() -> T) -> T {
+        if self.state.hal().backend_name() == "mock" {
+            mock()
+        } else {
+            system()
+        }
     }
 
     /* -------------------------------------------------------- status / cfg */
@@ -200,6 +239,16 @@ impl Api {
     /// The persisted application configuration.
     pub fn get_app_config(&self) -> Result<AppConfig, String> {
         Ok(config_snapshot(&self.state))
+    }
+
+    /// Restores application preferences only. Device and Windows controls stay current.
+    pub fn restore_app_settings(&self, cfg: AppConfig) -> Result<AppConfig, String> {
+        self.state
+            .update_config(|current| merge_app_preferences(current, &cfg))?;
+        let effective = self.state.config();
+        configure_logging(&effective);
+        self.broadcast_osd_config(&effective.osd);
+        Ok(effective)
     }
 
     /// Persists the whole configuration.
@@ -1419,7 +1468,10 @@ impl Api {
     /* ------------------------------------------------------------- autostart */
 
     pub fn get_autostart(&self) -> Result<bool, String> {
-        Ok(crate::core::autostart::is_enabled())
+        Ok(self.system_or_mock(
+            || self.state.config().autostart,
+            crate::core::autostart::is_enabled,
+        ))
     }
 
     pub fn migrate_autostart_task(&self) -> Result<(), String> {
@@ -1430,7 +1482,7 @@ impl Api {
     }
 
     pub fn set_autostart(&self, enabled: bool) -> Result<(), String> {
-        apply_autostart(enabled)?;
+        self.system_or_mock(|| Ok(()), || apply_autostart(enabled))?;
 
         self.state
             .update_config(|config| config.autostart = enabled)
@@ -1444,20 +1496,16 @@ impl Api {
 
     /// Extra call kept for compatibility with the recovered surface.
     pub fn set_autostart_enabled(&self, enabled: bool) -> Result<(), String> {
-        apply_autostart(enabled)
+        self.system_or_mock(|| self.set_autostart(enabled), || apply_autostart(enabled))
     }
 
     /* --------------------------------------------------------------- logging */
 
     pub fn set_log_level(&self, level: String) -> Result<(), String> {
-        let (enabled, _) = crate::core::services::logging::current();
-        let level = crate::core::services::logging::LogLevel::parse(&level);
-        crate::core::services::logging::configure(enabled, level);
         self.state
-            .update_config(|config| {
-                config.log_enabled = level != crate::core::services::logging::LogLevel::Off
-            })
+            .update_config(|config| update_log_preferences(config, &level))
             .map_err(|error| format!("the log level was not saved: {error}"))?;
+        configure_logging(&self.state.config());
         Ok(())
     }
 
@@ -1569,6 +1617,7 @@ impl Api {
             "opacity": config.opacity,
             "duration_ms": config.duration_ms,
             "show_on_power_change": config.show_on_power_change,
+            "watch_physical_profile": config.watch_physical_profile,
             "show_on_refresh_change": config.show_on_refresh_change,
         });
         self.state.push_event(Event::new("osd://config", payload));
@@ -1703,8 +1752,12 @@ impl Api {
 
     /// Extra call kept for compatibility: flip the takeover from the UI.
     pub fn toggle_oem_service(&self, enable: bool) -> Result<(), String> {
-        let report =
-            crate::core::services::oem::takeover_oem(enable).map_err(|error| error.to_string())?;
+        let report = self
+            .system_or_mock(
+                || Ok(crate::core::services::oem::OemReport::default()),
+                || crate::core::services::oem::takeover_oem(enable),
+            )
+            .map_err(|error| error.to_string())?;
         let optout = crate::core::config::data_dir().join("oem-auto-restore.optout");
         if enable {
             if optout.exists() {
@@ -1730,7 +1783,10 @@ impl Api {
 
     /// Extra call kept for compatibility: the takeover state.
     pub fn get_oem_status(&self) -> Result<serde_json::Value, String> {
-        let taken_over = crate::core::services::oem::takeover_active();
+        let taken_over = self.system_or_mock(
+            || self.state.oem_taken_over(),
+            crate::core::services::oem::takeover_active,
+        );
         self.state.set_oem_taken_over(taken_over);
         Ok(serde_json::json!({
             "taken_over": taken_over,
@@ -1744,5 +1800,99 @@ impl Api {
     pub fn open_mini_drawer(&self) -> Result<(), String> {
         self.state.push_event(Event::bare("shell://mini-drawer"));
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod preferences_tests {
+    use super::*;
+
+    #[test]
+    fn mock_system_operations_never_invoke_external_delegates() {
+        let state = AppState::new(
+            AppConfig {
+                autostart: true,
+                takeover_oem: true,
+                ..AppConfig::default()
+            },
+            std::sync::Arc::new(crate::core::hal::mock::MockHal::new()),
+            crate::core::driver::AcpiDriver::new(),
+            None,
+        );
+        let api = Api::new(state);
+        let queried = api.system_or_mock(
+            || api.state.config().autostart,
+            || panic!("Task Scheduler query ran"),
+        );
+        assert!(queried);
+        for enabled in [false, true] {
+            api.system_or_mock(
+                || Ok::<(), String>(()),
+                || panic!("Task Scheduler write ran: {enabled}"),
+            )
+            .unwrap();
+            api.system_or_mock(
+                || Ok::<(), String>(()),
+                || panic!("OEM service write ran: {enabled}"),
+            )
+            .unwrap();
+        }
+        assert_eq!(api.get_oem_status().unwrap()["taken_over"], true);
+        assert!(api.get_autostart().unwrap());
+    }
+
+    #[test]
+    fn restore_preferences_preserves_device_and_system_settings() {
+        let mut current = AppConfig {
+            battery_limit: 60,
+            autostart: true,
+            fan_boost: true,
+            takeover_oem: true,
+            ..AppConfig::default()
+        };
+        let original = current.clone();
+        let mut imported = AppConfig {
+            battery_limit: 100,
+            log_level: "trace".into(),
+            auto_power_mode: true,
+            power_mode_ac: 1,
+            power_mode_battery: 2,
+            auto_min_refresh_on_battery: false,
+            active_profile_id: "custom-test".into(),
+            ..AppConfig::default()
+        };
+        imported.osd.watch_physical_profile = true;
+        imported.osd.enabled = false;
+        imported.lighting.custom_script_id = Some("custom-file".into());
+        merge_app_preferences(&mut current, &imported);
+        assert_eq!(current.battery_limit, original.battery_limit);
+        assert_eq!(current.autostart, original.autostart);
+        assert_eq!(current.fan_boost, original.fan_boost);
+        assert_eq!(current.takeover_oem, original.takeover_oem);
+        assert_eq!(current.gpu_mode, original.gpu_mode);
+        assert_eq!(current.power_mode, original.power_mode);
+        assert_eq!(current.lighting.kb_color, original.lighting.kb_color);
+        assert_eq!(current.log_level, "trace");
+        assert!(current.auto_power_mode);
+        assert_eq!(current.power_mode_ac, 1);
+        assert_eq!(current.power_mode_battery, 2);
+        assert!(!current.auto_min_refresh_on_battery);
+        assert!(!current.osd_enabled);
+        assert!(current.osd.watch_physical_profile);
+        assert_eq!(
+            current.lighting.custom_script_id.as_deref(),
+            Some("custom-file")
+        );
+    }
+
+    #[test]
+    fn log_preferences_off_then_debug_reenables_logging_and_persists_level() {
+        let mut cfg = AppConfig::default();
+        update_log_preferences(&mut cfg, "off");
+        assert!(!cfg.log_enabled);
+        assert_eq!(cfg.log_level, "off");
+        update_log_preferences(&mut cfg, "debug");
+        assert!(cfg.log_enabled);
+        assert_eq!(cfg.log_level, "debug");
     }
 }

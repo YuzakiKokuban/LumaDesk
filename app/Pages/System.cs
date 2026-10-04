@@ -25,6 +25,9 @@ public sealed class SystemPage : SettingsPage
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
         var (applied, setApplied) = UseState<string?>(null);
+        var (backup, setBackup) = UseState<BackupPreview?>(null);
+        var (restoreHardware, setRestoreHardware) = UseState(false);
+        var (restoreResult, setRestoreResult) = UseState<BackupRestoreResult?>(null);
         var (reader, bundle) = UseSettings(FetchAsync);
         var (notificationReader, notifications) = UseSettings(() => Backend.CallNodeAsync("system.subscriptions"));
         var working = busy || bundle.Refreshing;
@@ -64,6 +67,7 @@ public sealed class SystemPage : SettingsPage
                 OsdSection(value.Osd, value.OsdError, working, setBusy, Settled),
                 SupportSection(notifications.Value, notifications.Error, notificationReader.Refresh, working, setBusy, Settled)),
             error => Chrome.Notice("读取系统设置失败", error.Message, InfoBarSeverity.Error)));
+        sections.Add(RestoreSection(backup, restoreHardware, restoreResult, working, setBusy, setBackup, setRestoreHardware, setRestoreResult, Settled));
 
         return Chrome.Page("系统", machine.Status?.Device.Model, [.. sections]);
     }
@@ -92,7 +96,7 @@ public sealed class SystemPage : SettingsPage
 
     private static bool IsSettingCommand(string command) => command is
         "set_device_switch" or "set_win_key_locked" or "toggle_oem_service" or "restore_official_control_center"
-        or "set_autostart" or "set_log_level" or "set_log_filter" or "save_osd_config" or "set_osd_config";
+        or "set_autostart" or "set_log_level" or "set_log_filter" or "save_osd_config" or "set_osd_config" or "restore_app_settings";
 
     private static async Task<Bundle> RefreshSectionAsync(Bundle value, string command) => command switch
     {
@@ -101,6 +105,7 @@ public sealed class SystemPage : SettingsPage
         "set_autostart" => value with { Autostart = await Backend.CallAsync<bool>("get_autostart"), AutostartError = null },
         "set_log_level" or "set_log_filter" => value with { Log = await Backend.CallAsync<LogStatus>("get_log_status"), LogError = null },
         "save_osd_config" or "set_osd_config" => value with { Osd = await Backend.CallAsync<OsdConfig>("get_osd_config"), OsdError = null },
+        "restore_app_settings" => value with { Osd = await Backend.CallAsync<OsdConfig>("get_osd_config"), OsdError = null, Log = await Backend.CallAsync<LogStatus>("get_log_status"), LogError = null },
         _ => value,
     };
 
@@ -202,6 +207,55 @@ public sealed class SystemPage : SettingsPage
             }, settled, setBusy)).SubtleButton().IsEnabled(!busy)));
 
     // ------------------------------------------------------------------ switches
+    private static Element RestoreSection(BackupPreview? preview, bool hardware, BackupRestoreResult? result,
+        bool busy, Action<bool> setBusy, Action<BackupPreview?> setPreview, Action<bool> setHardware,
+        Action<BackupRestoreResult?> setResult, Act.Report settled)
+    {
+        async Task Choose()
+        {
+            setBusy(true);
+            settled(null, null);
+            try
+            {
+                var path = await BackupPicker.PickAsync();
+                if (path is null) return;
+                setPreview(null); setHardware(false); setResult(null);
+                setPreview(await SettingsBackup.PreviewAsync(path));
+            }
+            catch (Exception error) { settled("无法读取备份：" + error.Message, null); }
+            finally { setBusy(false); }
+        }
+        async Task Restore()
+        {
+            if (preview is null || busy || !BackupPicker.Confirm(preview, hardware)) return;
+            setBusy(true); settled(null, null); setResult(null);
+            try { setResult(await SettingsBackup.RestoreAsync(preview, hardware)); }
+            catch (Exception error) { settled("恢复失败：" + error.Message, null); }
+            finally { setBusy(false); }
+        }
+        var rows = new List<Element> {
+            Body("从设置备份 ZIP 恢复应用偏好、机型资料与自定义预设。恢复前自动备份当前设置。")
+                .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
+            Button("选择设置备份", () => _ = Choose()).AutomationName("选择设置备份").IsEnabled(!busy),
+        };
+        if (preview is not null)
+        {
+            rows.Add(Body(preview.ArchivePath).TextWrapping(TextWrapping.Wrap));
+            rows.Add(Chrome.Field("备份版本", $"{preview.AppVersion} · 格式 {preview.FormatVersion}"));
+            rows.Add(Chrome.Field("来源机型", Blank(preview.Model)));
+            rows.Add(Chrome.Field("来源项目", Blank(preview.Project)));
+            rows.Add(Chrome.Notice("兼容性", preview.CompatibleHardware ? "机型与项目匹配，可恢复机型资料与性能预设。" : "机型不匹配或来源未知，将跳过机型资料、性能预设和硬件设置。", preview.CompatibleHardware ? InfoBarSeverity.Informational : InfoBarSeverity.Warning));
+            rows.Add(Caption($"备份包含 {preview.Files.Count} 个设置文件：\n" + string.Join("\n", preview.Files)).TextWrapping(TextWrapping.Wrap));
+            rows.Add(Caption("与当前设置的差异：\n" + (preview.Differences.Count == 0 ? "内容相同" : string.Join("\n", preview.Differences))).TextWrapping(TextWrapping.Wrap));
+            rows.Add(Chrome.SettingRow("同时恢复硬件设置", "仅尝试已确认支持的性能档位、充电上限、强冷、静态背光和 Win 键锁；每项单独报告结果。",
+                ToggleSwitch(Optional<bool>.Of(hardware), setHardware).IsEnabled(!busy && preview.CompatibleHardware)));
+            rows.Add(Body("应用偏好恢复后立即更新屏幕提示与自动策略。自启、官方接管、MUX 与重启安排保持当前状态。").Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
+            rows.Add(Button("确认恢复设置", () => _ = Restore()).AutomationName("确认恢复设置").IsEnabled(!busy));
+        }
+        if (result is not null)
+            rows.Add(Chrome.Notice(result.Success ? "恢复完成" : "恢复未完全完成", string.Join("\n", result.Details), result.Success ? InfoBarSeverity.Success : InfoBarSeverity.Warning));
+        return Chrome.SectionCard("恢复设置", [.. rows]);
+    }
 
     private static Element SwitchesSection(
         IReadOnlyList<DeviceSwitch>? switches,
@@ -433,6 +487,8 @@ public sealed class SystemPage : SettingsPage
                 }).Range(20, 100).SpinButtons().AutomationName("OSD 不透明度百分比").Width(120).IsEnabled(!busy)),
             Chrome.SettingRow("性能与供电变化", "提示电源插拔；主窗口打开时也提示档位与强冷变化。",
                 ToggleSwitch(Optional<bool>.Of(osd.ShowOnPowerChange), enabled => Save(osd with { ShowOnPowerChange = enabled })).IsEnabled(!busy)),
+            Chrome.SettingRow("后台模式键提示", "收起窗口后，允许轻量读取固件档位以识别物理模式键。默认关闭；启用后会增加少量后台读取。",
+                ToggleSwitch(Optional<bool>.Of(osd.WatchPhysicalProfile), enabled => Save(osd with { WatchPhysicalProfile = enabled })).IsEnabled(!busy)),
             HStack(8,
                 Button("预览性能提示", Act.Fire("trigger_osd_preview", () => Backend.CallAsync("trigger_osd_preview", new { kind = "power" }), settle)).IsEnabled(osd.Enabled && !busy),
                 Button("预览背光提示", Act.Fire("trigger_osd_preview", () => Backend.CallAsync("trigger_osd_preview", new { kind = "brightness" }), settle)).IsEnabled(osd.Enabled && !busy)));

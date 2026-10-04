@@ -47,6 +47,7 @@ public sealed class OverviewPage : Component
             Chrome.Rule(),
             Chrome.Field("显卡配置", GpuModes.Label(status.GpuMode)),
             Caption("显卡输出方式与充电上限可在左侧对应页面调整。").Foreground(Theme.SecondaryText)));
+        sections.Add(Trends(state.Trends));
 
         return Chrome.Page("状态概览", status.Device.Model, [.. sections]);
     }
@@ -67,7 +68,7 @@ public sealed class OverviewPage : Component
         {
             notices.Add(Chrome.Notice(
                 "未以管理员身份运行",
-                "电源模式、风扇曲线和灯效设置都需要管理员权限。请以管理员身份重新启动 JiYaoChu。",
+                "电源模式、风扇曲线和灯效设置都需要管理员权限。请以管理员身份重新启动机耀处。",
                 InfoBarSeverity.Warning));
         }
 
@@ -133,7 +134,7 @@ public sealed class OverviewPage : Component
     {
         var parts = new List<string>(3);
         parts.Add(battery.Charging ? "正在充电" : battery.OnAc ? "已连接电源" : "使用电池");
-        parts.Add($"充电上限 {battery.Limit} %");
+        parts.Add(battery.Limit is { } limit ? $"充电上限 {limit} %" : "充电上限未知");
         parts.Add(battery.HealthPercent is { } health
             ? $"电池健康 {Chrome.Number(health)} %"
             : "电池健康未知");
@@ -205,4 +206,20 @@ public sealed class OverviewPage : Component
 
     private static string Or(string value, string fallback = "—")
         => string.IsNullOrWhiteSpace(value) ? fallback : value;
+
+    private static Element Trends(IReadOnlyList<TrendSample> samples)
+    {
+        Element Plot(string title, TrendMetric metric)
+            => VStack(6,
+                Body(title).SemiBold(),
+                new TrendGraphElement(samples, metric).WithKey("trend:" + metric),
+                Caption(TrendGraph.Summary(samples, metric)).Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
+        return Chrome.SectionCard("最近五分钟趋势",
+            Caption("仅在主窗口可见时记录；收起、读取失败与缺失传感器显示为空隙。ACPI 热区温度并非 CPU 核心温度。")
+                .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
+            Button("清空趋势", MachineStore.ClearTrends).AutomationName("清空最近五分钟趋势").HAlign(HorizontalAlignment.Left).IsEnabled(samples.Count > 0),
+            Plot("温度 (°C)", TrendMetric.Temperature),
+            Plot("负载 (%)", TrendMetric.Load),
+            Plot("风扇转速 (RPM)", TrendMetric.Fan));
+    }
 }

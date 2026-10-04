@@ -57,6 +57,8 @@ jobs:
         run: |
           cargo build --locked
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python scripts/verify-preferences.py --library target/debug/jiyaochu_core.dll
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           dotnet restore app/JiYaoChu.csproj --locked-mode -p:Configuration=Debug
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           dotnet build app/JiYaoChu.csproj -c Debug --no-restore -warnaserror

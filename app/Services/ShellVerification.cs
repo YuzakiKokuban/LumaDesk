@@ -29,6 +29,7 @@ internal static class ShellVerification
             var main = BackgroundHost.Handle;
             Require(main != 0 && !IsWindowVisible(main), "Background startup opened a window");
             Require(!MachineStore.IsActive && MachineStore.HardwareReads == 0, "Background startup scanned hardware");
+            Require(MachineStore.Snapshot.Trends.Count == 0, "Background startup collected trend samples");
             report["background_startup_reads"] = MachineStore.HardwareReads;
             report["background_memory"] = MemorySample();
             BackgroundHost.Show();
@@ -61,8 +62,11 @@ internal static class ShellVerification
             await Task.Delay(1500);
             Require(!IsWindowVisible(main) && !MachineStore.IsActive, "Close did not hide to the tray");
             var reads = MachineStore.HardwareReads;
+            var hiddenTrends = MachineStore.Snapshot.Trends.ToArray();
             await Task.Delay(3500);
             Require(MachineStore.HardwareReads == reads, "Hidden window kept scanning hardware");
+            Require(MachineStore.Snapshot.Trends.SequenceEqual(hiddenTrends), "Hidden window kept accumulating trends");
+            report["hidden_trends_paused"] = true;
             report["hidden_reads_before"] = reads;
             report["hidden_reads_after"] = MachineStore.HardwareReads;
             report["hidden_memory"] = MemorySample();
