@@ -34,6 +34,8 @@ python scripts/verify-autostart-migration.py
 
 触摸板 OSD 仅读取并订阅当前用户 `PrecisionTouchPad\Status\Enabled` 变更，显示 Windows 设置的真实开启/关闭状态；启动初始值和重复值不弹提示。状态地址和只读消费规则见 [Microsoft 说明](https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/touchpad-legacy-touchpad-pc-settings-opt-in)。系统 OSD 探针只在唯一隔离测试键写入测试值，不修改用户触摸板；无该状态的设备继续使用原厂通知。
 
+Fn 锁在 B8 通知后读取经本机确认的 EC 状态；Fn+F2 在 OEM 接管后切换 Windows 默认录音设备静音并读回。`scripts/verify-system-osd.ps1 -SkipNativeAudio` 只执行隔离回归；省略参数会额外验证真实音频订阅，仍不切换静音。显式使用 `-RoundTripMicrophone` 才会实际静音/恢复默认录音设备，并在 finally 中恢复原状态；测试结果与物理按键验证分别记录。
+
 常规 EXE 的窗口测试需要管理员终端。普通终端可编译一个仅用于模拟验证的 asInvoker 测试宿主：
 
 ```powershell

@@ -1,5 +1,6 @@
-param([switch]$SkipNativeAudio, [switch]$ReadNativeRadio, [switch]$RoundTripRadio, [int]$WatchFnSeconds = 0)
+param([switch]$SkipNativeAudio, [switch]$RoundTripMicrophone, [switch]$ReadNativeRadio, [switch]$RoundTripRadio, [int]$WatchFnSeconds = 0, [ValidateRange(0,300)][int]$WatchAudioSeconds = 0)
 $ErrorActionPreference = 'Stop'
+if ($SkipNativeAudio -and $RoundTripMicrophone) { throw 'Microphone round trip requires native audio.' }
 $repoRoot = Split-Path $PSScriptRoot -Parent
 $probeDirectory = Join-Path $repoRoot ('artifacts/system-osd-probe-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $probeDirectory | Out-Null
@@ -190,6 +191,106 @@ try
     }
 }
 finally { Marshal.FreeHGlobal(block); SystemOsdEvents.Stop(); }
+// Request handling must use authoritative state, suppress companions and
+// refuse writes after shutdown or when the OEM still owns the shortcut.
+var nativeReadMicrophone = SystemOsdEvents.ReadMicrophoneMute;
+var nativeToggleMicrophone = SystemOsdEvents.ToggleMicrophoneMute;
+Backend.BackendName = "mock";
+SystemOsdEvents.Start(0); // mock: no listeners on the user's hardware
+EventBus.Events.Clear();
+foreach (var enabled in new[] { true, false })
+{
+    SystemOsdEvents.ReadFnLockState = () => Task.FromResult(enabled);
+    await SystemOsdEvents.RefreshFnLockStateAsync();
+    Require(Last("kind") == "fn_lock" && Last("detail") == (enabled ? "已锁定" : "已解锁"), "Fn lock did not use readback");
+}
+SystemOsdEvents.ReadFnLockState = () => Task.FromException<bool>(new Exception("unsupported EC project"));
+await SystemOsdEvents.RefreshFnLockStateAsync();
+Require(Last("detail") == "状态未知", "Failed Fn lock read invented a state");
+var delayedFn = new TaskCompletionSource<bool>();
+SystemOsdEvents.ReadFnLockState = () => delayedFn.Task;
+var oldFn = SystemOsdEvents.RefreshFnLockStateAsync();
+await Task.Delay(80);
+SystemOsdEvents.ReadFnLockState = () => Task.FromResult(false);
+await SystemOsdEvents.RefreshFnLockStateAsync();
+var afterNewFn = EventBus.Events.Count;
+delayedFn.SetResult(true);
+await oldFn;
+Require(EventBus.Events.Count == afterNewFn && Last("detail") == "已解锁", "Stale Fn read overwrote the latest state");
+
+var microphoneWrites = 0;
+var fakeMuted = false;
+Backend.Respond = _ => new JiYaoChu.Model.OemStatus { TakenOver = true };
+SystemOsdEvents.ReadMicrophoneMute = () => Task.FromResult(fakeMuted);
+SystemOsdEvents.ToggleMicrophoneMute = () => { microphoneWrites++; fakeMuted = !fakeMuted; return Task.FromResult(fakeMuted); };
+foreach (var expected in new[] { true, false })
+{
+    Field("_lastMicrophoneRequest").SetValue(null, 0L);
+    await SystemOsdEvents.ToggleFnMicrophoneAsync();
+    Require(Last("kind") == "microphone" && Last("detail") == (expected ? "已静音" : "已开启"), "Microphone action did not display readback");
+    var count = EventBus.Events.Count;
+    SystemOsdEvents.PublishAudioState(true, expected, 0.5f);
+    await SystemOsdEvents.ToggleFnMicrophoneAsync();
+    Require(EventBus.Events.Count == count, "Duplicate endpoint callback or firmware request displayed an extra notice");
+}
+Require(microphoneWrites == 2 && !fakeMuted, "Microphone companions changed state twice");
+Backend.Respond = _ => new JiYaoChu.Model.OemStatus { TakenOver = false };
+fakeMuted = true;
+Field("_lastMicrophoneRequest").SetValue(null, 0L);
+await SystemOsdEvents.ToggleFnMicrophoneAsync();
+Require(microphoneWrites == 2 && Last("detail") == "已静音", "OEM-owned microphone was toggled instead of observed");
+Backend.Respond = _ => new JiYaoChu.Model.OemStatus { TakenOver = true };
+var delayedMicrophone = new TaskCompletionSource<bool>();
+SystemOsdEvents.ToggleMicrophoneMute = () => { microphoneWrites++; return delayedMicrophone.Task; };
+Field("_lastMicrophoneRequest").SetValue(null, 0L);
+var oldMicrophone = SystemOsdEvents.ToggleFnMicrophoneAsync();
+await SystemOsdEvents.ToggleFnMicrophoneAsync();
+Require(microphoneWrites == 3, "Concurrent microphone toggles were allowed");
+var beforeStop = EventBus.Events.Count;
+SystemOsdEvents.Stop();
+delayedMicrophone.SetResult(false);
+await oldMicrophone;
+Require(EventBus.Events.Count == beforeStop, "Stopped microphone request displayed an OSD");
+SystemOsdEvents.Start(0);
+SystemOsdEvents.ToggleMicrophoneMute = () => Task.FromException<bool>(new Exception("no microphone"));
+Field("_lastMicrophoneRequest").SetValue(null, 0L);
+await SystemOsdEvents.ToggleFnMicrophoneAsync();
+Require(Last("detail") == "状态未知", "Microphone failure invented a mute state");
+SystemOsdEvents.ReadFnLockState = () => Task.FromException<bool>(new Exception("unsupported EC project"));
+SystemOsdEvents.ToggleMicrophoneMute = () => { microphoneWrites++; return Task.FromResult(true); };
+Field("_lastMicrophoneRequest").SetValue(null, 0L);
+await SystemOsdEvents.ToggleFnMicrophoneAsync();
+Require(microphoneWrites == 3 && Last("detail") == "状态未知", "Unknown firmware project was allowed to toggle a microphone");
+var pendingValidation = new TaskCompletionSource<bool>();
+SystemOsdEvents.ReadFnLockState = () => pendingValidation.Task;
+Field("_lastMicrophoneRequest").SetValue(null, 0L);
+var stoppedValidation = SystemOsdEvents.ToggleFnMicrophoneAsync();
+SystemOsdEvents.Stop();
+pendingValidation.SetResult(false);
+await stoppedValidation;
+Require(microphoneWrites == 3, "Shutdown during validation still wrote the microphone state");
+SystemOsdEvents.ReadMicrophoneMute = nativeReadMicrophone;
+SystemOsdEvents.ToggleMicrophoneMute = nativeToggleMicrophone;
+StartupLog.Errors.Clear(); // The failures above were deliberate regression cases.
+bool? microphoneInitial = null;
+bool? microphoneChanged = null;
+bool? microphoneRestored = null;
+if (args.Contains("--round-trip-microphone"))
+{
+    microphoneInitial = await SystemOsdEvents.ReadMicrophoneMute();
+    try
+    {
+        microphoneChanged = await SystemOsdEvents.ToggleMicrophoneMute();
+        Require(microphoneChanged != microphoneInitial, "Native microphone toggle wasn't read back");
+    }
+    finally
+    {
+        if (await SystemOsdEvents.ReadMicrophoneMute() != microphoneInitial)
+            await SystemOsdEvents.ToggleMicrophoneMute();
+        microphoneRestored = await SystemOsdEvents.ReadMicrophoneMute();
+    }
+    Require(microphoneRestored == microphoneInitial, "Native microphone was not restored");
+}
 var endpoints = 0;
 if (!args.Contains("--skip-native-audio"))
 {
@@ -200,6 +301,32 @@ if (!args.Contains("--skip-native-audio"))
     Require(StartupLog.Errors.Count == 0, "Native audio subscription failed: " + string.Join("; ", StartupLog.Errors));
     foreach (var fieldName in new[] { "_output", "_microphone" })
         if (nativeType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(native) is not null) endpoints++;
+    if (args.FirstOrDefault(value => value.StartsWith("--watch-audio=")) is { } audioWatch)
+    {
+        var volumeType = typeof(SystemOsdEvents).GetNestedType("IAudioEndpointVolume", BindingFlags.NonPublic)!;
+        var endpointType = typeof(SystemOsdEvents).GetNestedType("AudioEndpoint", BindingFlags.NonPublic)!;
+        bool? previous = null;
+        Console.WriteLine("READY: read-only Windows microphone mute capture");
+        var until = Environment.TickCount64 + int.Parse(audioWatch.Split('=')[1]) * 1000L;
+        while (Environment.TickCount64 < until)
+        {
+            var endpoint = nativeType.GetField("_microphone", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(native);
+            if (endpoint is not null)
+            {
+                var volume = endpointType.GetField("_volume", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(endpoint);
+                var arguments = new object[] { false };
+                var result = (int)volumeType.GetMethod("GetMute")!.Invoke(volume, arguments)!;
+                if (result < 0) throw new Exception("Microphone read failed: " + result);
+                var muted = (bool)arguments[0];
+                if (muted != previous)
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(new { utc = DateTime.UtcNow, microphone_muted = muted }));
+                    previous = muted;
+                }
+            }
+            await Task.Delay(100);
+        }
+    }
 }
 bool? radioInitial = null;
 bool? radioChanged = null;
@@ -221,7 +348,7 @@ if (args.Contains("--read-native-radio") || args.Contains("--round-trip-radio"))
         Require(radioRestored == radioInitial, "Native radio state wasn't restored");
     }
 }
-Console.WriteLine(JsonSerializer.Serialize(new { passed = true, events_checked = EventBus.Events.Count, touchpad_notifications_checked = touchpadChanges.Count, fn_input_toggles_checked = toggles, native_fn_toggles = nativeFnToggles, native_audio_endpoints = endpoints, native_audio_skipped = args.Contains("--skip-native-audio"), radio_initial = radioInitial, radio_changed = radioChanged, radio_restored = radioRestored, hardware_writes = 0 }));
+Console.WriteLine(JsonSerializer.Serialize(new { passed = true, events_checked = EventBus.Events.Count, touchpad_notifications_checked = touchpadChanges.Count, fn_input_toggles_checked = toggles, native_fn_toggles = nativeFnToggles, native_audio_endpoints = endpoints, native_audio_skipped = args.Contains("--skip-native-audio"), microphone_initial = microphoneInitial, microphone_changed = microphoneChanged, microphone_restored = microphoneRestored, windows_microphone_writes = args.Contains("--round-trip-microphone") ? 2 : 0, radio_initial = radioInitial, radio_changed = radioChanged, radio_restored = radioRestored, hardware_writes = 0 }));
 
 internal static class NativeFnProbe
 {
@@ -289,7 +416,8 @@ namespace JiYaoChu.Interop
     public static class Backend
     {
         public static string BackendName { get; set; } = "mock";
-        public static Task<T> CallAsync<T>(string command) => throw new Exception("Unexpected backend call: " + command);
+        public static Func<string, object> Respond { get; set; } = command => throw new Exception("Unexpected backend call: " + command);
+        public static Task<T> CallAsync<T>(string command) => Task.FromResult((T)Respond(command));
     }
 }
 namespace JiYaoChu.Model
@@ -326,8 +454,10 @@ dotnet build (Join-Path $probeDirectory 'Probe.csproj') -c Release --nologo -v q
 if ($LASTEXITCODE -ne 0) { throw 'System OSD probe build failed.' }
 $probeArguments = @((Join-Path $probeDirectory 'bin/Release/net10.0-windows/Probe.dll'))
 if ($SkipNativeAudio) { $probeArguments += '--skip-native-audio' }
+if ($RoundTripMicrophone) { $probeArguments += '--round-trip-microphone' }
 if ($ReadNativeRadio) { $probeArguments += '--read-native-radio' }
 if ($RoundTripRadio) { $probeArguments += '--round-trip-radio' }
 if ($WatchFnSeconds -gt 0) { $probeArguments += "--watch-fn=$WatchFnSeconds" }
+if ($WatchAudioSeconds -gt 0) { $probeArguments += "--watch-audio=$WatchAudioSeconds" }
 dotnet @probeArguments
 if ($LASTEXITCODE -ne 0) { throw 'System OSD event checks failed.' }

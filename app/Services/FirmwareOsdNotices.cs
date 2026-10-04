@@ -30,14 +30,14 @@ internal static class FirmwareOsdNotices
             0xb0 => ("性能与散热", "模式已切换", "performance"), // OSD_FanModeSwitch, not Fn lock
             0xb3 => ("键盘背光", "亮度已调整", "keyboard_light"), // BacklightLevelChange
             0xb4 => ("键盘背光", "设置已切换", "keyboard_light"), // BacklightPowerChange
-            0xb7 => ("麦克风", "设置已切换", "microphone"), // TimAP_MicMute_Sw
-            0xb8 => ("Fn 锁", "设置已切换", "fn_lock"), // OSD_FnChange
+            0xb7 => ("麦克风", "状态未知", "microphone"), // Main path reads back the Windows endpoint.
+            0xb8 => ("Fn 锁", "状态未知", "fn_lock"), // Main path reads back the validated EC state.
             // 0xC7 is also named PDWarning_Event in OEM constants. Only show
             // a generic notice; Windows power notifications provide the source.
             0xc7 => ("供电状态", "电源状态已变化", "power"),
             // TimAP_ELU_Fn2 does not encode a state. The supplied keyboard
             // layout identifies Fn+F2 as the microphone toggle on this model.
-            0xcd => ("麦克风", "设置已切换", "microphone"),
+            0xcd => ("麦克风", "状态未知", "microphone"),
             _ => ("", "", ""),
         };
         (title, detail, kind) = notice;

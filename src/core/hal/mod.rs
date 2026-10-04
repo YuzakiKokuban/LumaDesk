@@ -210,6 +210,7 @@ pub trait HardwareHal: Send + Sync {
     // ------------------------------------------------------------ misc system
     fn set_win_key_locked(&self, locked: bool) -> HalResult<()>;
     fn set_fn_lock(&self, enabled: bool) -> HalResult<()>;
+    fn get_fn_lock(&self) -> HalResult<bool>;
     fn set_usb_charge(&self, enabled: bool) -> HalResult<()>;
     fn set_ac_recovery(&self, enabled: bool) -> HalResult<()>;
     fn toggle_bios_advanced_menu(&self, enable: bool) -> HalResult<()>;

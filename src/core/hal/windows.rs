@@ -826,6 +826,20 @@ impl HardwareHal for WindowsHal {
         self.vendor_feature("the Fn lock")
     }
 
+    fn get_fn_lock(&self) -> HalResult<bool> {
+        self.acpi.transaction(|ec| {
+            if ec.read(0x740)? != 0x1a {
+                return Err(HalError::unsupported(
+                    "Fn 锁读回当前仅适配耀世 15 Air / 0x1A",
+                ));
+            }
+            // Uniwill BIOS OEM byte, bit 4. Physical Fn+Esc on this project
+            // produced 0x00 -> 0x10 -> 0x00; this command never writes EC.
+            // Source and device evidence: reverse/native/FN_LOCK.md.
+            Ok(ec.read(0x74e)? & 0x10 != 0)
+        })
+    }
+
     fn set_usb_charge(&self, enabled: bool) -> HalResult<()> {
         let _ = enabled;
         self.vendor_feature("USB charging while powered off")

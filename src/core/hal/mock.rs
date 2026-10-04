@@ -76,6 +76,7 @@ pub struct MockHal {
     state: Mutex<SimState>,
     power_mode: AtomicU32,
     fan_boost: AtomicBool,
+    fn_lock: AtomicBool,
     battery_limit: AtomicU32,
     lighting_enabled: AtomicBool,
     kb_brightness: AtomicU32,
@@ -115,6 +116,7 @@ impl MockHal {
             }),
             power_mode: AtomicU32::new(1),
             fan_boost: AtomicBool::new(false),
+            fn_lock: AtomicBool::new(false),
             battery_limit: AtomicU32::new(100),
             lighting_enabled: AtomicBool::new(true),
             kb_brightness: AtomicU32::new(3),
@@ -783,7 +785,12 @@ impl HardwareHal for MockHal {
 
     fn set_fn_lock(&self, enabled: bool) -> HalResult<()> {
         sim_log(&format!("set_fn_lock({enabled})"));
+        self.fn_lock.store(enabled, Ordering::Relaxed);
         Ok(())
+    }
+
+    fn get_fn_lock(&self) -> HalResult<bool> {
+        Ok(self.fn_lock.load(Ordering::Relaxed))
     }
 
     fn set_usb_charge(&self, enabled: bool) -> HalResult<()> {

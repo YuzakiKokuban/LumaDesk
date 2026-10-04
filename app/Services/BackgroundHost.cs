@@ -111,6 +111,16 @@ public static class BackgroundHost
 
     public static async void OnOemHotkey(uint code)
     {
+        if ((code & 0xff) == 0xb8)
+        {
+            await SystemOsdEvents.RefreshFnLockStateAsync();
+            return;
+        }
+        if ((code & 0xff) is 0xb7 or 0xcd)
+        {
+            await SystemOsdEvents.ToggleFnMicrophoneAsync();
+            return;
+        }
         if ((code & 0xff) == 0xa4)
         {
             await SystemOsdEvents.ToggleFnAirplaneAsync();

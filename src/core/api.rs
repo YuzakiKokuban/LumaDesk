@@ -1311,6 +1311,11 @@ impl Api {
         Ok(())
     }
 
+    /// Read the firmware state; persisted preference is not a hardware readback.
+    pub fn get_fn_lock(&self) -> Result<bool, String> {
+        self.state.hal().get_fn_lock().map_err(fail)
+    }
+
     pub fn set_usb_charge(&self, enabled: bool) -> Result<(), String> {
         self.state.hal().set_usb_charge(enabled).map_err(fail)?;
         self.state

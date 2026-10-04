@@ -112,6 +112,7 @@ pub const COMMANDS: &[&str] = &[
     "open_profiles_folder",
     "set_win_key_locked",
     "set_fn_lock",
+    "get_fn_lock",
     "set_usb_charge",
     "set_ac_recovery",
     "toggle_bios_advanced_menu",
@@ -461,6 +462,7 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
         // -- firmware switches ---------------------------------------------
         "set_win_key_locked" => cmd!(api, args, set_win_key_locked, locked: bool),
         "set_fn_lock" => cmd!(api, args, set_fn_lock, enabled: bool),
+        "get_fn_lock" => cmd!(api, args, get_fn_lock),
         "set_usb_charge" => cmd!(api, args, set_usb_charge, enabled: bool),
         "set_ac_recovery" => cmd!(api, args, set_ac_recovery, enabled: bool),
         "toggle_bios_advanced_menu" => cmd!(api, args, toggle_bios_advanced_menu, enable: bool),
@@ -820,5 +822,24 @@ mod tests {
         let value = envelope(c"system.ping", None);
         assert_eq!(value["ok"], Value::Bool(true), "{value}");
         assert_eq!(value["data"]["abi_version"], Value::from(ABI_VERSION));
+    }
+
+    #[test]
+    fn fn_lock_readback_uses_hal_not_cached_preferences() {
+        use crate::core::hal::HardwareHal;
+        use std::sync::Arc;
+        let hardware = Arc::new(crate::core::hal::mock::MockHal::new());
+        let state = AppState::new(
+            AppConfig::default(),
+            hardware.clone(),
+            AcpiDriver::new(),
+            None,
+        );
+        let api = Api::new(state);
+        hardware.set_fn_lock(true).unwrap();
+        assert!(!api.state().config().fn_lock_enabled);
+        assert!(api.get_fn_lock().unwrap());
+        hardware.set_fn_lock(false).unwrap();
+        assert!(!api.get_fn_lock().unwrap());
     }
 }

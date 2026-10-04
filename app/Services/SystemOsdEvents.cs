@@ -28,6 +28,91 @@ internal static class SystemOsdEvents
     private static int _generation;
     private static int _airplanePending;
     private static long _lastAirplaneRequest;
+    private static int _fnLockRequest;
+    private static int _microphonePending;
+    private static long _lastMicrophoneRequest;
+    private static bool? _lastMicrophoneState;
+    private static long _lastMicrophoneNotice;
+    internal static Func<Task<bool>> ReadFnLockState { get; set; } = () => Backend.CallAsync<bool>("get_fn_lock");
+    internal static Func<Task<bool>> ReadMicrophoneMute { get; set; } = () => Task.Run(() => WithDefaultMicrophone(volume =>
+    {
+        Marshal.ThrowExceptionForHR(volume.GetMute(out var muted));
+        return muted;
+    }));
+    internal static Func<Task<bool>> ToggleMicrophoneMute { get; set; } = () => Task.Run(() => WithDefaultMicrophone(volume =>
+    {
+        Marshal.ThrowExceptionForHR(volume.GetMute(out var muted));
+        var context = Guid.Empty;
+        Marshal.ThrowExceptionForHR(volume.SetMute(!muted, ref context));
+        Marshal.ThrowExceptionForHR(volume.GetMute(out var actual));
+        if (actual == muted) throw new InvalidOperationException("麦克风静音设置未通过读回验证。");
+        return actual;
+    }));
+
+    internal static async Task RefreshFnLockStateAsync()
+    {
+        var request = Interlocked.Increment(ref _fnLockRequest);
+        var generation = _generation;
+        bool? enabled = null;
+        try
+        {
+            await Task.Delay(40); // Allow the firmware's notification and state write to settle.
+            enabled = await ReadFnLockState();
+        }
+        catch (Exception error) { StartupLog.Write(error); }
+        ReactorApp.UIDispatcher?.TryEnqueue(() =>
+        {
+            if (_started && generation == _generation && request == _fnLockRequest) PublishFnLockState(enabled);
+        });
+    }
+
+    internal static async Task ToggleFnMicrophoneAsync()
+    {
+        if (Interlocked.Exchange(ref _microphonePending, 1) != 0) return;
+        var generation = _generation;
+        bool? muted = null;
+        try
+        {
+            var now = Environment.TickCount64;
+            if (now - _lastMicrophoneRequest < 350) return;
+            _lastMicrophoneRequest = now;
+            // Validate the known EC project before handling its B7/CD request.
+            await ReadFnLockState();
+            var ownership = await Backend.CallAsync<JiYaoChu.Model.OemStatus>("get_oem_status");
+            if (!_started || generation != _generation) return;
+            if (ownership.TakenOver) muted = await ToggleMicrophoneMute();
+            else
+            {
+                await Task.Delay(100); // OEM owns the action; we only observe its result.
+                muted = await ReadMicrophoneMute();
+            }
+        }
+        catch (Exception error) { StartupLog.Write(error); }
+        finally { Volatile.Write(ref _microphonePending, 0); }
+        ReactorApp.UIDispatcher?.TryEnqueue(() =>
+        {
+            if (_started && generation == _generation) PublishMicrophoneState(muted);
+        });
+    }
+
+    private static bool WithDefaultMicrophone(Func<IAudioEndpointVolume, bool> operation)
+    {
+        var enumerator = (IMMDeviceEnumerator)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("bcde0395-e52f-467c-8e3d-c4579291692e"), true)!)!;
+        try
+        {
+            // eCapture / eConsole: the default Windows recording device.
+            Marshal.ThrowExceptionForHR(enumerator.GetDefaultAudioEndpoint(1, 0, out var device));
+            try
+            {
+                var iid = typeof(IAudioEndpointVolume).GUID;
+                Marshal.ThrowExceptionForHR(device.Activate(ref iid, 23, 0, out var activated));
+                try { return operation((IAudioEndpointVolume)activated); }
+                finally { Marshal.ReleaseComObject(activated); }
+            }
+            finally { Marshal.ReleaseComObject(device); }
+        }
+        finally { Marshal.ReleaseComObject(enumerator); }
+    }
 
     /// <summary>Call on the UI thread after the backend has initialized.</summary>
     public static void Start(nint hwnd)
@@ -105,6 +190,8 @@ internal static class SystemOsdEvents
         _fn?.Dispose();
         _fn = null;
         _powerSource = null;
+        _lastMicrophoneState = null;
+        _lastMicrophoneNotice = 0;
         LockStates.Clear();
         HeldLockKeys.Clear();
         _started = false;
@@ -178,9 +265,23 @@ internal static class SystemOsdEvents
 
     internal static void PublishAudioState(bool microphone, bool muted, float volume)
     {
-        if (microphone) Publish("microphone", "麦克风", muted ? "已静音" : "已开启");
+        if (microphone) PublishMicrophoneState(muted);
         else Publish("volume", "音量", muted ? "已静音" : $"{Math.Clamp((int)Math.Round(volume * 100), 0, 100)}%");
     }
+
+    internal static void PublishMicrophoneState(bool? muted)
+    {
+        // SetMute also generates an endpoint callback. Keep one notice for the
+        // same verified state, while preserving rapid mute/unmute transitions.
+        var now = Environment.TickCount64;
+        if (muted.HasValue && muted == _lastMicrophoneState && now - _lastMicrophoneNotice < 350) return;
+        _lastMicrophoneState = muted;
+        _lastMicrophoneNotice = now;
+        Publish("microphone", "麦克风", muted is { } state ? state ? "已静音" : "已开启" : "状态未知");
+    }
+
+    internal static void PublishFnLockState(bool? enabled)
+        => Publish("fn_lock", "Fn 锁", enabled is { } state ? state ? "已锁定" : "已解锁" : "状态未知");
 
     internal static void PublishDisplayBrightness(uint percent)
     {
@@ -222,8 +323,8 @@ internal static class SystemOsdEvents
             if (flow == 0) Detach(ref _output);
             else Detach(ref _microphone);
             // Resolve a default endpoint only at subscription or device-change time.
-            // Capture uses the default communications microphone.
-            if (_enumerator.GetDefaultAudioEndpoint(flow, flow == 0 ? 0 : 2, out var device) < 0) return;
+            // Use the same default recording device as the physical microphone action.
+            if (_enumerator.GetDefaultAudioEndpoint(flow, 0, out var device) < 0) return;
             try
             {
                 var iid = typeof(IAudioEndpointVolume).GUID;
@@ -238,7 +339,7 @@ internal static class SystemOsdEvents
 
         public void DefaultChanged(int flow, int role)
         {
-            if ((flow == 0 && role == 0) || (flow == 1 && role == 2))
+            if ((flow is 0 or 1) && role == 0)
                 ReactorApp.UIDispatcher?.TryEnqueue(() =>
                 {
                     try { Attach(flow); }

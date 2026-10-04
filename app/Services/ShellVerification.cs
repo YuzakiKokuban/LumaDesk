@@ -131,6 +131,21 @@ internal static class ShellVerification
             SystemOsdEvents.PublishTouchpadState(true);
             Require(OsdOverlay.VisibleNotice.Detail == "已开启", "Touchpad re-enabled state was missing");
             report["touchpad_state_osd"] = true;
+            foreach (var enabled in new[] { true, false })
+            {
+                SystemOsdEvents.PublishFnLockState(enabled);
+                OsdOverlay.OnFirmwareNotice(0xb8);
+                Require(IsWindowVisible(osd) && OsdOverlay.VisibleNotice.Title == "Fn 锁" &&
+                    OsdOverlay.VisibleNotice.Detail == (enabled ? "已锁定" : "已解锁"), "Fn lock readback was missing or overwritten");
+            }
+            foreach (var muted in new[] { true, false })
+            {
+                SystemOsdEvents.PublishMicrophoneState(muted);
+                OsdOverlay.OnFirmwareNotice(0xb7);
+                Require(IsWindowVisible(osd) && OsdOverlay.VisibleNotice.Title == "麦克风" &&
+                    OsdOverlay.VisibleNotice.Detail == (muted ? "已静音" : "已开启"), "Microphone readback was missing or overwritten");
+            }
+            report["fn_lock_and_microphone_state_osd"] = true;
             SystemOsdEvents.PublishPowerSource(0);
             SystemOsdEvents.PublishPowerSource(1);
             Require(OsdOverlay.VisibleNotice.Title == "供电状态" && OsdOverlay.VisibleNotice.Detail.Contains("电池"),
@@ -146,6 +161,9 @@ internal static class ShellVerification
             Require(!IsWindowVisible(osd), "Disabled OSD still displayed a lock event");
             SystemOsdEvents.PublishTouchpadState(false);
             Require(!IsWindowVisible(osd), "Disabled OSD still displayed a touchpad event");
+            SystemOsdEvents.PublishFnLockState(true);
+            SystemOsdEvents.PublishMicrophoneState(true);
+            Require(!IsWindowVisible(osd), "Disabled OSD still displayed Fn lock or microphone state");
             await Task.Delay(1000);
             Require(MachineStore.HardwareReads == reads && !MachineStore.IsActive,
                 "Event-driven OSD restarted hidden hardware scanning");
