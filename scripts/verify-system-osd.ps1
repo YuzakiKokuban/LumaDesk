@@ -9,6 +9,7 @@ $project = @"
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup><Compile Include="$source" Link="SystemOsdEvents.cs" /></ItemGroup>
   <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/RadioStateNotifications.cs')" Link="RadioStateNotifications.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/TouchpadStateNotifications.cs')" Link="TouchpadStateNotifications.cs" /></ItemGroup>
   <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Model/Status.cs')" Link="Status.cs" /></ItemGroup>
   <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/FnKeyInput.cs')" Link="FnKeyInput.cs" /></ItemGroup>
   <ItemGroup><Compile Include="$(Join-Path $repoRoot 'app/Services/AirplaneModeControl.cs')" Link="AirplaneModeControl.cs" /></ItemGroup>
@@ -21,10 +22,45 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using JiYaoChu.Services;
 using JiYaoChu.Interop;
+using Microsoft.Win32;
 
 static void Require(bool passed, string reason) { if (!passed) throw new Exception(reason); }
 static FieldInfo Field(string name) => typeof(SystemOsdEvents).GetField(name, BindingFlags.Static | BindingFlags.NonPublic)!;
 static string Last(string property) => EventBus.Events[^1].Payload![property]!.GetValue<string>();
+Require(TouchpadStateNotifications.Decode(0) == false && TouchpadStateNotifications.Decode(1) == true &&
+    TouchpadStateNotifications.Decode(-1) == true && TouchpadStateNotifications.Decode(null) is null &&
+    TouchpadStateNotifications.Decode("0") is null, "Touchpad setting decoding invented a state");
+// Exercise real registry notifications only in a unique test key. Never write
+// the user's PrecisionTouchPad setting or cause any physical device change.
+var touchpadFixture = @"Software\LumaDeskTest\Touchpad-" + Guid.NewGuid().ToString("N");
+var touchpadChanges = new System.Collections.Concurrent.ConcurrentQueue<bool>();
+try
+{
+    using var parent = Registry.CurrentUser.CreateSubKey(touchpadFixture);
+    using var status = parent.CreateSubKey("Status");
+    status.SetValue("Enabled", 1, RegistryValueKind.DWord);
+    using var notifications = new TouchpadStateNotifications(
+        () => Registry.CurrentUser.OpenSubKey(touchpadFixture, false), touchpadChanges.Enqueue);
+    await notifications.Ready.WaitAsync(TimeSpan.FromSeconds(5));
+    Require(touchpadChanges.IsEmpty, "Touchpad baseline displayed a notice");
+    foreach (var state in new[] { 0, 1 })
+    {
+        status.SetValue("Enabled", state, RegistryValueKind.DWord);
+        var expected = state == 0 ? 1 : 2;
+        var deadline = Environment.TickCount64 + 5000;
+        while (touchpadChanges.Count < expected && Environment.TickCount64 < deadline) await Task.Delay(10);
+        Require(touchpadChanges.Count == expected, "Touchpad registry change was missed");
+    }
+    status.SetValue("Enabled", 1, RegistryValueKind.DWord);
+    status.SetValue("OtherSetting", 0, RegistryValueKind.DWord);
+    await Task.Delay(100);
+    Require(touchpadChanges.SequenceEqual(new[] { false, true }), "Duplicate touchpad settings displayed extra notices");
+    notifications.Dispose();
+    status.SetValue("Enabled", 0, RegistryValueKind.DWord);
+    await Task.Delay(100);
+    Require(touchpadChanges.Count == 2, "Stopped touchpad listener displayed a notice");
+}
+finally { Registry.CurrentUser.DeleteSubKeyTree(touchpadFixture, false); }
 var toggles = 0;
 using (var input = new FnKeyInput(() => { toggles++; return Task.CompletedTask; }))
 {
@@ -57,11 +93,16 @@ using (var input = new FnKeyInput(() => { toggles++; return pending.Task; }))
 SystemOsdEvents.Start(0);
 Require((nint)Field("_keyboardHook").GetValue(null)! == 0, "Mock initialization attached a keyboard listener");
 Require((nint)Field("_powerRegistration").GetValue(null)! == 0, "Mock initialization attached a power listener");
+Require(Field("_touchpad").GetValue(null) is null, "Mock initialization attached a touchpad listener");
 SystemOsdEvents.Stop();
 SystemOsdEvents.PublishAirplaneState(true);
 Require(Last("kind") == "airplane" && Last("detail") == "已开启", "Airplane mode on wasn't displayed");
 SystemOsdEvents.PublishAirplaneState(false);
 Require(Last("detail") == "已关闭", "Airplane mode off wasn't displayed");
+SystemOsdEvents.PublishTouchpadState(false);
+Require(Last("kind") == "touchpad" && Last("detail") == "已关闭", "Touchpad disabled state wasn't displayed");
+SystemOsdEvents.PublishTouchpadState(true);
+Require(Last("detail") == "已开启", "Touchpad enabled state wasn't displayed");
 SystemOsdEvents.PublishPowerMode(1);
 Require(Last("kind") == "performance" && Last("detail") == "均衡", "Profile readback wasn't displayed");
 SystemOsdEvents.PublishDisplayBrightness(0);
@@ -180,7 +221,7 @@ if (args.Contains("--read-native-radio") || args.Contains("--round-trip-radio"))
         Require(radioRestored == radioInitial, "Native radio state wasn't restored");
     }
 }
-Console.WriteLine(JsonSerializer.Serialize(new { passed = true, events_checked = EventBus.Events.Count, fn_input_toggles_checked = toggles, native_fn_toggles = nativeFnToggles, native_audio_endpoints = endpoints, native_audio_skipped = args.Contains("--skip-native-audio"), radio_initial = radioInitial, radio_changed = radioChanged, radio_restored = radioRestored, hardware_writes = 0 }));
+Console.WriteLine(JsonSerializer.Serialize(new { passed = true, events_checked = EventBus.Events.Count, touchpad_notifications_checked = touchpadChanges.Count, fn_input_toggles_checked = toggles, native_fn_toggles = nativeFnToggles, native_audio_endpoints = endpoints, native_audio_skipped = args.Contains("--skip-native-audio"), radio_initial = radioInitial, radio_changed = radioChanged, radio_restored = radioRestored, hardware_writes = 0 }));
 
 internal static class NativeFnProbe
 {

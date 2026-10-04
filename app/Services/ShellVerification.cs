@@ -124,6 +124,13 @@ internal static class ShellVerification
             Require(OsdOverlay.VisibleNotice.Title == "屏幕亮度" && OsdOverlay.VisibleNotice.Detail == "65%",
                 "Brightness event did not display the actual percentage");
             report["brightness_percentage_osd"] = true;
+            SystemOsdEvents.PublishTouchpadState(false);
+            OsdOverlay.OnFirmwareNotice(0x04);
+            Require(IsWindowVisible(osd) && OsdOverlay.VisibleNotice.Title == "触摸板" && OsdOverlay.VisibleNotice.Detail == "已关闭",
+                "Touchpad disabled state was missing or overwritten by a firmware companion");
+            SystemOsdEvents.PublishTouchpadState(true);
+            Require(OsdOverlay.VisibleNotice.Detail == "已开启", "Touchpad re-enabled state was missing");
+            report["touchpad_state_osd"] = true;
             SystemOsdEvents.PublishPowerSource(0);
             SystemOsdEvents.PublishPowerSource(1);
             Require(OsdOverlay.VisibleNotice.Title == "供电状态" && OsdOverlay.VisibleNotice.Detail.Contains("电池"),
@@ -137,6 +144,8 @@ internal static class ShellVerification
             await Backend.CallAsync("save_osd_config", new { config = config with { Enabled = false } });
             SystemOsdEvents.PublishLockState(0x14, true);
             Require(!IsWindowVisible(osd), "Disabled OSD still displayed a lock event");
+            SystemOsdEvents.PublishTouchpadState(false);
+            Require(!IsWindowVisible(osd), "Disabled OSD still displayed a touchpad event");
             await Task.Delay(1000);
             Require(MachineStore.HardwareReads == reads && !MachineStore.IsActive,
                 "Event-driven OSD restarted hidden hardware scanning");

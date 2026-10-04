@@ -32,6 +32,8 @@ python scripts/verify-autostart-migration.py
 
 按键测试在独立配置目录验证左右 Win 键的实际投递，不向其他应用发送按键。安装依赖测试执行安装器自身的检测脚本，覆盖缺 .NET、缺 WinUI、版本过旧、架构不匹配和两者均缺失，不卸载本机组件。自启动迁移测试执行实际脚本，以替身任务验证所有权判断和元数据保留，不改动 Task Scheduler。窗口测试使用模拟后端，覆盖后台启动、关闭/最小化收起、托盘打开、暂停遥测、OSD 焦点与超时、彻底退出，并保存预览图。
 
+触摸板 OSD 仅读取并订阅当前用户 `PrecisionTouchPad\Status\Enabled` 变更，显示 Windows 设置的真实开启/关闭状态；启动初始值和重复值不弹提示。状态地址和只读消费规则见 [Microsoft 说明](https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/touchpad-legacy-touchpad-pc-settings-opt-in)。系统 OSD 探针只在唯一隔离测试键写入测试值，不修改用户触摸板；无该状态的设备继续使用原厂通知。
+
 常规 EXE 的窗口测试需要管理员终端。普通终端可编译一个仅用于模拟验证的 asInvoker 测试宿主：
 
 ```powershell

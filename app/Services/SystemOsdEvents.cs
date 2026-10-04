@@ -21,6 +21,7 @@ internal static class SystemOsdEvents
     private static nint _powerRegistration;
     private static AudioNotifications? _audio;
     private static RadioStateNotifications? _radio;
+    private static TouchpadStateNotifications? _touchpad;
     private static FnKeyInput? _fn;
     private static uint? _powerSource;
     private static bool _started;
@@ -45,6 +46,7 @@ internal static class SystemOsdEvents
         try { _audio = new AudioNotifications(); }
         catch (Exception error) { StartupLog.Write(error); }
         _radio = new RadioStateNotifications();
+        _touchpad = new TouchpadStateNotifications();
         _ = StartFnInputAsync(hwnd, ++_generation);
     }
 
@@ -98,6 +100,8 @@ internal static class SystemOsdEvents
         _audio = null;
         _radio?.Dispose();
         _radio = null;
+        _touchpad?.Dispose();
+        _touchpad = null;
         _fn?.Dispose();
         _fn = null;
         _powerSource = null;
@@ -185,6 +189,9 @@ internal static class SystemOsdEvents
 
     internal static void PublishAirplaneState(bool enabled)
         => Publish("airplane", "飞行模式", enabled ? "已开启" : "已关闭");
+
+    internal static void PublishTouchpadState(bool enabled)
+        => Publish("touchpad", "触摸板", enabled ? "已开启" : "已关闭");
 
     internal static void PublishPowerMode(byte mode)
         => Publish("performance", "性能模式", JiYaoChu.Model.PowerModes.Label(mode));
