@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-05",
+  "configuration": "Release, isolated mock backend",
+  "method": "Three live-mounted 600 DIP graphs, each with 600 samples and gaps, 30 updates; Stopwatch around Show plus UpdateLayout. Excludes hardware reads and whole-page reconciliation.",
+  "baseline_commit": "4d2fb676abcd07e15ede174f1f1ff424b8027be0",
+  "baseline_ms": {
+    "median": 7.0612,
+    "p95": 17.3352,
+    "maximum": 22.2846
+  },
+  "current_ms": {
+    "median": 7.9447,
+    "p95": 10.6371,
+    "maximum": 13.8463
+  },
+  "baseline_visual_tree_rebuilt": true,
+  "current_visual_tree_retained": true,
+  "current_offscreen_drawing_deferred": true
+}

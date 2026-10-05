@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using JiYaoChu.Services;
+using JiYaoChu.Model;
 
 namespace JiYaoChu.Interop;
 
@@ -70,6 +71,26 @@ public static class Backend
                     catch (Exception error) {
                         JiYaoChu.Services.StartupLog.Write(error);
                         data["config_error"] = "自动接管未完成：" + error.Message;
+                    }
+                }
+                if (!restoringOem)
+                {
+                    try
+                    {
+                        // Apply the saved on/off, brightness and colour once at startup,
+                        // including background startup, before any lighting page is opened.
+                        var lighting = (data["config"]?["lighting"].Read<LightingState>() ?? new()) with
+                        {
+                            FirmwareManaged = false, KbEngine = LightingEngine.Hardware, KbEffect = 0,
+                        };
+                        Core.Call("apply_keyboard_lighting", JsonSerializer.SerializeToNode(new { lighting }, Core.Json));
+                        data["config"]!["lighting"] = JsonSerializer.SerializeToNode(lighting, Core.Json);
+                    }
+                    catch (Exception error)
+                    {
+                        StartupLog.Write(error);
+                        var previous = data["config_error"]?.GetValue<string>();
+                        data["config_error"] = (previous is null ? "" : previous + "；") + "键盘灯效自动接管未完成：" + error.Message;
                     }
                 }
                 return new BackendBootstrap(

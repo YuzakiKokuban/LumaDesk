@@ -5,6 +5,11 @@ $reportPath = [IO.Path]::GetFullPath($Report)
 $principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
 $env:JIYAOCHU_FORCE_MOCK = '1'
 $env:JIYAOCHU_DATA_DIR = Join-Path (Split-Path $reportPath -Parent) ('shell-test-config-' + [guid]::NewGuid().ToString('N'))
+if ($env:JIYAOCHU_VERIFY_SETTINGS -eq '1') {
+    New-Item -ItemType Directory -Path $env:JIYAOCHU_DATA_DIR -Force | Out-Null
+    # Older preferences must be claimed at startup without turning a saved-off keyboard on.
+    [IO.File]::WriteAllText((Join-Path $env:JIYAOCHU_DATA_DIR 'config.json'), '{"lighting":{"firmware_managed":true,"enabled":false,"kb_engine":"better_rgb","kb_effect":100,"kb_brightness":2,"kb_color":"#123456","kb_fps":30,"streamer_effect":0,"custom_script_id":null,"four_zone_colors":["#ff0000","#00ff00","#0000ff","#ffffff"],"logo_color":"#ff00ff","hinge_color":"#00ffff","lightbar_color":"#ff0000","sleep_minutes":0}}')
+}
 $previewPath = [IO.Path]::ChangeExtension($reportPath, '.preview.json')
 foreach ($file in @($reportPath, $previewPath, ($reportPath + '.lighting.png'), ($reportPath + '.colors.png'), ($reportPath + '.system.png'), ($reportPath + '.restore.png'), ($reportPath + '.tuning.png'), ($reportPath + '.gpu.png'), ($reportPath + '.display.png'), ($reportPath + '.overview.png'), ($reportPath + '.trends.png'))) { if (Test-Path -LiteralPath $file) { Remove-Item -LiteralPath $file } }
 $arguments = '--background "--verify-shell=' + $reportPath + '"'

@@ -217,7 +217,6 @@ public sealed class OverviewPage : Component
         return Chrome.SectionCard("最近五分钟趋势",
             Caption("仅在主窗口可见时记录；收起、读取失败与缺失传感器显示为空隙。ACPI 热区温度并非 CPU 核心温度。")
                 .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
-            Button("清空趋势", MachineStore.ClearTrends).AutomationName("清空最近五分钟趋势").HAlign(HorizontalAlignment.Left).IsEnabled(samples.Count > 0),
             Plot("温度 (°C)", TrendMetric.Temperature),
             Plot("负载 (%)", TrendMetric.Load),
             Plot("风扇转速 (RPM)", TrendMetric.Fan));

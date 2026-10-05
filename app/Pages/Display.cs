@@ -16,6 +16,12 @@ public sealed record DisplayBundle(IReadOnlyList<DisplayInfo> Displays, uint? Br
 /// <summary>Device-specific Windows display modes and system built-in backlight.</summary>
 public sealed class DisplayPage : SettingsPage
 {
+    private static readonly BrightnessWriter BrightnessWrites = new(level => Backend.CallAsync("set_display_brightness", new { level }));
+    private (uint Level, long Version)? _pendingBrightness;
+    private uint? _latestBrightness;
+    private bool _brightnessWriting;
+    private bool _disposed;
+
     public override Element Render()
     {
         var (reader, resource) = UseSettings(() => ReadAsync(null));
@@ -23,11 +29,15 @@ public sealed class DisplayPage : SettingsPage
         var (rate, setRate) = UseState<uint?>(null);
         var (draftBrightness, setDraftBrightness) = UseState<double?>(null);
         var (busy, setBusy) = UseState(false);
+        var (brightnessBusy, setBrightnessBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
         var (applied, setApplied) = UseState<string?>(null);
+        UseEffect(() => { _disposed = false; return () => { _disposed = true; }; }, []);
         UseEffect(() => EventBus.Subscribe(raised =>
         {
             if (!MachineStore.IsActive || !BackgroundHost.IsVisible) return;
+            if (_brightnessWriting && (raised.Name == "osd://system" && raised.Payload?["kind"]?.GetValue<string>() == "brightness"
+                || raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() == "set_display_brightness")) return;
             if (raised.Name == "osd://system" && raised.Payload?["kind"]?.GetValue<string>() == "brightness")
                 _ = reader.RefreshAsync(value => ReadAsync(value, displays: false, brightness: true));
             else if (raised.Name == "command://applied")
@@ -46,10 +56,15 @@ public sealed class DisplayPage : SettingsPage
         var rates = chosen is null ? [] : DisplayPolicy.Rates(chosen);
         var currentChoice = rate ?? chosen?.CurrentHz;
         var brightness = draftBrightness ?? bundle?.Brightness;
-        var working = busy || resource.Refreshing;
+        var working = busy || brightnessBusy || resource.Refreshing;
         UseEffect(() => { if (device.Length == 0 && chosenDevice.Length > 0) setDevice(chosenDevice); }, chosenDevice);
         UseEffect(() => { setRate(null); }, chosenDevice, chosen?.CurrentHz);
-        UseEffect(() => { setDraftBrightness(bundle?.Brightness); }, bundle?.Brightness);
+        UseEffect(() =>
+        {
+            if (_brightnessWriting) return;
+            _latestBrightness = bundle?.Brightness;
+            setDraftBrightness(bundle?.Brightness);
+        }, bundle?.Brightness);
 
         async Task Reload()
         {
@@ -78,26 +93,58 @@ public sealed class DisplayPage : SettingsPage
                 setRate(null);
             }, Settled, setBusy)();
         }
-        void ApplyBrightness()
+        async Task WriteBrightnessAsync()
         {
-            if (working || bundle?.BrightnessError is not null || brightness is not { } value || DisplayPolicy.Brightness(value) is not { } level || bundle?.Brightness is null) return;
-            Act.Fire("set_display_brightness", async () =>
+            _brightnessWriting = true;
+            setBrightnessBusy(true); setFailure(null); setApplied(null);
+            try
             {
-                try { await Backend.CallAsync("set_display_brightness", new { level }); }
-                finally { await reader.RefreshAsync(previous => ReadAsync(previous, displays: false, brightness: true)); }
-                var actual = reader.Snapshot.Value;
-                if (actual?.BrightnessError is { } error) throw new InvalidOperationException("亮度写入后读回失败：" + error);
-                if (actual?.Brightness is not { } readback) throw new InvalidOperationException("无法读取内置屏幕亮度。");
-                setDraftBrightness(readback);
-                if (readback != level) throw new InvalidOperationException($"请求亮度 {level}%，实际读回 {readback}%。");
-            }, Settled, setBusy)();
+                while (_pendingBrightness is { } request)
+                {
+                    var level = request.Level;
+                    _pendingBrightness = null;
+                    string? error = null;
+                    // One write in flight; intermediate drag values collapse to the latest.
+                    try { if (!await BrightnessWrites.ApplyAsync(level, request.Version)) continue; }
+                    catch (Exception failure) { StartupLog.Write(failure); error = failure.Message; }
+                    // Finish a final queued request even if the user left the page.
+                    if (_pendingBrightness is not null) continue;
+                    if (_disposed) return;
+                    await reader.RefreshAsync(previous => ReadAsync(previous, displays: false, brightness: true));
+                    // A new drag during recovery/readback always supersedes this result.
+                    if (_pendingBrightness is not null) continue;
+                    if (_disposed) return;
+                    var actual = reader.Snapshot.Value;
+                    if (actual?.BrightnessError is { } readError) error ??= "亮度写入后读回失败：" + readError;
+                    else if (actual?.Brightness is not { } readback) error ??= "无法读取内置屏幕亮度。";
+                    else if (readback != level) error ??= $"请求亮度 {level}%，实际读回 {readback}%。";
+                    _latestBrightness = actual?.Brightness;
+                    setDraftBrightness(_latestBrightness);
+                    setFailure(error);
+                    setApplied(error is null ? "屏幕亮度调整已完成" : null);
+                }
+            }
+            finally
+            {
+                _brightnessWriting = false;
+                if (!_disposed) setBrightnessBusy(false);
+            }
+        }
+        void ApplyBrightness(double value)
+        {
+            if (_disposed || busy || bundle?.BrightnessError is not null || bundle?.Brightness is null || DisplayPolicy.Brightness(value) is not { } level) return;
+            if (level == (_latestBrightness ?? bundle.Brightness)) return;
+            _latestBrightness = level;
+            setDraftBrightness(level);
+            _pendingBrightness = (level, BrightnessWrites.NextRequest());
+            if (!_brightnessWriting) _ = WriteBrightnessAsync();
         }
 
         var names = monitors.Select(display => string.IsNullOrWhiteSpace(display.FriendlyName) ? display.DeviceName : $"{display.FriendlyName} · {display.DeviceName}").ToList();
         var selectedIndex = Array.FindIndex(monitors.ToArray(), display => display.DeviceName == chosenDevice);
         if (chosen is null && chosenDevice.Length > 0) { selectedIndex = names.Count; names.Add($"已断开 · {chosenDevice}"); }
         var controlsEnabled = !working && chosen is not null && bundle?.DisplayError is null;
-        var brightnessEnabled = !working && bundle?.Brightness is not null && bundle.BrightnessError is null;
+        var brightnessEnabled = !busy && bundle?.Brightness is not null && bundle.BrightnessError is null;
         var displayRows = new List<Element>
         {
             Body("选择显示器后，可应用它在当前分辨率下支持的刷新率。").Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
@@ -107,10 +154,6 @@ public sealed class DisplayPage : SettingsPage
                 setDevice(monitors[index].DeviceName); setRate(null); setFailure(null); setApplied(null);
             }).AutomationName("显示器选择").HAlign(HorizontalAlignment.Stretch).IsEnabled(!working && monitors.Count > 0),
             Chrome.Field("当前刷新率", chosen is null || chosen.CurrentHz == 0 ? "未知" : $"{chosen.CurrentHz} Hz"),
-            Caption("快捷档位：选择后点击应用刷新率。").Foreground(Theme.SecondaryText),
-            HStack(8, new uint[] { 60, 90, 120 }.Select(hz => (Element)Button($"{hz} Hz", () => setRate(hz))
-                .AutomationName($"刷新率档位 {hz} Hz").Width(90)
-                .IsEnabled(controlsEnabled && rates.Contains(hz))).ToArray()),
             ComboBox(rates.Select(hz => $"{hz} Hz").ToArray(), Optional<int>.Of(currentChoice is { } selectedHz ? Array.IndexOf(rates, selectedHz) : -1), index =>
             { if (index >= 0 && index < rates.Length) setRate(rates[index]); })
                 .AutomationName("显示刷新率").HAlign(HorizontalAlignment.Stretch).IsEnabled(controlsEnabled && rates.Length > 0),
@@ -121,20 +164,14 @@ public sealed class DisplayPage : SettingsPage
         else if (resource.Refreshing && bundle is null) displayRows.Add(Caption("正在检测显示器…").Foreground(Theme.SecondaryText));
         else if (chosen is null) displayRows.Add(Chrome.Notice("显示器不可用", "所选设备已断开，或尚未检测到活动显示器。重新检测后选择设备。", InfoBarSeverity.Warning));
         else if (rates.Length == 0) displayRows.Add(Caption("未读取到可用刷新率，请重新检测。").Foreground(Theme.SecondaryText));
-        if (chosen is not null && bundle?.DisplayError is null && new uint[] { 90, 120 }.Where(hz => !rates.Contains(hz)).ToArray() is { Length: > 0 } unavailable)
-            displayRows.Add(Caption($"当前分辨率下驱动不支持：{string.Join("、", unavailable.Select(hz => $"{hz} Hz"))}。").Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
 
         var brightnessRows = new List<Element>
         {
             Body("只控制 Windows 内置屏幕背光，与上方显示器选择无关；外接显示器亮度请使用显示器自身菜单。").Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
             Chrome.Field("当前亮度", bundle?.Brightness is { } actual ? $"{actual}%" : "未知"),
-            Slider(brightness is { } level ? Optional<double>.Of(level) : default, 0, 100, value => { if (double.IsFinite(value)) setDraftBrightness(Math.Round(value)); })
+            Slider(brightness is { } level ? Optional<double>.Of(level) : default, 0, 100, ApplyBrightness)
                 .StepFrequency(1).AutomationName("内置屏幕亮度滑块").IsEnabled(brightnessEnabled),
-            Chrome.SettingRow("亮度 (%)", "输入 0–100，应用后读取实际亮度。",
-                NumberBox(brightness is { } number ? Optional<double>.Of(number) : default, value => { if (DisplayPolicy.Brightness(value) is { } valid) setDraftBrightness(valid); })
-                    .Range(0, 100).SpinButtons().Width(120).AutomationName("内置屏幕亮度百分比").IsEnabled(brightnessEnabled)),
-            Button("应用亮度", ApplyBrightness).AutomationName("应用内置屏幕亮度").HAlign(HorizontalAlignment.Left)
-                .IsEnabled(brightnessEnabled && brightness is { } draft && DisplayPolicy.Brightness(draft) != bundle?.Brightness),
+            Caption("拖动滑条立即调整亮度。").Foreground(Theme.SecondaryText),
         };
         if (bundle?.BrightnessError is { } brightnessError) brightnessRows.Add(Chrome.Notice("内置屏幕亮度不可用", "请重新检测后重试。" + brightnessError, InfoBarSeverity.Warning));
         return Chrome.Page("显示设置", "刷新率、内置屏幕亮度与显卡输出模式",

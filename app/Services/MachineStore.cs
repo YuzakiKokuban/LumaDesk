@@ -67,12 +67,6 @@ public static class MachineStore
         if (Interlocked.Exchange(ref _active, active ? 1 : 0) != (active ? 1 : 0)) Refresh();
     }
 
-    public static void ClearTrends()
-    {
-        History.Clear();
-        Publish(state => state with { Trends = [] });
-    }
-
     /// <summary>The current reading. Safe to call from any thread.</summary>
     public static MachineState Snapshot
     {

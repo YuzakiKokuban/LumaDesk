@@ -5,7 +5,7 @@ namespace JiYaoChu.Services;
 /// <summary>Deterministic checks; no hardware writes, clocks, sleeps or window needed.</summary>
 internal static class DisplayTrendVerification
 {
-    public static Task RunAsync(Dictionary<string, object> report)
+    public static async Task RunAsync(Dictionary<string, object> report)
     {
         static void Require(bool value, string message) { if (!value) throw new InvalidOperationException(message); }
         var at = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
@@ -40,6 +40,30 @@ internal static class DisplayTrendVerification
         Require(DisplayPolicy.Brightness(double.NaN) is null && DisplayPolicy.Brightness(101) == 100 && DisplayPolicy.Brightness(-1) == 0, "Brightness input validation failed");
         report["display_policy_checks"] = true;
         report["trend_bounded_visible_history_checks"] = true;
-        return Task.CompletedTask;
+        var entered = new TaskCompletionSource();
+        var release = new TaskCompletionSource();
+        var writes = new List<uint>();
+        var writer = new BrightnessWriter(async level =>
+        {
+            writes.Add(level);
+            if (level == 20) { entered.SetResult(); await release.Task; }
+        });
+        var firstWrite = writer.ApplyAsync(20, writer.NextRequest());
+        await entered.Task;
+        var obsoletePageWrite = writer.ApplyAsync(83, writer.NextRequest());
+        var reopenedPageWrite = writer.ApplyAsync(60, writer.NextRequest());
+        release.SetResult();
+        await Task.WhenAll(firstWrite, obsoletePageWrite, reopenedPageWrite);
+        Require(writes.SequenceEqual(new uint[] { 20, 60 }) && !obsoletePageWrite.Result && reopenedPageWrite.Result, "An old page brightness request overtook a newer one or writes overlapped");
+        var attempts = new List<uint>();
+        var failingWriter = new BrightnessWriter(level =>
+        {
+            attempts.Add(level);
+            return level == 20 ? Task.FromException(new IOException("write failed")) : Task.CompletedTask;
+        });
+        try { await failingWriter.ApplyAsync(20, failingWriter.NextRequest()); throw new InvalidOperationException("Failed brightness write succeeded"); }
+        catch (IOException) { }
+        Require(await failingWriter.ApplyAsync(83, failingWriter.NextRequest()) && attempts.SequenceEqual(new uint[] { 20, 83 }), "A failed brightness write blocked the next request");
+        report["brightness_serialization_latest_request_and_failure_checks"] = true;
     }
 }

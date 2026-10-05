@@ -45,12 +45,10 @@ public sealed class LightingPage : SettingsPage
                     () => Apply(state with { KbColor = palette.Hex, Enabled = true, KbBrightness = Math.Max(1u, state.KbBrightness) }))).ToArray();
                 return Chrome.Page("键盘灯效", "耀世 15 Air · EC RGB",
                     Chrome.Feedback(failure ?? resource.Error, null),
-                    state.FirmwareManaged ? Chrome.Notice("固件默认背光", "选择亮度或颜色即可接管。", InfoBarSeverity.Informational) : null!,
+                    state.FirmwareManaged ? Chrome.Notice("键盘灯效接管未完成", "请检查设备连接或重新启动应用。", InfoBarSeverity.Warning) : null!,
                     Chrome.SectionCard("背光",
-                        Chrome.SettingRow("键盘背光", state.FirmwareManaged ? "固件默认" : "单色常亮",
-                            state.FirmwareManaged
-                                ? Button("启用控制", () => Apply(state with { Enabled = true, KbBrightness = Math.Max(1u, state.KbBrightness) })).IsEnabled(!working)
-                                : ToggleSwitch(Optional<bool>.Of(state.Enabled), value => { if (value != state.Enabled) Apply(state with { Enabled = value, KbBrightness = Math.Max(1u, state.KbBrightness), FirmwareManaged = false }); }).IsEnabled(!working)),
+                        Chrome.SettingRow("键盘背光", "启动时自动接管 · 单色常亮",
+                            ToggleSwitch(Optional<bool>.Of(state.Enabled), value => { if (value != state.Enabled) Apply(state with { Enabled = value, KbBrightness = Math.Max(1u, state.KbBrightness), FirmwareManaged = false }); }).IsEnabled(!working)),
                         Chrome.Rule(),
                         Body("亮度").SemiBold(),
                         FlexRow([.. new[] { "关闭", "低", "中", "高", "最高" }.Select((label, index) =>
