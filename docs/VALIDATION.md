@@ -2,6 +2,13 @@
 
 2026-10-02，耀世 15 Air / EC 0x1A，Intel，RTX 5060 Laptop GPU。
 
+## 电池阈值与显示控制回归（2026-10-05）
+
+- 实机复现旧版本：EC `0x7B9=0xD0` 被当成 208%，亮度查询被面板驱动以 `0x80070032` 拒绝。修复依据和 API 来源见 [电池与显示说明](../reverse/native/BATTERY_DISPLAY.md)。
+- [Release 实机报告](../reverse/native/evidence/battery-display-hardware-validation.json) 确认阈值正常读为 80%，完成 80→60→80；亮度完成 40→41→40；刷新率完成 240→90→120→240，保持 2560×1600 / 32 bpp。测试使用独立配置目录，未调整 MUX、OEM 服务或自启动。
+- Rust 52 项、格式检查及 Clippy 通过。Debug/Release 构建和[Release 模拟窗口回归](../reverse/native/evidence/battery-display-ui-validation.json)检查 90/120 快捷档位、应用后读回及设置控件保持。ZIP 与安装器另行进行包检查。
+- 本机正常读回与切换已验证；长期充电截止、其他面板/外接屏幕和睡眠恢复仍待确认。
+
 ## 设置恢复、显示与趋势（2026-10-05）
 
 - Rust 49 项测试、格式检查和 Clippy 通过；9 项 EC/MUX 协议、19 项发布工具、8 项发布策略和 8 项 CI 策略回归通过。独立进程检查确认日志偏好重启后保留，恢复应用偏好不会写设备状态；模拟自启动与 OEM 接管命令不调用本机系统接口。

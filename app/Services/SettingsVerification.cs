@@ -176,6 +176,17 @@ internal static class SettingsVerification
             Invoke(applyRate);
             await WaitAsync(() => Tree(display).OfType<TextBlock>().Any(text => text.Text == "刷新率调整已完成"), "Refresh rate did not finish with actual readback");
             Require((await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 60, "Display refresh was not applied");
+            foreach (var hz in new uint[] { 90, 120 })
+            {
+                var quickRate = Tree(display).OfType<Button>().First(button => AutomationProperties.GetName(button) == $"刷新率档位 {hz} Hz");
+                await WaitAsync(() => quickRate.IsEnabled, $"{hz} Hz shortcut is unavailable on the mock panel");
+                Invoke(quickRate);
+                await WaitAsync(() => applyRate.IsEnabled, $"{hz} Hz selection cannot be applied");
+                Invoke(applyRate);
+                await WaitAsync(() => quickRate.IsEnabled && !applyRate.IsEnabled && rates.SelectedIndex >= 0 && rates.SelectedItem?.ToString() == $"{hz} Hz", $"{hz} Hz write/readback did not settle");
+                Require((await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == hz, $"{hz} Hz shortcut readback differs");
+            }
+            report["refresh_shortcuts_90_120_apply_and_readback"] = true;
             var panelBrightness = Tree(display).OfType<NumberBox>().First(box => AutomationProperties.GetName(box) == "内置屏幕亮度百分比");
             panelBrightness.Value = 37;
             var applyPanelBrightness = Tree(display).OfType<Button>().First(button => AutomationProperties.GetName(button) == "应用内置屏幕亮度");

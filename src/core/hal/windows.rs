@@ -258,13 +258,7 @@ impl HardwareHal for WindowsHal {
             let health = self.battery_health_percent()?;
             let applied_limit = self.acpi.transaction(|ec| {
                 crate::core::driver::performance::require_project(ec.read(0x740)?)?;
-                let value = ec.read(0x7b9)?;
-                if !(50..=100).contains(&value) {
-                    return Err(HalError::io(format!(
-                        "EC battery limit {value}% is outside 50-100%"
-                    )));
-                }
-                Ok(u32::from(value))
+                crate::core::driver::battery::decode(ec.read(0x7b9)?)
             });
             let limit_error = applied_limit.as_ref().err().map(ToString::to_string);
             Ok(BatteryStatus {
@@ -452,13 +446,6 @@ impl HardwareHal for WindowsHal {
         self.acpi.transaction(|ec| {
             crate::core::driver::performance::require_project(ec.read(0x740)?)?;
             let limit = limit as u8;
-            let mode = if limit >= 95 {
-                1
-            } else if limit >= 66 {
-                0x11
-            } else {
-                0x21
-            };
             let addresses = [0x770, 0x7B9, 0x7D0, 0x7A6];
             let mut before = [0; 4];
             for (i, address) in addresses.iter().enumerate() {
@@ -468,17 +455,25 @@ impl HardwareHal for WindowsHal {
                 if limit < 95 { 4 } else { 0xFF },
                 limit,
                 limit.saturating_sub(5),
-                (before[3] & 8) | mode,
+                crate::core::driver::battery::mode(before[3], limit),
             ];
             let result = (|| {
                 for (i, address) in addresses.iter().enumerate() {
-                    ec.write_verified(*address, values[i])?;
+                    if *address == 0x7b9 {
+                        crate::core::driver::battery::write(ec, values[i])?;
+                    } else {
+                        ec.write_verified(*address, values[i])?;
+                    }
                 }
                 Ok(())
             })();
             let snapshot: Vec<_> = addresses.into_iter().zip(before).collect();
             crate::core::driver::rollback::recover(result, &snapshot, |address, value| {
-                ec.write_verified(address, value)
+                if address == 0x7b9 {
+                    crate::core::driver::battery::write(ec, value)
+                } else {
+                    ec.write_verified(address, value)
+                }
             })
         })
     }
@@ -620,7 +615,7 @@ impl HardwareHal for WindowsHal {
     fn display_brightness(&self) -> HalResult<u32> {
         #[cfg(windows)]
         {
-            winapi::lcd_brightness()
+            winapi::display_brightness()
         }
         #[cfg(not(windows))]
         {
@@ -631,7 +626,7 @@ impl HardwareHal for WindowsHal {
     fn set_display_brightness(&self, percent: u32) -> HalResult<()> {
         #[cfg(windows)]
         {
-            winapi::set_lcd_brightness(percent)
+            winapi::set_display_brightness(percent)
         }
         #[cfg(not(windows))]
         {

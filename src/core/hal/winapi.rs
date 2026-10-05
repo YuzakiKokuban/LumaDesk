@@ -2,7 +2,7 @@
 //! [`super::windows::WindowsHal`] is built from.
 //!
 //! Everything in this module is *documented* behaviour: power schemes,
-//! display modes, `\\.\LCD` backlight IOCTLs, battery status, WMI queries and
+//! display modes, WMI backlight control, battery status, WMI queries and
 //! the ACPI firmware table. Nothing here needs the UniWill kernel driver, which
 //! is why this is the part of the backend that genuinely works on a stock
 //! Windows install.
@@ -19,14 +19,11 @@ use std::path::Path;
 use windows::core::{BSTR, GUID, PCWSTR, PWSTR};
 use windows::Win32::Foundation::{CloseHandle, HANDLE, HWND, MAX_PATH};
 use windows::Win32::Graphics::Gdi::{
-    ChangeDisplaySettingsExW, EnumDisplayDevicesW, EnumDisplaySettingsW, CDS_UPDATEREGISTRY,
-    DEVMODEW, DISPLAY_DEVICEW, DISPLAY_DEVICE_ACTIVE, DISP_CHANGE_SUCCESSFUL, DM_DISPLAYFREQUENCY,
-    ENUM_CURRENT_SETTINGS, ENUM_DISPLAY_SETTINGS_MODE,
+    ChangeDisplaySettingsExW, EnumDisplayDevicesW, EnumDisplaySettingsW, CDS_TEST,
+    CDS_UPDATEREGISTRY, DEVMODEW, DISPLAY_DEVICEW, DISPLAY_DEVICE_ACTIVE, DISP_CHANGE_SUCCESSFUL,
+    DM_DISPLAYFREQUENCY, ENUM_CURRENT_SETTINGS, ENUM_DISPLAY_SETTINGS_MODE,
 };
 use windows::Win32::Security::{GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY};
-use windows::Win32::Storage::FileSystem::{
-    CreateFileW, DELETE, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
-};
 use windows::Win32::System::Com::{
     CoCreateInstance, CoInitializeEx, CoInitializeSecurity, CoSetProxyBlanket, CoUninitialize,
     CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED, EOLE_AUTHENTICATION_CAPABILITIES,
@@ -38,7 +35,6 @@ use windows::Win32::System::Power::{
     PowerReadFriendlyName, PowerSetActiveScheme, POWER_DATA_ACCESSOR, POWER_INFORMATION_LEVEL,
     SYSTEM_BATTERY_STATE, SYSTEM_POWER_STATUS,
 };
-use windows::Win32::System::IO::DeviceIoControl;
 
 // Windows 11 exposes separate user power-mode votes for AC and battery.
 // Resolve dynamically so older systems report an unsupported feature cleanly.
@@ -155,7 +151,7 @@ use windows::Win32::System::Variant::{
 };
 use windows::Win32::System::Wmi::{
     IEnumWbemClassObject, IWbemClassObject, IWbemContext, IWbemLocator, IWbemServices, WbemLocator,
-    WBEM_FLAG_FORWARD_ONLY, WBEM_FLAG_RETURN_IMMEDIATELY,
+    WBEM_FLAG_FORWARD_ONLY, WBEM_FLAG_RETURN_IMMEDIATELY, WBEM_GENERIC_FLAG_TYPE,
 };
 use windows::Win32::UI::ColorSystem::SetDeviceGammaRamp;
 
@@ -534,6 +530,83 @@ impl Wmi {
         let wmi = Wmi::connect(namespace)?;
         Ok(wmi.query(wql)?.into_iter().next())
     }
+
+    fn set_brightness(&self, path: &str, percent: u8) -> HalResult<()> {
+        let services = self
+            .services
+            .as_ref()
+            .ok_or_else(|| HalError::unavailable("WMI connection closed"))?;
+        let mut class = None;
+        let mut signature = None;
+        let mut output = None;
+        let method = wide_z("WmiSetBrightness");
+        // SAFETY: all interfaces and BSTR/VARIANT buffers live on this COM
+        // apartment for the synchronous call; each output pointer is valid.
+        let row = unsafe {
+            services
+                .GetObject(
+                    &BSTR::from("WmiMonitorBrightnessMethods"),
+                    WBEM_GENERIC_FLAG_TYPE(0),
+                    None::<&IWbemContext>,
+                    Some(&mut class),
+                    None,
+                )
+                .map_err(|e| HalError::unavailable(format!("读取亮度接口失败：{e}")))?;
+            let class = class.ok_or_else(|| HalError::unavailable("缺少 WMI 亮度控制类"))?;
+            class
+                .GetMethod(
+                    PCWSTR(method.as_ptr()),
+                    0,
+                    &mut signature,
+                    std::ptr::null_mut(),
+                )
+                .map_err(|e| HalError::unavailable(format!("读取亮度方法失败：{e}")))?;
+            let input = signature
+                .ok_or_else(|| HalError::unavailable("缺少亮度方法参数"))?
+                .SpawnInstance(0)
+                .map_err(|e| HalError::unavailable(e.to_string()))?;
+            input
+                .Put(
+                    PCWSTR(wide_z("Timeout").as_ptr()),
+                    0,
+                    &VARIANT::from(0i32),
+                    0,
+                )
+                .map_err(|e| HalError::io(format!("设置亮度 Timeout 参数失败：{e}")))?;
+            input
+                .Put(
+                    PCWSTR(wide_z("Brightness").as_ptr()),
+                    0,
+                    &VARIANT::from(percent),
+                    0,
+                )
+                .map_err(|e| HalError::io(format!("设置 Brightness 参数失败：{e}")))?;
+            services
+                .ExecMethod(
+                    &BSTR::from(path),
+                    &BSTR::from("WmiSetBrightness"),
+                    WBEM_GENERIC_FLAG_TYPE(0),
+                    None::<&IWbemContext>,
+                    &input,
+                    Some(&mut output),
+                    None,
+                )
+                .map_err(|e| HalError::io(format!("设置内置屏幕亮度失败：{e}")))?;
+            output.as_ref().map(|value| read_object(value))
+        };
+        match row.as_ref().and_then(|value| value.u32_of("ReturnValue")) {
+            Some(0) => Ok(()),
+            Some(code) => Err(HalError::io(format!("内置屏幕亮度设置被驱动拒绝：{code}"))),
+            // Some panel providers omit out-parameters despite successful
+            // HRESULT. Require actual readback rather than inventing a result.
+            None if brightness_panel(self)?.u32_of("CurrentBrightness")
+                == Some(u32::from(percent)) =>
+            {
+                Ok(())
+            }
+            None => Err(HalError::io("亮度方法未返回成功状态，且实际读回不匹配")),
+        }
+    }
 }
 
 impl Drop for Wmi {
@@ -558,14 +631,11 @@ impl Drop for Wmi {
 /// `object` must be a live `IWbemClassObject` obtained on this thread.
 unsafe fn read_object(object: &IWbemClassObject) -> WmiRow {
     let mut row = WmiRow::default();
-    // The documented "make sure every property is materialised" flag.
-    const WBEM_FLAG_ALWAYS_RETURN_FULLY_POPULATED: i32 = 0x0000_0010;
+    // Include system properties such as __PATH, needed to target this instance
+    // when calling a method. 0x10 is NONSYSTEM_ONLY, not a materialisation flag.
     // SAFETY: `object` is a live interface. `BeginEnumeration` only rewinds the
     // object's property cursor and returns an HRESULT, not an enumerator.
-    if object
-        .BeginEnumeration(WBEM_FLAG_ALWAYS_RETURN_FULLY_POPULATED)
-        .is_err()
-    {
+    if object.BeginEnumeration(0).is_err() {
         return row;
     }
 
@@ -970,6 +1040,18 @@ pub fn current_mode(device_name: &str) -> u32 {
 /// The refresh rates a single display reports, sorted ascending.
 pub fn display_rates(device_name: &str) -> Vec<u32> {
     let name_z = wide_z(device_name);
+    let mut current = DEVMODEW {
+        dmSize: std::mem::size_of::<DEVMODEW>() as u16,
+        ..Default::default()
+    };
+    // SAFETY: initialized output struct and terminated device name.
+    if !unsafe {
+        EnumDisplaySettingsW(PCWSTR(name_z.as_ptr()), ENUM_CURRENT_SETTINGS, &mut current)
+    }
+    .as_bool()
+    {
+        return Vec::new();
+    }
     let mut rates = Vec::new();
     let mut index = 0u32;
     loop {
@@ -990,12 +1072,68 @@ pub fn display_rates(device_name: &str) -> Vec<u32> {
         }
         index += 1;
         let hz = mode.dmDisplayFrequency;
-        if hz > 1 && !rates.contains(&hz) {
+        if hz > 1 && same_display_dimensions(&mode, &current) && !rates.contains(&hz) {
+            rates.push(hz);
+        }
+    }
+    // Some drivers accept intermediate rates without enumerating them. Test
+    // only the requested 90/120 Hz candidates, at the unchanged resolution.
+    for hz in [90, 120] {
+        if !rates.contains(&hz) && test_refresh_rate(&name_z, &current, hz) {
             rates.push(hz);
         }
     }
     rates.sort_unstable();
     rates
+}
+
+fn same_display_dimensions(mode: &DEVMODEW, current: &DEVMODEW) -> bool {
+    mode.dmPelsWidth == current.dmPelsWidth
+        && mode.dmPelsHeight == current.dmPelsHeight
+        && mode.dmBitsPerPel == current.dmBitsPerPel
+}
+
+fn test_refresh_rate(name_z: &[u16], current: &DEVMODEW, hz: u32) -> bool {
+    let mut proposed = *current;
+    proposed.dmDisplayFrequency = hz;
+    proposed.dmFields |= DM_DISPLAYFREQUENCY;
+    // SAFETY: valid mode copied from EnumDisplaySettings, retained dimensions.
+    // CDS_TEST only validates; it neither applies a mode nor writes the registry.
+    unsafe {
+        ChangeDisplaySettingsExW(
+            PCWSTR(name_z.as_ptr()),
+            Some(&proposed),
+            None,
+            CDS_TEST,
+            None,
+        ) == DISP_CHANGE_SUCCESSFUL
+    }
+}
+
+#[cfg(test)]
+mod display_mode_tests {
+    use super::*;
+    #[test]
+    fn other_resolution_or_color_depth_is_not_a_refresh_choice() {
+        let current = DEVMODEW {
+            dmPelsWidth: 2560,
+            dmPelsHeight: 1600,
+            dmBitsPerPel: 32,
+            dmDisplayFrequency: 240,
+            ..Default::default()
+        };
+        let mut proposed = current;
+        proposed.dmDisplayFrequency = 120;
+        assert!(same_display_dimensions(&proposed, &current));
+        proposed.dmPelsWidth = 1920;
+        assert!(!same_display_dimensions(&proposed, &current));
+        proposed = current;
+        proposed.dmPelsHeight = 1080;
+        assert!(!same_display_dimensions(&proposed, &current));
+        proposed = current;
+        proposed.dmBitsPerPel = 16;
+        assert!(!same_display_dimensions(&proposed, &current));
+    }
 }
 
 /// Changes the refresh rate of one display, keeping the current resolution.
@@ -1031,6 +1169,11 @@ pub fn set_refresh_rate(device_name: &str, hz: u32) -> HalResult<()> {
         )));
     }
 
+    if !test_refresh_rate(&name_z, &current, hz) {
+        return Err(HalError::unsupported(format!(
+            "当前分辨率下驱动不接受 {hz} Hz"
+        )));
+    }
     current.dmDisplayFrequency = hz;
     current.dmFields |= DM_DISPLAYFREQUENCY;
     // SAFETY: `current` is a fully populated DEVMODEW, the device name is
@@ -1056,107 +1199,54 @@ pub fn set_refresh_rate(device_name: &str, hz: u32) -> HalResult<()> {
 
 // ----------------------------------------------------------------- backlight
 
-/// `\\.\LCD` is the documented brightness interface for ACPI-backlight panels.
-const LCD_DEVICE: &str = r"\\.\LCD";
-
-/// `IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNESS` —
-/// `CTL_CODE(FILE_DEVICE_VIDEO, 0x126, METHOD_BUFFERED, FILE_ANY_ACCESS)` from
-/// `ntddvdeo.h`. The payload is a `DISPLAY_BRIGHTNESS { UCHAR ucDisplayPolicy;
-/// UCHAR ucACBrightness; UCHAR ucDCBrightness; }`.
-const IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNESS: u32 = 0x0002_3050;
-/// `IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS` — same file and access, function code
-/// `0x127`. Also takes a three-byte `DISPLAY_BRIGHTNESS`.
-const IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS: u32 = 0x0002_3054;
-
-/// Opens `\\.\LCD` for the brightness IOCTLs.
-fn open_lcd() -> HalResult<HANDLE> {
-    let path = wide_z(LCD_DEVICE);
-    // SAFETY: `path` is NUL-terminated; the share mode and creation flags are
-    // the documented ones for a device interface, and the returned handle is
-    // closed by every caller below.
-    let handle = unsafe {
-        CreateFileW(
-            PCWSTR(path.as_ptr()),
-            DELETE.0,
-            FILE_SHARE_READ | FILE_SHARE_WRITE,
-            None,
-            OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
-            None,
-        )
-    };
-    match handle {
-        Ok(handle) if !handle.is_invalid() => Ok(handle),
+/// Active WMI panel instance, never the external display selected in the UI.
+fn brightness_panel(wmi: &Wmi) -> HalResult<WmiRow> {
+    let panels = wmi.query("SELECT * FROM WmiMonitorBrightness WHERE Active = TRUE")?;
+    match panels.len() {
+        1 => Ok(panels.into_iter().next().unwrap()),
+        0 => Err(HalError::unavailable("Windows 未提供活动内置屏幕亮度接口")),
         _ => Err(HalError::unsupported(
-            "this panel does not expose the \\\\.\\LCD brightness interface; \
-             brightness can only be changed through the Windows settings app",
+            "检测到多个背光设备，无法确定内置屏幕",
         )),
     }
 }
 
-/// Reads the current backlight brightness, in percent.
-pub fn lcd_brightness() -> HalResult<u32> {
-    let handle = open_lcd()?;
-    // DISPLAY_BRIGHTNESS: policy, AC level, DC level.
-    let mut payload = [0u8; 3];
-    let mut returned: u32 = 0;
-    // SAFETY: the handle is open for read/write, the input buffer is absent for
-    // a query and the output buffer is the documented three-byte struct.
-    let result = unsafe {
-        DeviceIoControl(
-            handle,
-            IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNESS,
-            None,
-            0,
-            Some(payload.as_mut_ptr() as *mut _),
-            payload.len() as u32,
-            Some(&mut returned),
-            None,
-        )
-    };
-    // SAFETY: the handle came from `CreateFileW` and is no longer needed.
-    unsafe {
-        let _ = CloseHandle(handle);
-    }
-    result.map_err(|err| {
-        HalError::io(format!(
-            "the brightness query was rejected by the panel driver ({err})"
-        ))
-    })?;
-    // `ucACBrightness` is the level in use while on mains power.
-    Ok(u32::from(payload[1]))
+pub fn display_brightness() -> HalResult<u32> {
+    let wmi = Wmi::connect(r"ROOT\WMI")?;
+    let panel = brightness_panel(&wmi)?;
+    let level = panel
+        .u32_of("CurrentBrightness")
+        .filter(|value| *value <= 100)
+        .ok_or_else(|| HalError::unavailable("内置屏幕返回了无效亮度"))?;
+    Ok(level)
 }
 
-/// Sets the backlight brightness (percent, 0..100).
-pub fn set_lcd_brightness(percent: u32) -> HalResult<()> {
-    let handle = open_lcd()?;
-    let level = percent.min(100) as u8;
-    // `ucDisplayPolicy = 0` means "apply these levels immediately".
-    let payload = [0u8, level, level];
-    let mut returned: u32 = 0;
-    // SAFETY: as in `lcd_brightness`, with the input buffer now carrying the
-    // requested levels.
-    let result = unsafe {
-        DeviceIoControl(
-            handle,
-            IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS,
-            Some(payload.as_ptr() as *const _),
-            payload.len() as u32,
-            None,
-            0,
-            Some(&mut returned),
-            None,
-        )
-    };
-    // SAFETY: the handle came from `CreateFileW` and is no longer needed.
-    unsafe {
-        let _ = CloseHandle(handle);
+pub fn set_display_brightness(percent: u32) -> HalResult<()> {
+    if percent > 100 {
+        return Err(HalError::unsupported("亮度必须在 0–100% 之间"));
     }
-    result.map_err(|err| {
-        HalError::io(format!(
-            "the brightness change was rejected by the panel driver ({err})"
-        ))
-    })
+    let wmi = Wmi::connect(r"ROOT\WMI")?;
+    let panel = brightness_panel(&wmi)?;
+    let name = panel
+        .str_of("InstanceName")
+        .ok_or_else(|| HalError::unavailable("亮度设备缺少实例标识"))?;
+    let mut matches = wmi
+        .query("SELECT * FROM WmiMonitorBrightnessMethods WHERE Active = TRUE")?
+        .into_iter()
+        .filter(|row| {
+            row.str_of("InstanceName")
+                .is_some_and(|candidate| candidate.eq_ignore_ascii_case(&name))
+        });
+    let method = matches
+        .next()
+        .ok_or_else(|| HalError::unavailable("当前背光设备未提供 WmiSetBrightness"))?;
+    if matches.next().is_some() {
+        return Err(HalError::unavailable("亮度控制实例重复"));
+    }
+    let path = method
+        .str_of("__PATH")
+        .ok_or_else(|| HalError::unavailable("亮度设备缺少 WMI 对象路径"))?;
+    wmi.set_brightness(&path, percent as u8)
 }
 
 // ------------------------------------------------------------------- battery

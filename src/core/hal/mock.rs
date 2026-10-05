@@ -867,7 +867,7 @@ impl HardwareHal for MockHal {
             device_name: r"\\.\DISPLAY1".into(),
             friendly_name: "Simulated internal panel".into(),
             current_hz: self.refresh_rate.load(Ordering::Relaxed),
-            available_hz: vec![60, 120, 144, 165],
+            available_hz: vec![60, 90, 120, 144, 165],
         }])
     }
 
@@ -976,13 +976,17 @@ mod tests {
         assert_eq!(hal.display_list().unwrap()[0].current_hz, 60);
         hal.switch_refresh_rate(144).unwrap();
         assert_eq!(hal.display_list().unwrap()[0].current_hz, 144);
+        for hz in [90, 120] {
+            hal.switch_refresh_rate(hz).unwrap();
+            assert_eq!(hal.display_list().unwrap()[0].current_hz, hz);
+        }
         assert!(hal
             .set_display_monitor_refresh_rate("missing-display", 60)
             .is_err());
         assert!(hal
             .set_display_monitor_refresh_rate(&display.device_name, 123)
             .is_err());
-        assert_eq!(hal.display_list().unwrap()[0].current_hz, 144);
+        assert_eq!(hal.display_list().unwrap()[0].current_hz, 120);
         hal.set_display_brightness(37).unwrap();
         assert_eq!(hal.display_brightness().unwrap(), 37);
     }

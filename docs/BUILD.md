@@ -93,3 +93,5 @@ python scripts/verify-oem-restore.py
 设置回归还覆盖外部档位变化、自定义颜色输入、显示刷新率与亮度读回、趋势缺值与隐藏断点、备份恢复和非法归档。`verify-preferences.py` 在独立进程及数据目录验证日志关闭/重新启用/重启持久化，以及恢复应用偏好时不修改设备与系统设置。
 
 `python scripts/verify-notification-recovery.py --library target/release/jiyaochu_core.dll --output artifacts/notification-recovery-validation.json` 被动订阅本机 WMI 并验证重连，不能证明实际 Fn 操作或睡眠恢复。它不写 EC，也不改变亮度。
+
+`python scripts/verify-display-controls.py --library target/release/jiyaochu_core.dll --output artifacts/display-controls-validation.json` 默认仅读回充电阈值、亮度和显示模式。显式增加 `--round-trip`、`--battery-round-trip` 或 `--refresh-round-trip` 会分别实际改变并恢复亮度、充电阈值或 90/120 Hz 刷新率，使用独立配置目录；不调整 OEM、MUX 或自启动。此实机检查不在模拟 CI 中执行。

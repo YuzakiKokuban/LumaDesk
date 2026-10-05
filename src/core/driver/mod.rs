@@ -5,6 +5,7 @@ pub mod nvml;
 pub mod uefi;
 
 pub use acpi::{AcpiDriver, AcpiStatus};
+pub(crate) mod battery;
 pub mod keyboard;
 pub mod performance;
 pub(crate) mod rollback;

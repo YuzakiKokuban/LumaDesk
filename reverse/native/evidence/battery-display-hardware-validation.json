@@ -1,0 +1,106 @@
+{
+  "passed": true,
+  "errors": [],
+  "brightness_writes": 2,
+  "battery_writes": 2,
+  "refresh_writes": 3,
+  "ec_before": {
+    "device": "\\\\.\\ACPIDriver",
+    "opened": true,
+    "ioctl": "0x9c40a488",
+    "reads": [
+      {
+        "address": "0x740",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 26,
+        "byte": 26,
+        "duration_ms": 0.081
+      },
+      {
+        "address": "0x770",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 4,
+        "byte": 4,
+        "duration_ms": 0.049
+      },
+      {
+        "address": "0x7b9",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 208,
+        "byte": 208,
+        "duration_ms": 0.028
+      },
+      {
+        "address": "0x7d0",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 75,
+        "byte": 75,
+        "duration_ms": 0.026
+      },
+      {
+        "address": "0x7a6",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 1,
+        "byte": 1,
+        "duration_ms": 0.026
+      }
+    ]
+  },
+  "battery": {
+    "charging": false,
+    "health_percent": null,
+    "limit": 80,
+    "limit_error": null,
+    "on_ac": true,
+    "percent": 100.0
+  },
+  "battery_changed": 60,
+  "battery_restored": 80,
+  "brightness_before": 40,
+  "brightness_changed": 41,
+  "brightness_restored": 40,
+  "displays": [
+    {
+      "available_hz": [
+        48,
+        60,
+        75,
+        90,
+        100,
+        120,
+        240
+      ],
+      "current_hz": 240,
+      "device_name": "\\\\.\\DISPLAY1",
+      "friendly_name": "Intel(R) Graphics"
+    }
+  ],
+  "refresh_resolution_before": [
+    32,
+    2560,
+    1600
+  ],
+  "refresh_candidates": [
+    {
+      "hz": 90,
+      "supported": true,
+      "readback": 90
+    },
+    {
+      "hz": 120,
+      "supported": true,
+      "readback": 120
+    }
+  ],
+  "refresh_restored": 240
+}

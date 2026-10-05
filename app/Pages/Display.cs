@@ -107,6 +107,10 @@ public sealed class DisplayPage : SettingsPage
                 setDevice(monitors[index].DeviceName); setRate(null); setFailure(null); setApplied(null);
             }).AutomationName("显示器选择").HAlign(HorizontalAlignment.Stretch).IsEnabled(!working && monitors.Count > 0),
             Chrome.Field("当前刷新率", chosen is null || chosen.CurrentHz == 0 ? "未知" : $"{chosen.CurrentHz} Hz"),
+            Caption("快捷档位：选择后点击应用刷新率。").Foreground(Theme.SecondaryText),
+            HStack(8, new uint[] { 60, 90, 120 }.Select(hz => (Element)Button($"{hz} Hz", () => setRate(hz))
+                .AutomationName($"刷新率档位 {hz} Hz").Width(90)
+                .IsEnabled(controlsEnabled && rates.Contains(hz))).ToArray()),
             ComboBox(rates.Select(hz => $"{hz} Hz").ToArray(), Optional<int>.Of(currentChoice is { } selectedHz ? Array.IndexOf(rates, selectedHz) : -1), index =>
             { if (index >= 0 && index < rates.Length) setRate(rates[index]); })
                 .AutomationName("显示刷新率").HAlign(HorizontalAlignment.Stretch).IsEnabled(controlsEnabled && rates.Length > 0),
@@ -117,6 +121,8 @@ public sealed class DisplayPage : SettingsPage
         else if (resource.Refreshing && bundle is null) displayRows.Add(Caption("正在检测显示器…").Foreground(Theme.SecondaryText));
         else if (chosen is null) displayRows.Add(Chrome.Notice("显示器不可用", "所选设备已断开，或尚未检测到活动显示器。重新检测后选择设备。", InfoBarSeverity.Warning));
         else if (rates.Length == 0) displayRows.Add(Caption("未读取到可用刷新率，请重新检测。").Foreground(Theme.SecondaryText));
+        if (chosen is not null && bundle?.DisplayError is null && new uint[] { 90, 120 }.Where(hz => !rates.Contains(hz)).ToArray() is { Length: > 0 } unavailable)
+            displayRows.Add(Caption($"当前分辨率下驱动不支持：{string.Join("、", unavailable.Select(hz => $"{hz} Hz"))}。").Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
 
         var brightnessRows = new List<Element>
         {
