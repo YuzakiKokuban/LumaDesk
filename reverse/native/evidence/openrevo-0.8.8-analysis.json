@@ -1,0 +1,730 @@
+{
+  "analysis_date": "2026-10-06",
+  "method": "Static file parsing only; target not executed; no hardware writes. VAs are preferred image addresses.",
+  "archive": {
+    "name": "open-revo-v0.8.8-6a67b94.7z",
+    "size": 2546537,
+    "sha256": "8e7e2f97b0b16d4b036cdff94e2da785f22ad61409b21519360a50f9f2016b8a"
+  },
+  "executable": {
+    "name": "open-revo.exe",
+    "size": 8565760,
+    "sha256": "81c041078c5152c4a7200541248799030d2a295bea366cc72a20ec79a2fc8858",
+    "image_base": "0x140000000"
+  },
+  "assets": [
+    {
+      "name": "assets/index-D5aBypuh.css",
+      "name_offset": "0x6ae1ef",
+      "data_offset": "0x6ae209",
+      "compressed_size": 8772,
+      "size": 55011,
+      "sha256": "ce754dfbaa19666b17c97c7b2c86f31fc21b81796eafcae54c7dfbce220d5b65"
+    },
+    {
+      "name": "assets/logo-BmAeRQ1x.png",
+      "name_offset": "0x6b044d",
+      "data_offset": "0x6b0466",
+      "compressed_size": 34043,
+      "size": 34039,
+      "sha256": "fa65db00f76cec02f35dd9eda1ef65d2b75093b1690ffb6209ea4cf25042b15a"
+    },
+    {
+      "name": "assets/index-B4wqWD2N.js",
+      "name_offset": "0x6b8961",
+      "data_offset": "0x6b897a",
+      "compressed_size": 134066,
+      "size": 598008,
+      "sha256": "7abbb4095e0373f321647308b09c98c2d6c81c224092f6b362e54246dc2d8ae7"
+    },
+    {
+      "name": "assets/alipay-CR2EmPpy.jpg",
+      "name_offset": "0x6d952c",
+      "data_offset": "0x6d9547",
+      "compressed_size": 96125,
+      "size": 106654,
+      "sha256": "b32bedfd58524085884489edd1f6a1f3fba1c65cbc83662f0c27514a78c8dcdf"
+    },
+    {
+      "name": "assets/wechat-CQ1ljkRz.jpg",
+      "name_offset": "0x6f0cc4",
+      "data_offset": "0x6f0cdf",
+      "compressed_size": 79025,
+      "size": 88346,
+      "sha256": "041401963a97728bef1e0451c3b15aedfec2323b985e1279c8cd3bcdc78f0b5b"
+    },
+    {
+      "name": "index.html",
+      "name_offset": "0x6ae081",
+      "data_offset": "0x6ae08b",
+      "compressed_size": 356,
+      "size": 827,
+      "sha256": "24e427982e7bb48e71a091dee651041d03a8e0e648dd3b034c7e11505d505054"
+    }
+  ],
+  "frontend": {
+    "observed_literal_invoke_count": 124,
+    "count_definition": "Unique literal m(\"command\", ...) calls in extracted JS; not a complete backend command count.",
+    "commands": [
+      "apply_color_profile",
+      "apply_custom_brfx_script",
+      "apply_custom_profile",
+      "apply_display_color_preset",
+      "apply_fan_curve_live",
+      "apply_four_zone_colors",
+      "apply_hinge_lighting",
+      "apply_keyboard_lighting",
+      "apply_lightbar_lighting",
+      "apply_live_custom_tweak",
+      "apply_logo_lighting",
+      "clear_custom_brfx_script",
+      "clear_user_data_dir",
+      "close_custom_widget",
+      "create_profile_preset",
+      "delete_custom_color_profile",
+      "delete_profile_preset",
+      "export_profile_preset",
+      "fill_water_cooler",
+      "fit_mini_window_height",
+      "frontend_ready",
+      "get_active_background",
+      "get_active_profile_id",
+      "get_active_skin",
+      "get_app_config",
+      "get_bios_advanced_menu_status",
+      "get_color_calibration_state",
+      "get_cpu_freq_info",
+      "get_custom_brfx_list",
+      "get_custom_plugins",
+      "get_default_builtin_presets",
+      "get_device_switches",
+      "get_display_brightness",
+      "get_display_tuning_state",
+      "get_gpu_mode_info",
+      "get_gpu_tuning_capabilities",
+      "get_hardware_status",
+      "get_keyboard_hardware_info",
+      "get_lighting_status",
+      "get_log_status",
+      "get_module_toggles",
+      "get_osd_config",
+      "get_power_settings",
+      "get_profiles_list",
+      "get_wake_window_mode",
+      "get_water_cooler_status",
+      "get_windows_power_schemes",
+      "heal_gpu_power_contract",
+      "hide_osd_window",
+      "import_color_preset_content",
+      "import_custom_color_profile",
+      "import_profile_preset",
+      "load_plugin_background_css",
+      "load_plugin_html",
+      "load_plugin_theme_css",
+      "open_brfx_in_notepad",
+      "open_custom_widget",
+      "open_log_file",
+      "open_plugins_dir",
+      "open_profiles_folder",
+      "open_user_data_dir",
+      "pair_water_cooler",
+      "rename_profile_preset",
+      "report_window_visibility",
+      "reset_color_preset_to_default",
+      "reset_cpu_freq_limit",
+      "reset_profile_preset",
+      "reset_water_cooler",
+      "resize_window",
+      "save_app_config",
+      "save_current_lighting_as_startup",
+      "save_custom_brfx",
+      "save_osd_config",
+      "save_profile_preset",
+      "set_active_background",
+      "set_active_profile_id",
+      "set_active_skin",
+      "set_active_windows_power_scheme",
+      "set_auto_min_refresh_on_battery",
+      "set_autostart_enabled",
+      "set_battery_hardware_limit",
+      "set_battery_limit",
+      "set_battery_mode",
+      "set_ceremony_enabled",
+      "set_cpu_freq_limit",
+      "set_custom_fx_text",
+      "set_custom_plugin_enabled",
+      "set_device_switch",
+      "set_display_brightness",
+      "set_display_monitor_refresh_rate",
+      "set_display_tuning_enabled",
+      "set_experimental_igpu_unlock",
+      "set_fan_boost",
+      "set_gpu_mode",
+      "set_lighting_sleep_timer",
+      "set_log_filter",
+      "set_log_level",
+      "set_master_sleep_guard",
+      "set_module_enabled",
+      "set_power_mode",
+      "set_power_option",
+      "set_sleep_auto_office",
+      "set_sleep_guard_option",
+      "set_unlock_battery_power_limit",
+      "set_wake_window_mode",
+      "set_water_cooler_enabled",
+      "set_water_cooler_led",
+      "set_water_cooler_pump_thresholds",
+      "set_water_cooler_speed",
+      "set_water_cooler_strategy",
+      "set_win_key_locked",
+      "show_osd_window",
+      "start_water_cooler",
+      "stop_water_cooler",
+      "switch_refresh_rate",
+      "toggle_bios_advanced_menu",
+      "toggle_fan_isolated_output",
+      "toggle_fan_ramp_rate",
+      "toggle_maximize_window",
+      "toggle_oem_service",
+      "trigger_lighting_welcome",
+      "trigger_osd_preview",
+      "turn_off_screen",
+      "widget_ready"
+    ],
+    "feature_call_locations": [
+      {
+        "command": "set_auto_min_refresh_on_battery",
+        "javascript_char_offset": 205421,
+        "javascript_byte_offset": 206046
+      },
+      {
+        "command": "set_lighting_sleep_timer",
+        "javascript_char_offset": 334156,
+        "javascript_byte_offset": 343524
+      },
+      {
+        "command": "set_active_profile_id",
+        "javascript_char_offset": 449511,
+        "javascript_byte_offset": 466165
+      },
+      {
+        "command": "apply_fan_curve_live",
+        "javascript_char_offset": 455351,
+        "javascript_byte_offset": 472407
+      },
+      {
+        "command": "toggle_fan_ramp_rate",
+        "javascript_char_offset": 455181,
+        "javascript_byte_offset": 472237
+      },
+      {
+        "command": "toggle_fan_isolated_output",
+        "javascript_char_offset": 456249,
+        "javascript_byte_offset": 473305
+      },
+      {
+        "command": "apply_live_custom_tweak",
+        "javascript_char_offset": 449417,
+        "javascript_byte_offset": 466071
+      },
+      {
+        "command": "get_gpu_tuning_capabilities",
+        "javascript_char_offset": 447356,
+        "javascript_byte_offset": 464010
+      },
+      {
+        "command": "apply_display_color_preset",
+        "javascript_char_offset": 343512,
+        "javascript_byte_offset": 353240
+      },
+      {
+        "command": "toggle_bios_advanced_menu",
+        "javascript_char_offset": 454666,
+        "javascript_byte_offset": 471652
+      },
+      {
+        "command": "set_power_option",
+        "javascript_char_offset": 390007,
+        "javascript_byte_offset": 403291
+      },
+      {
+        "command": "pair_water_cooler",
+        "javascript_char_offset": 495331,
+        "javascript_byte_offset": 513890
+      },
+      {
+        "command": "set_sleep_guard_option",
+        "javascript_char_offset": 390435,
+        "javascript_byte_offset": 403719
+      }
+    ]
+  },
+  "model_catalogue": {
+    "file_offset": "0x721f02",
+    "byte_size": 178713,
+    "raw_sha256": "049507c0854c0cc8e95bad205c1262904eead031fb0548855dfe46d917d57bfa",
+    "count": 29,
+    "project_ids": [
+      16,
+      24,
+      25,
+      26
+    ],
+    "entries": [
+      {
+        "model_id": "GM6IX9B",
+        "project_id": 25,
+        "bios_project_id": "IDB",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "X6AR55",
+        "project_id": 26,
+        "bios_project_id": "TRX1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "XXAF55",
+        "project_id": 26,
+        "bios_project_id": "TRX1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "XxPTL",
+        "project_id": 26,
+        "bios_project_id": "PTL",
+        "max_fan_duty": 100,
+        "fan_control_respective": true,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "CANGLONG",
+        "project_id": 26,
+        "bios_project_id": "TRX1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "JIAOLONG",
+        "project_id": 26,
+        "bios_project_id": "TRX1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6TRX1",
+        "project_id": 26,
+        "bios_project_id": "TRX1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PG7x",
+        "project_id": 26,
+        "bios_project_id": "PG7",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PG3x",
+        "project_id": 26,
+        "bios_project_id": "PG3",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PG0x",
+        "project_id": 26,
+        "bios_project_id": "PG0",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6ARxx",
+        "project_id": 26,
+        "bios_project_id": "AR",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4TRX1",
+        "project_id": 24,
+        "bios_project_id": "TRX1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4PGx1",
+        "project_id": 16,
+        "bios_project_id": "PG1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4AQE3",
+        "project_id": 24,
+        "bios_project_id": "AQE3",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4AQxx",
+        "project_id": 24,
+        "bios_project_id": "AQ",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4AUxf",
+        "project_id": 24,
+        "bios_project_id": "AU",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4AUxx",
+        "project_id": 24,
+        "bios_project_id": "AU",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4AXxx",
+        "project_id": 24,
+        "bios_project_id": "AX",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4PGx2",
+        "project_id": 24,
+        "bios_project_id": "PG2",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4PRxx",
+        "project_id": 24,
+        "bios_project_id": "PR",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4PUxx",
+        "project_id": 24,
+        "bios_project_id": "PU",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4TQx1",
+        "project_id": 24,
+        "bios_project_id": "TQ1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH4TUX1",
+        "project_id": 24,
+        "bios_project_id": "TU1",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6AQxx",
+        "project_id": 26,
+        "bios_project_id": "AQ",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PG0x150W",
+        "project_id": 26,
+        "bios_project_id": "PG0",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PG3x150W",
+        "project_id": 26,
+        "bios_project_id": "PG3",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PG7x150W",
+        "project_id": 26,
+        "bios_project_id": "PG7",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": false,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PGEx",
+        "project_id": 26,
+        "bios_project_id": "PGE",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      },
+      {
+        "model_id": "PH6PRxx",
+        "project_id": 26,
+        "bios_project_id": "PR",
+        "max_fan_duty": 100,
+        "fan_control_respective": false,
+        "has_water_cooler": true,
+        "has_fan_tables": true
+      }
+    ]
+  },
+  "native_observations": [
+    {
+      "id": "ec_read_ioctl",
+      "va": "0x1403431da",
+      "file_offset": "0x3425da",
+      "bytes": "ba88a4409c41b90400000048",
+      "instruction": "mov      edx, 0x9c40a488",
+      "local_disassembly": "open-revo-1403430f0.asm"
+    },
+    {
+      "id": "ec_write_ioctl",
+      "va": "0x140343c10",
+      "file_offset": "0x343010",
+      "bytes": "ba8ca4409c41b90800000048",
+      "instruction": "mov      edx, 0x9c40a48c",
+      "local_disassembly": "open-revo-140343a10.asm"
+    },
+    {
+      "id": "fan_ramp_address",
+      "va": "0x140342cea",
+      "file_offset": "0x3420ea",
+      "bytes": "66b98707e81d0d000089c331",
+      "instruction": "mov      cx, 0x787",
+      "local_disassembly": "open-revo-140342c80.asm"
+    },
+    {
+      "id": "fan_isolated_mask",
+      "va": "0x140345ac5",
+      "file_offset": "0x344ec5",
+      "bytes": "80e27fc0e30708d3885c2437",
+      "instruction": "and      dl, 0x7f",
+      "local_disassembly": "open-revo-140345aa0.asm"
+    },
+    {
+      "id": "fan_isolated_address",
+      "va": "0x140345af1",
+      "file_offset": "0x344ef1",
+      "bytes": "66b9c50789dae814dfffff89",
+      "instruction": "mov      cx, 0x7c5",
+      "local_disassembly": "open-revo-140345aa0.asm"
+    },
+    {
+      "id": "fan_latch_release_pulse",
+      "va": "0x140342e83",
+      "file_offset": "0x342283",
+      "bytes": "b204e8860b000031c9b001f0",
+      "instruction": "mov      dl, 4",
+      "local_disassembly": "open-revo-140342e50.asm"
+    },
+    {
+      "id": "fan_latch_commit",
+      "va": "0x140345eeb",
+      "file_offset": "0x3452eb",
+      "bytes": "b204e81edbffff89c331c9b0",
+      "instruction": "mov      dl, 4",
+      "local_disassembly": "open-revo-140345ec0.asm"
+    },
+    {
+      "id": "fan_table_cpu_temp_up",
+      "va": "0x1403c2c90",
+      "file_offset": "0x3c2090",
+      "bytes": "488d8b000f000066890c9840",
+      "instruction": "lea      rcx, [rbx + 0xf00]",
+      "local_disassembly": "open-revo-1403c2ba0.asm"
+    },
+    {
+      "id": "fan_table_cpu_duty_first_zero",
+      "va": "0x1403c2d28",
+      "file_offset": "0x3c2128",
+      "bytes": "66c78080000000200fc68082",
+      "instruction": "mov      word ptr [rax + 0x80], 0xf20",
+      "local_disassembly": "open-revo-1403c2ba0.asm"
+    },
+    {
+      "id": "fan_table_gpu_duty_first_zero",
+      "va": "0x1403c2e3f",
+      "file_offset": "0x3c223f",
+      "bytes": "66c78040010000500fc68042",
+      "instruction": "mov      word ptr [rax + 0x140], 0xf50",
+      "local_disassembly": "open-revo-1403c2ba0.asm"
+    },
+    {
+      "id": "fan_table_max_control",
+      "va": "0x1403c2f14",
+      "file_offset": "0x3c2314",
+      "bytes": "66c7817c0100005f0f4088b1",
+      "instruction": "mov      word ptr [rcx + 0x17c], 0xf5f",
+      "local_disassembly": "open-revo-1403c2ba0.asm"
+    },
+    {
+      "id": "fan_table_write_count",
+      "va": "0x1403c2f2d",
+      "file_offset": "0x3c232d",
+      "bytes": "ba60000000e81909f8ffe884",
+      "instruction": "mov      edx, 0x60",
+      "local_disassembly": "open-revo-1403c2ba0.asm"
+    },
+    {
+      "id": "gpu_full_power_db",
+      "va": "0x140344b3c",
+      "file_offset": "0x343f3c",
+      "bytes": "66b94607e8cbeeffff89c331",
+      "instruction": "mov      cx, 0x746",
+      "local_disassembly": "open-revo-140344aa0.asm"
+    },
+    {
+      "id": "gpu_other_ctrl",
+      "va": "0x140344d9e",
+      "file_offset": "0x34419e",
+      "bytes": "66c744244443078844244666",
+      "instruction": "mov      word ptr [rsp + 0x44], 0x743",
+      "local_disassembly": "open-revo-140344aa0.asm"
+    },
+    {
+      "id": "gpu_other_offset",
+      "va": "0x140344da9",
+      "file_offset": "0x3441a9",
+      "bytes": "66c74424484407884c244a66",
+      "instruction": "mov      word ptr [rsp + 0x48], 0x744",
+      "local_disassembly": "open-revo-140344aa0.asm"
+    },
+    {
+      "id": "gpu_other_db",
+      "va": "0x140344db4",
+      "file_offset": "0x3441b4",
+      "bytes": "66c744244c46078854244e48",
+      "instruction": "mov      word ptr [rsp + 0x4c], 0x746",
+      "local_disassembly": "open-revo-140344aa0.asm"
+    },
+    {
+      "id": "gpu_repair_flag",
+      "va": "0x140345560",
+      "file_offset": "0x344960",
+      "bytes": "66c74424484507c644244aff",
+      "instruction": "mov      word ptr [rsp + 0x48], 0x745",
+      "local_disassembly": "open-revo-1403453d0.asm"
+    },
+    {
+      "id": "nvapi_query_core",
+      "va": "0x14018b534",
+      "file_offset": "0x18a934",
+      "bytes": "b93db1c034ffd548898424d8",
+      "instruction": "mov      ecx, 0x34c0b13d",
+      "local_disassembly": "open-revo-14018b350.asm"
+    },
+    {
+      "id": "nvapi_query_ps",
+      "va": "0x14018b543",
+      "file_offset": "0x18a943",
+      "bytes": "b9560a64e3ffd54889c5ffd7",
+      "instruction": "mov      ecx, 0xe3640a56",
+      "local_disassembly": "open-revo-14018b350.asm"
+    },
+    {
+      "id": "nvapi_core_struct_version",
+      "va": "0x140341fd8",
+      "file_offset": "0x3413d8",
+      "bytes": "c700f81c020049be01000000",
+      "instruction": "mov      dword ptr [rax], 0x21cf8",
+      "local_disassembly": "open-revo-140341f70.asm"
+    },
+    {
+      "id": "nvapi_mem_struct_version",
+      "va": "0x1403420ef",
+      "file_offset": "0x3414ef",
+      "bytes": "c700941c01004c897008c740",
+      "instruction": "mov      dword ptr [rax], 0x11c94",
+      "local_disassembly": "open-revo-140341f70.asm"
+    },
+    {
+      "id": "lighting_idle_input",
+      "va": "0x1400edb10",
+      "file_offset": "0xecf10",
+      "bytes": "4c8b3d996055004c8b2dc25a",
+      "instruction": "mov      r15, qword ptr [rip + 0x556099] ; [0x140643bb0] user32.dll!GetLastInputInfo",
+      "local_disassembly": "open-revo-1400edae0.asm"
+    },
+    {
+      "id": "lighting_idle_minutes",
+      "va": "0x1400edba6",
+      "file_offset": "0xecfa6",
+      "bytes": "69c060ea000039c80f862c01",
+      "instruction": "imul     eax, eax, 0xea60",
+      "local_disassembly": "open-revo-1400edae0.asm"
+    }
+  ],
+  "limitations": [
+    "No claim that these features were first introduced in 0.8.8; no matched older binary diff.",
+    "UI invocation and native code do not prove hardware behavior.",
+    "Built-in model defaults and inferred chip capabilities are not authoritative local device specifications.",
+    "No complete BLE, BIOS advanced-menu, Fn-write or multi-zone lighting protocol recovery in this pass.",
+    "Raw executable, extracted frontend, model tables and full disassembly remain in ignored local artifacts."
+  ]
+}
