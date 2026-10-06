@@ -64,6 +64,15 @@ internal static class SettingsVerification
         }, "Page did not mount: " + heading);
         return viewer!;
     }
+    private static async Task VerifyTrendsPausedAsync()
+    {
+        var nav = NativeLayout.VerificationNavigation!;
+        await WaitAsync(() => !Tree(nav).OfType<TrendGraphControl>().Any(), "Trend controls remained mounted outside the overview tab");
+        var paused = MachineStore.Snapshot;
+        MachineStore.Refresh();
+        await WaitAsync(() => MachineStore.Snapshot.LastUpdated > paused.LastUpdated, "Settings tab stopped its normal status updates");
+        Require(ReferenceEquals(MachineStore.Snapshot.Trends, paused.Trends), "Trend samples were recorded or copied outside the overview tab");
+    }
     private static async Task MeasureTrendRefreshAsync(Dictionary<string, object> report)
     {
         var graphs = new[] { new TrendGraphControl(), new TrendGraphControl(), new TrendGraphControl() };
@@ -156,6 +165,7 @@ internal static class SettingsVerification
                 return brightness is not null;
             }, "Lighting settings did not load: " + string.Join(" | ", Tree(lighting).OfType<TextBlock>().Select(text => text.Text)));
             await WaitAsync(() => lighting.ScrollableHeight > 0, "Lighting page layout did not settle");
+            await VerifyTrendsPausedAsync();
             brightness!.Focus(FocusState.Programmatic);
             await Task.Delay(100);
             lighting.ChangeView(null, Math.Min(120, lighting.ScrollableHeight), null, disableAnimation: true);
@@ -191,6 +201,7 @@ internal static class SettingsVerification
             var system = await NavigateAsync("system", "系统");
             ToggleSwitch? osdToggle = null;
             await WaitAsync(() => { osdToggle = Tree(system).OfType<ToggleSwitch>().LastOrDefault(); return osdToggle is not null && osdToggle.IsEnabled; }, "System settings did not load");
+            await VerifyTrendsPausedAsync();
             // Prefer a stable, mounted numeric control whose value writes OSD configuration.
             var opacity = Tree(system).OfType<NumberBox>().First();
             await WaitAsync(() => system.ScrollableHeight > 0, "System page layout did not settle");
@@ -215,6 +226,7 @@ internal static class SettingsVerification
             var tuning = await NavigateAsync("tuning", "电源管理");
             Button? office = null;
             await WaitAsync(() => { office = Tree(tuning).OfType<Button>().FirstOrDefault(button => AutomationProperties.GetName(button) == "办公" && button.IsEnabled); return office is not null; }, "Power settings did not load");
+            await VerifyTrendsPausedAsync();
             var powerUnloaded = false;
             office!.Unloaded += (_, _) => powerUnloaded = true;
             Invoke(office);
@@ -233,6 +245,7 @@ internal static class SettingsVerification
 
             var display = await NavigateAsync("display", "显示设置");
             await WaitAsync(() => Tree(display).OfType<Button>().Any(button => AutomationProperties.GetName(button) == "保存显卡模式"), "Merged GPU settings did not load");
+            await VerifyTrendsPausedAsync();
             var originalGpuMode = (await Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info")).ConfiguredMode;
             ComboBox? rates = null;
             await WaitAsync(() => { rates = Tree(display).OfType<ComboBox>().FirstOrDefault(box => AutomationProperties.GetName(box) == "显示刷新率" && box.IsEnabled); return rates is not null; }, "Display settings did not load");
@@ -280,7 +293,15 @@ internal static class SettingsVerification
             var gpuHeading = Tree(display).OfType<TextBlock>().First(text => text.Text == "显卡输出模式");
             var gpuOffset = gpuHeading.TransformToVisual(display).TransformPoint(new Windows.Foundation.Point()).Y + display.VerticalOffset - 30;
             await CaptureAsync(display, reportPath + ".gpu.png", reportPath, Math.Max(0, gpuOffset));
+            var beforeOverview = MachineStore.Snapshot.Trends;
+            var previousSample = beforeOverview.LastOrDefault();
             var overview = await NavigateAsync("status", "状态概览");
+            await WaitAsync(() => MachineStore.Snapshot.Trends.LastOrDefault() is { } latest && (previousSample is null || latest.At > previousSample.At), "Returning to overview did not resume trend recording");
+            var resumed = MachineStore.Snapshot.Trends;
+            Require(resumed.First(sample => previousSample is null || sample.At > previousSample.At).BreakBefore, "Returning to overview joined samples across an inactive tab");
+            Require(previousSample is null || resumed.Contains(previousSample), "Switching tabs discarded retained trend history");
+            report["trends_only_record_and_mount_on_overview"] = true;
+            report["trends_resume_with_retained_history_and_gap"] = true;
             await CaptureAsync(overview, reportPath + ".overview.png", reportPath);
             var plots = Tree(overview).OfType<TrendGraphControl>().ToArray();
             Require(plots.Length == 3 && plots.All(plot => AutomationProperties.GetName(plot).Contains("最近五分钟趋势")), "Native trend graphs did not mount with accessible summaries");

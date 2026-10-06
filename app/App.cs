@@ -163,6 +163,9 @@ class App : Component
 
         var nav = UseNavigation(AppRoute.Status);
         var (isPaneOpen, setIsPaneOpen) = UseState(true);
+        var overviewVisible = visible && nav.CurrentRoute == AppRoute.Status;
+        UseEffect(() => MachineStore.SetTrendActive(overviewVisible), overviewVisible);
+        UseEffect(() => () => MachineStore.SetTrendActive(false), []);
 
         var items = new List<NavigationViewItemData>
         {

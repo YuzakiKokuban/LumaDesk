@@ -56,6 +56,7 @@ public static class MachineStore
     private static MachineState _snapshot = new();
     private static int _started;
     private static int _active;
+    private static bool _trendActive;
     private static long _hardwareReads;
     private static readonly TrendHistory History = new();
     internal static long HardwareReads => Interlocked.Read(ref _hardwareReads);
@@ -65,6 +66,18 @@ public static class MachineStore
     {
         if (!active) History.MarkGap();
         if (Interlocked.Exchange(ref _active, active ? 1 : 0) != (active ? 1 : 0)) Refresh();
+    }
+
+    /// <summary>Trend recording belongs to the visible overview route, independently of other status consumers.</summary>
+    public static void SetTrendActive(bool active)
+    {
+        lock (Gate)
+        {
+            if (_trendActive == active) return;
+            _trendActive = active;
+            if (!active) History.MarkGap();
+        }
+        if (active && IsActive) Refresh();
     }
 
     /// <summary>The current reading. Safe to call from any thread.</summary>
@@ -166,17 +179,26 @@ public static class MachineStore
                     var events = await Backend.DrainEventsAsync().ConfigureAwait(false);
 
                     var updated = DateTimeOffset.UtcNow;
-                    History.Record(updated, status, IsActive, BackgroundHost.IsVisible);
-
-                    Publish(state => state with
+                    Publish(state =>
                     {
-                        Status = status,
-                        Error = null,
-                        Loading = false,
-                        Backend = bootstrap.Backend,
-                        ConfigError = bootstrap.ConfigError,
-                        LastUpdated = updated,
-                        Trends = History.Snapshot(),
+                        // Publish holds Gate, so a route change cannot race an in-flight poll
+                        // into recording or copying a trend snapshot after the tab is left.
+                        var trends = state.Trends;
+                        if (_trendActive && IsActive && BackgroundHost.IsVisible)
+                        {
+                            History.Record(updated, status, active: true, visible: true);
+                            trends = History.Snapshot();
+                        }
+                        return state with
+                        {
+                            Status = status,
+                            Error = null,
+                            Loading = false,
+                            Backend = bootstrap.Backend,
+                            ConfigError = bootstrap.ConfigError,
+                            LastUpdated = updated,
+                            Trends = trends,
+                        };
                     });
 
                     foreach (var raised in events)

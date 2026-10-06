@@ -215,7 +215,7 @@ public sealed class OverviewPage : Component
                 new TrendGraphElement(samples, metric).WithKey("trend:" + metric),
                 Caption(TrendGraph.Summary(samples, metric)).Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
         return Chrome.SectionCard("最近五分钟趋势",
-            Caption("仅在主窗口可见时记录；收起、读取失败与缺失传感器显示为空隙。ACPI 热区温度并非 CPU 核心温度。")
+            Caption("仅在状态概览可见时记录；切页、收起、读取失败与缺失传感器显示为空隙。ACPI 热区温度并非 CPU 核心温度。")
                 .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
             Plot("温度 (°C)", TrendMetric.Temperature),
             Plot("负载 (%)", TrendMetric.Load),
