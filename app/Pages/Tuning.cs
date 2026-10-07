@@ -20,31 +20,48 @@ namespace JiYaoChu.Pages;
 /// </remarks>
 public sealed class TuningPage : SettingsPage
 {
+    private Task? _powerReadback;
+
     public override Element Render()
     {
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
         var (applied, setApplied) = UseState<string?>(null);
-        var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
+        var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot).ForPage("tuning");
 
         var (reader, settings) = UseSettings(() => Backend.CallAsync<PowerSettings>("get_power_settings"));
         UseEffect(() => EventBus.Subscribe(raised =>
         {
             if (raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() is
                 "set_power_mode" or "set_power_automation" or "set_windows_power_mode" or "set_active_windows_power_scheme" or "restore_app_settings")
-                reader.Refresh();
+                _powerReadback = reader.RefreshAsync();
         }), []);
-        UseEffect(() => { if (machine.HasData) reader.Refresh(); }, $"{machine.Status?.PowerMode}|{machine.Status?.WindowsPowerScheme}");
+        UseEffect(() =>
+        {
+            if (!machine.HasData || reader.Snapshot.Value is null) return () => { };
+            var cancelled = false;
+            async Task ReconcileAsync()
+            {
+                if (_powerReadback is { } readback) await readback;
+                if (cancelled) return;
+                var current = reader.Snapshot.Value;
+                var latest = MachineStore.Snapshot.ForPage("tuning").Status;
+                if (latest is null) return;
+                if (current is not null && (current.PowerMode != latest?.PowerMode || current.ActiveScheme != latest?.WindowsPowerScheme))
+                    _powerReadback = reader.RefreshAsync();
+            }
+            _ = ReconcileAsync();
+            return () => cancelled = true;
+        }, $"{machine.Status?.PowerMode}|{machine.Status?.WindowsPowerScheme}|{settings.Value is not null}");
         var working = busy || settings.Refreshing;
 
-        // One callback for "a write landed": refresh the live snapshot and force
-        // the resource above to re-read the stored configuration.
+        // Command events own successful settings readback; failures need a recovery read.
         void Settled(string? error, string? ok)
         {
             setFailure(error);
             setApplied(ok);
             MachineStore.Refresh();
-            reader.Refresh();
+            if (error is not null) reader.Refresh();
         }
 
         var sections = new List<Element>();

@@ -15,7 +15,7 @@ public sealed class OverviewPage : Component
 {
     public override Element Render()
     {
-        var state = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
+        var state = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot).ForPage("overview");
         var wide = UseBreakpoint(1120);
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);

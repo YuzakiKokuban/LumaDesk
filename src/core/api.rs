@@ -236,6 +236,69 @@ impl Api {
         Ok(status)
     }
 
+    /// Only queries sensor groups used by the visible page, plus lightweight OSD controls.
+    /// Omitted groups were not read; a requested but unavailable control remains null.
+    pub fn get_page_status(&self, page: String) -> Result<serde_json::Value, String> {
+        if !matches!(
+            page.as_str(),
+            "overview" | "tuning" | "display" | "system" | "lighting"
+        ) {
+            return Err(format!("unknown status page '{page}'"));
+        }
+        let mut result = if page == "overview" {
+            serde_json::to_value(self.get_hardware_status()?).map_err(|error| error.to_string())?
+        } else {
+            let hal = self.state.hal();
+            let config = config_snapshot(&self.state);
+            let mode = hal.get_power_mode();
+            let mut value = serde_json::json!({
+                "power_mode": mode.as_ref().ok(),
+                "power_mode_error": mode.as_ref().err().map(ToString::to_string),
+                "fan_boost": hal.get_fan_boost().ok(),
+                "elevated": hal.is_elevated(),
+            });
+            match page.as_str() {
+                "tuning" => {
+                    value["cpu"] = serde_json::to_value(hal.cpu_status().map_err(fail)?)
+                        .map_err(|error| error.to_string())?;
+                    value["fans"] = serde_json::to_value(hal.fan_status().map_err(fail)?)
+                        .map_err(|error| error.to_string())?;
+                    value["battery"] = serde_json::to_value(
+                        hal.battery_status(config.battery_limit).map_err(fail)?,
+                    )
+                    .map_err(|error| error.to_string())?;
+                    value["support_flags"] =
+                        serde_json::to_value(hal.support_flags().map_err(fail)?)
+                            .map_err(|error| error.to_string())?;
+                    value["windows_power_scheme"] =
+                        serde_json::json!(hal.active_windows_power_scheme().unwrap_or_default());
+                }
+                "display" => {
+                    value["gpu"] = serde_json::to_value(hal.gpu_status().map_err(fail)?)
+                        .map_err(|error| error.to_string())?;
+                }
+                "system" => {
+                    value["device"] = serde_json::to_value(hal.device_status().map_err(fail)?)
+                        .map_err(|error| error.to_string())?;
+                    value["support_flags"] =
+                        serde_json::to_value(hal.support_flags().map_err(fail)?)
+                            .map_err(|error| error.to_string())?;
+                }
+                _ => {}
+            }
+            value
+        };
+        let fields: Vec<_> = result
+            .as_object()
+            .ok_or("invalid status object")?
+            .keys()
+            .cloned()
+            .collect();
+        result["fields"] = serde_json::json!(fields);
+        result["page"] = serde_json::json!(page);
+        Ok(result)
+    }
+
     /// The persisted application configuration.
     pub fn get_app_config(&self) -> Result<AppConfig, String> {
         Ok(config_snapshot(&self.state))

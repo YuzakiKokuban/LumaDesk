@@ -132,7 +132,7 @@ impl HardwareHal for WindowsHal {
                 .gpu_mode_info(cfg)
                 .ok()
                 .and_then(|info| info.configured_mode),
-            fan_boost: self.acpi.read_ec(0x751).ok().map(|v| v & 0x40 != 0),
+            fan_boost: self.get_fan_boost().ok(),
             windows_power_scheme: self.active_windows_power_scheme().unwrap_or_default(),
             elevated: self.is_elevated(),
         })
@@ -393,6 +393,13 @@ impl HardwareHal for WindowsHal {
         self.acpi.transaction(|ec| {
             crate::core::driver::performance::require_project(ec.read(0x740)?)?;
             ec.set_bit(0x751, 0x40, enabled)
+        })
+    }
+
+    fn get_fan_boost(&self) -> HalResult<bool> {
+        self.acpi.transaction(|ec| {
+            crate::core::driver::performance::require_project(ec.read(0x740)?)?;
+            Ok(ec.read(0x751)? & 0x40 != 0)
         })
     }
 

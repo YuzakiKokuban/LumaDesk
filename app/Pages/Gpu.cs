@@ -15,19 +15,22 @@ public sealed class GpuSettingsSection : SettingsPage
     {
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
-        var (draft, setDraft) = UseState<GpuMode?>(null);
+        var (draft, setDraft) = UseState(PageContext.GpuDraft);
         var (confirmRestart, setConfirmRestart) = UseState(false);
-        var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
+        var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot).ForPage("display");
         var (reader, resource) = UseSettings(() => Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info"));
         var info = resource.Match<GpuModeInfo?>(() => null, value => value, _ => null);
         var current = info?.ConfiguredMode;
-        var target = draft ?? current;
+        var validDraft = info is null ? draft : PageContext.ReconcileGpu(draft, info);
+        var target = validDraft ?? current;
+        void UpdateDraft(GpuMode? value) { PageContext.GpuDraft = value; setDraft(value); }
+        UseEffect(() => { if (draft != validDraft) UpdateDraft(validDraft); }, draft, validDraft);
         var pending = info?.PendingReboot == true;
 
         void Settled(string? error, string? success)
         {
             setFailure(error);
-            if (success is not null) setDraft(null);
+            if (success is not null) { PageContext.ClearGpuDraft(target); setDraft(PageContext.GpuDraft); }
             reader.Refresh();
             MachineStore.Refresh();
         }
@@ -57,7 +60,7 @@ public sealed class GpuSettingsSection : SettingsPage
                     GpuModes.Name(mode), GpuModes.Tag(mode), GpuModes.Description(mode),
                     selected: mode == target,
                     enabled: !busy && value.Supported && (mode != GpuMode.Igpu || value.SupportsIgpu),
-                    onClick: () => { setDraft(mode); setFailure(null); }, badge: "已选择"))]),
+                    onClick: () => { UpdateDraft(mode == current ? null : mode); setFailure(null); }, badge: "已选择"))]),
                 !value.Supported || !value.SupportsIgpu
                     ? Caption(value.Reason.Length > 0 ? value.Reason : "此机型的核显模式尚未完成适配。").Foreground(Theme.SecondaryText)
                     : Grid([], []),

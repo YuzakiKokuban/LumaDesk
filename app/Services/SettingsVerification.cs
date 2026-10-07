@@ -72,6 +72,128 @@ internal static class SettingsVerification
         MachineStore.Refresh();
         await WaitAsync(() => MachineStore.Snapshot.LastUpdated > paused.LastUpdated, "Settings tab stopped its normal status updates");
         Require(ReferenceEquals(MachineStore.Snapshot.Trends, paused.Trends), "Trend samples were recorded or copied outside the overview tab");
+        var page = nav.SelectedItem is NavigationViewItem item ? item.Tag?.ToString() : null;
+        await WaitAsync(() => MachineStore.Snapshot.Page == page && MachineStore.Snapshot.Fields.Count > 0, "Telemetry did not settle on the selected page");
+        var fields = MachineStore.Snapshot.Fields;
+        var groups = fields.Where(field => field is "cpu" or "gpu" or "fans" or "battery" or "device" or "support_flags").Order().ToArray();
+        var expected = page switch
+        {
+            "tuning" => new[] { "battery", "cpu", "fans", "support_flags" },
+            "display" => new[] { "gpu" },
+            "system" => new[] { "device", "support_flags" },
+            "lighting" => Array.Empty<string>(),
+            _ => throw new InvalidOperationException("Unexpected page scope in trend pause test"),
+        };
+        Require(groups.SequenceEqual(expected), "Selected page queried unused hardware groups: " + string.Join(",", groups));
+    }
+    private static async Task VerifyPageRoundTripsAsync(ScrollViewer display, Dictionary<string, object> report)
+    {
+        report["page_scroll_trace"] = NativeLayout.ScrollVerificationTrace;
+        var nav = NativeLayout.VerificationNavigation!;
+        static T Named<T>(DependencyObject root, string name) where T : FrameworkElement
+            => Tree(root).OfType<T>().First(control => AutomationProperties.GetName(control) == name);
+        static bool Loaded(ScrollViewer viewer)
+            => viewer.IsLoaded && viewer.ScrollableHeight > 0 && !Tree(viewer).OfType<ProgressRing>().Any(ring => ring.Visibility == Visibility.Visible);
+        static bool Selected(Button button) => Tree(button).OfType<TextBlock>().Any(text => text.Text == "✓ 已选择");
+        static bool HasPage(DependencyObject root, string heading)
+            => Tree(root).OfType<TextBlock>().Any(text => text.Text == heading && text.FontSize >= 25);
+        async Task<double> ScrollToAsync(ScrollViewer viewer, double requested)
+        {
+            await WaitAsync(() => Loaded(viewer), "Round-trip page did not finish loading");
+            var target = Math.Min(requested, viewer.ScrollableHeight);
+            Require(target > 0, "Round-trip test requires a nonzero scroll offset");
+            viewer.ChangeView(null, target, null, disableAnimation: true);
+            await WaitAsync(() => Math.Abs(viewer.VerticalOffset - target) < 2, "Round-trip test could not set the native scroll offset");
+            await Task.Delay(60);
+            return viewer.VerticalOffset;
+        }
+
+        var initialDisplays = await Backend.CallAsync<DisplayInfo[]>("get_displays");
+        var initialGpu = await Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info");
+        var initialLighting = await Backend.CallAsync<LightingState>("get_lighting_state");
+        Require(initialDisplays.Length > 0 && initialGpu.Supported, "Round-trip fixture needs an active display and supported GPU modes");
+        var monitor = initialDisplays[^1];
+        var draftRate = DisplayPolicy.Rates(monitor).First(hz => hz != monitor.CurrentHz);
+        var draftGpu = GpuModes.All.First(mode => mode != initialGpu.ConfiguredMode && (mode != GpuMode.Igpu || initialGpu.SupportsIgpu));
+        await WaitAsync(() => Loaded(display) && Named<ComboBox>(display, "显示器选择").IsEnabled, "Display draft controls did not load");
+        Named<ComboBox>(display, "显示器选择").SelectedIndex = initialDisplays.Length - 1;
+        await WaitAsync(() => Named<ComboBox>(display, "显示刷新率").Items.Contains($"{draftRate} Hz"), "Selected display rates did not update");
+        var rateControl = Named<ComboBox>(display, "显示刷新率");
+        rateControl.SelectedIndex = rateControl.Items.IndexOf($"{draftRate} Hz");
+        Invoke(Named<Button>(display, GpuModes.Name(draftGpu)));
+        await WaitAsync(() => Named<Button>(display, "应用显示刷新率").IsEnabled && Named<Button>(display, "保存显卡模式").IsEnabled
+            && Selected(Named<Button>(display, GpuModes.Name(draftGpu))), "Unsubmitted display/GPU drafts were not selected");
+        var displayOffset = await ScrollToAsync(display, 180);
+        var displayUnloaded = false;
+        var rateUnloaded = false;
+        display.Unloaded += (_, _) => displayUnloaded = true;
+        rateControl.Unloaded += (_, _) => rateUnloaded = true;
+        var lighting = await NavigateAsync("lighting", "键盘灯效");
+        await WaitAsync(() => displayUnloaded && rateUnloaded && !HasPage(nav, "显示设置"), "Leaving display retained the old native page or draft controls");
+
+        foreach (var (colorDraft, valid) in new[] { ("  #34CDAB  ", true), ("  #GG0011  ", false) })
+        {
+            await WaitAsync(() => Loaded(lighting) && Tree(lighting).OfType<TextBox>().Any(box => AutomationProperties.GetName(box) == "键盘颜色代码" && box.IsEnabled), "Lighting draft control did not load");
+            var colorControl = Named<TextBox>(lighting, "键盘颜色代码");
+            colorControl.Text = colorDraft;
+            await WaitAsync(() => colorControl.Text == colorDraft && Named<Button>(lighting, "应用自定义键盘颜色").IsEnabled == valid, "Lighting draft validation did not settle");
+            var lightingOffset = await ScrollToAsync(lighting, valid ? 220 : 170);
+            var oldLighting = lighting;
+            var lightingUnloaded = false;
+            var colorUnloaded = false;
+            oldLighting.Unloaded += (_, _) => lightingUnloaded = true;
+            colorControl.Unloaded += (_, _) => colorUnloaded = true;
+            display = await NavigateAsync("display", "显示设置");
+            await WaitAsync(() => lightingUnloaded && colorUnloaded && !HasPage(nav, "键盘灯效"), "Leaving lighting retained the old native page or color textbox");
+            await WaitAsync(() => Loaded(display) && Named<ComboBox>(display, "显示刷新率").IsEnabled
+                && Named<Button>(display, "保存显卡模式").IsEnabled, "Display/GPU draft did not remount as applicable");
+            Require(Named<ComboBox>(display, "显示器选择").SelectedIndex == initialDisplays.Length - 1
+                && Named<ComboBox>(display, "显示刷新率").SelectedItem?.ToString() == $"{draftRate} Hz"
+                && Named<Button>(display, "应用显示刷新率").IsEnabled && Selected(Named<Button>(display, GpuModes.Name(draftGpu))), "Display/GPU selection was lost on tab return");
+            await WaitAsync(() => Math.Abs(display.VerticalOffset - Math.Min(displayOffset, display.ScrollableHeight)) < 2,
+                $"Display tab did not restore its native offset (expected={displayOffset})");
+
+            // A subsequent readback must preserve a newly chosen viewport instead
+            // of restoring the saved mount-time offset again.
+            displayOffset = await ScrollToAsync(display, valid ? 65 : 105);
+            var detect = Named<Button>(display, "重新检测显示设置");
+            Invoke(detect);
+            await WaitAsync(() => detect.IsEnabled && Named<ComboBox>(display, "显示刷新率").IsEnabled, "Display draft re-detection did not finish");
+            await Task.Delay(100);
+            Require(Math.Abs(display.VerticalOffset - displayOffset) < 2 && Named<ComboBox>(display, "显示刷新率").SelectedItem?.ToString() == $"{draftRate} Hz",
+                "Readback reapplied the old restored viewport or discarded a valid unsubmitted rate");
+            var oldDisplay = display;
+            var oldRate = Named<ComboBox>(display, "显示刷新率");
+            var oldGpu = Named<Button>(display, GpuModes.Name(draftGpu));
+            var displayPageUnloaded = false;
+            var displayControlsUnloaded = false;
+            var gpuUnloaded = false;
+            oldDisplay.Unloaded += (_, _) => displayPageUnloaded = true;
+            oldRate.Unloaded += (_, _) => displayControlsUnloaded = true;
+            oldGpu.Unloaded += (_, _) => gpuUnloaded = true;
+            lighting = await NavigateAsync("lighting", "键盘灯效");
+            // Reactor may recycle an unloaded native control for a different page.
+            // The unload events and absence of the old heading prove the page left
+            // the visual tree without rejecting harmless native-control pooling.
+            await WaitAsync(() => displayPageUnloaded && displayControlsUnloaded && gpuUnloaded && !HasPage(nav, "显示设置"),
+                "Display/GPU controls stayed mounted while another tab was visible");
+            await WaitAsync(() => Loaded(lighting) && Named<TextBox>(lighting, "键盘颜色代码").IsEnabled, "Lighting did not remount after display readback");
+            Require(Named<TextBox>(lighting, "键盘颜色代码").Text == colorDraft && Named<Button>(lighting, "应用自定义键盘颜色").IsEnabled == valid,
+                "Unsubmitted lighting text was changed, lost or incorrectly validated on tab return");
+            await WaitAsync(() => Math.Abs(lighting.VerticalOffset - Math.Min(lightingOffset, lighting.ScrollableHeight)) < 2,
+                $"Lighting tab did not restore its native offset (expected={lightingOffset})");
+        }
+
+        Require((await Backend.CallAsync<DisplayInfo[]>("get_displays")).Select(item => (item.DeviceName, item.CurrentHz))
+            .SequenceEqual(initialDisplays.Select(item => (item.DeviceName, item.CurrentHz))), "Draft selection or tab return wrote a display mode");
+        Require((await Backend.CallAsync<GpuModeInfo>("get_gpu_mode_info")).ConfiguredMode == initialGpu.ConfiguredMode,
+            "GPU draft or tab return saved a hardware mode without applying");
+        Require((await Backend.CallAsync<LightingState>("get_lighting_state")).KbColor == initialLighting.KbColor,
+            "Unsubmitted lighting draft or tab return wrote a hardware color");
+        report["native_tabs_unmount_and_restore_session_drafts_and_scroll"] = true;
+        report["native_restored_scroll_survives_subsequent_readback"] = true;
+        report["native_session_drafts_do_not_write_hardware"] = true;
+        report["native_session_display_fixture_count"] = initialDisplays.Length;
     }
     private static async Task MeasureTrendRefreshAsync(Dictionary<string, object> report)
     {
@@ -142,6 +264,9 @@ internal static class SettingsVerification
         report["strict_keyboard_color_parser"] = true;
         report["background_profile_polling_default_off"] = true;
         await DisplayTrendVerification.RunAsync(report);
+        await SettingsResourceVerification.RunAsync(report);
+        await PageContextVerification.RunAsync(report);
+        await MachineTelemetryVerification.RunAsync(report);
         await MeasureTrendRefreshAsync(report);
         var nav = NativeLayout.VerificationNavigation!;
         var menu = nav.MenuItems.OfType<NavigationViewItem>().ToArray();
@@ -293,6 +418,7 @@ internal static class SettingsVerification
             var gpuHeading = Tree(display).OfType<TextBlock>().First(text => text.Text == "显卡输出模式");
             var gpuOffset = gpuHeading.TransformToVisual(display).TransformPoint(new Windows.Foundation.Point()).Y + display.VerticalOffset - 30;
             await CaptureAsync(display, reportPath + ".gpu.png", reportPath, Math.Max(0, gpuOffset));
+            await VerifyPageRoundTripsAsync(display, report);
             var beforeOverview = MachineStore.Snapshot.Trends;
             var previousSample = beforeOverview.LastOrDefault();
             var overview = await NavigateAsync("status", "状态概览");

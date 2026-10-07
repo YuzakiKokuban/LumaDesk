@@ -13,24 +13,28 @@ namespace JiYaoChu.Pages;
 
 public sealed class LightingPage : SettingsPage
 {
+    private Task? _writeReadback;
     public override Element Render()
     {
         var (busy, setBusy) = UseState(false);
         var (failure, setFailure) = UseState<string?>(null);
-        var (colorInput, setColorInput) = UseState("");
+        var (colorInput, setColorInput) = UseState(PageContext.KeyboardColorInput);
+        void UpdateColorInput(string value) { PageContext.KeyboardColorInput = value; setColorInput(value); }
         var (reader, resource) = UseSettings(() => Backend.CallAsync<LightingState>("get_lighting_state"));
         UseEffect(() => EventBus.Subscribe(raised =>
         {
-            if (raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() == "apply_keyboard_lighting"
-                || raised.Name == "osd://system" && raised.Payload?["kind"]?.GetValue<string>() == "keyboard_light") reader.Refresh();
+            if (raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() == "apply_keyboard_lighting")
+                _writeReadback = reader.RefreshAsync();
+            else if (raised.Name == "osd://system" && raised.Payload?["kind"]?.GetValue<string>() == "keyboard_light") reader.Refresh();
         }), []);
         void Apply(LightingState state)
         {
             if (busy || resource.Refreshing) return;
             Act.Fire("apply_keyboard_lighting",
                 async () => {
+                    _writeReadback = null;
                     try { await Backend.CallAsync("apply_keyboard_lighting", new { lighting = state with { KbEngine = LightingEngine.Hardware, KbEffect = 0, FirmwareManaged = false } }); }
-                    finally { await reader.RefreshAsync(); }
+                    finally { await (_writeReadback ?? reader.RefreshAsync()); }
                 },
                 (error, _) => setFailure(error), setBusy)();
         }
@@ -59,7 +63,7 @@ public sealed class LightingPage : SettingsPage
                         FlexRow(colors) with { Wrap = FlexWrap.Wrap, ColumnGap = 8, RowGap = 8 },
                         Caption("当前颜色：" + state.KbColor.ToUpperInvariant()).Foreground(Theme.SecondaryText)),
                     Chrome.SectionCard("自定义颜色",
-                        TextBox(Optional<string>.Of(colorInput), setColorInput, "例如 #12ABEF").AutomationName("键盘颜色代码").IsEnabled(!working),
+                        TextBox(Optional<string>.Of(colorInput), UpdateColorInput, "例如 #12ABEF").AutomationName("键盘颜色代码").IsEnabled(!working),
                         HStack(10,
                             (validColor ? Border(null).Background(customColor) : Border(null).Background(Theme.CardBackground)).Width(28).Height(28).CornerRadius(6).WithBorder(Theme.CardStroke, 1),
                             Body(validColor ? customColor.ToUpperInvariant() : "输入六位十六进制颜色，可省略 #").TextWrapping(TextWrapping.Wrap)),

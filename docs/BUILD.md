@@ -95,3 +95,11 @@ python scripts/verify-oem-restore.py
 `python scripts/verify-notification-recovery.py --library target/release/jiyaochu_core.dll --output artifacts/notification-recovery-validation.json` 被动订阅本机 WMI 并验证重连，不能证明实际 Fn 操作或睡眠恢复。它不写 EC，也不改变亮度。
 
 `python scripts/verify-display-controls.py --library target/release/jiyaochu_core.dll --output artifacts/display-controls-validation.json` 默认仅读回充电阈值、亮度和显示模式。显式增加 `--round-trip`、`--battery-round-trip` 或 `--refresh-round-trip` 会分别实际改变并恢复亮度、充电阈值或 90/120 Hz 刷新率，使用独立配置目录；不调整 OEM、MUX 或自启动。此实机检查不在模拟 CI 中执行。
+
+```powershell
+python scripts/verify-long-run.py --library target/release/jiyaochu_core.dll --output artifacts/hardware-long-run-validation.json --duration-seconds 300 --require-resume --brightness-round-trip
+```
+
+此脚本需管理员终端，使用独立配置目录并拒绝模拟后端，轮流读取五个页面的硬件范围与内屏亮度。默认不写硬件；上例显式启用少量亮度调整，等待实际读回并恢复原亮度。睡眠由用户手动执行；`--require-resume` 要求捕获 Windows 睡眠/唤醒事件及唤醒后的全部读回，单纯时间间隔不算通过。没有事件或存在未知传感器值时报告待确认，并分别记录遥测稳定性与亮度结果。退出码 0 为全部通过，2 为待确认，1 为失败；该脚本不更换已安装程序，也不证明窗口鼠标响应或物理快捷键链路。
+
+设置模拟回归还覆盖按页查询范围、读回队列合并与失败恢复、跨页亮度请求覆盖，以及切页后原生控件卸载、未提交草稿和滚动位置恢复。会话草稿仅保留当前进程内的值，不缓存隐藏页面或启动隐藏页面读回。

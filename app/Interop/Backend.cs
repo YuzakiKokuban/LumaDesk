@@ -143,11 +143,15 @@ public static class Backend
     public static async Task<JsonNode> CallNodeAsync(string command, object? arguments = null)
     {
         var payload = arguments is null ? null : JsonSerializer.SerializeToNode(arguments, Core.Json);
-        var result = await Task.Run(() => Core.Call(command, payload)).ConfigureAwait(false);
-        foreach (var raised in await DrainEventsAsync().ConfigureAwait(false)) EventBus.Raise(raised);
+        // UI-originated writers publish their event before completing, so the page
+        // can await the event-owned readback instead of scheduling a duplicate.
+        var result = await Task.Run(() => Core.Call(command, payload));
+        foreach (var raised in await DrainEventsAsync()) EventBus.Raise(raised);
         var appliedArguments = command == "restore_app_settings"
             ? new JsonObject { ["cfg"] = result.DeepClone() } : payload;
-        EventBus.Raise(new BackendEvent("command://applied", JsonSerializer.SerializeToNode(new { command, arguments = appliedArguments }, Core.Json)));
+        if (!command.StartsWith("get_", StringComparison.Ordinal) && !command.StartsWith("list_", StringComparison.Ordinal)
+            && !command.StartsWith("detect_", StringComparison.Ordinal) && !command.StartsWith("system.", StringComparison.Ordinal))
+            EventBus.Raise(new BackendEvent("command://applied", JsonSerializer.SerializeToNode(new { command, arguments = appliedArguments }, Core.Json)));
         return result;
     }
 

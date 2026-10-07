@@ -16,17 +16,17 @@ public sealed record DisplayBundle(IReadOnlyList<DisplayInfo> Displays, uint? Br
 /// <summary>Device-specific Windows display modes and system built-in backlight.</summary>
 public sealed class DisplayPage : SettingsPage
 {
-    private static readonly BrightnessWriter BrightnessWrites = new(level => Backend.CallAsync("set_display_brightness", new { level }));
+    private static readonly BrightnessWriter BrightnessWrites = new(level => Backend.CallAsync("set_display_brightness", new { level }), () => Backend.CallAsync<uint>("get_display_brightness"));
     private (uint Level, long Version)? _pendingBrightness;
     private uint? _latestBrightness;
     private bool _brightnessWriting;
     private bool _disposed;
+    private Task? _rateReadback;
 
     public override Element Render()
     {
         var (reader, resource) = UseSettings(() => ReadAsync(null));
-        var (device, setDevice) = UseState("");
-        var (rate, setRate) = UseState<uint?>(null);
+        var (draft, setDraft) = UseState(PageContext.DisplayDraft);
         var (draftBrightness, setDraftBrightness) = UseState<double?>(null);
         var (busy, setBusy) = UseState(false);
         var (brightnessBusy, setBrightnessBusy) = UseState(false);
@@ -39,26 +39,29 @@ public sealed class DisplayPage : SettingsPage
             if (_brightnessWriting && (raised.Name == "osd://system" && raised.Payload?["kind"]?.GetValue<string>() == "brightness"
                 || raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() == "set_display_brightness")) return;
             if (raised.Name == "osd://system" && raised.Payload?["kind"]?.GetValue<string>() == "brightness")
-                _ = reader.RefreshAsync(value => ReadAsync(value, displays: false, brightness: true));
+                _ = reader.RefreshAsync("brightness", value => ReadAsync(value, displays: false, brightness: true));
             else if (raised.Name == "command://applied")
             {
                 var command = raised.Payload?["command"]?.GetValue<string>();
                 if (command == "set_display_brightness")
-                    _ = reader.RefreshAsync(value => ReadAsync(value, displays: false, brightness: true));
+                    _ = reader.RefreshAsync("brightness", value => ReadAsync(value, displays: false, brightness: true));
                 else if (command is "set_display_monitor_refresh_rate" or "switch_refresh_rate")
-                    _ = reader.RefreshAsync(value => ReadAsync(value, displays: true, brightness: false));
+                    _rateReadback = reader.RefreshAsync("displays", value => ReadAsync(value, displays: true, brightness: false));
             }
         }), []);
         var bundle = resource.Value;
         var monitors = bundle?.Displays ?? [];
+        var selection = bundle is { DisplayError: null } ? PageContext.ReconcileDisplay(draft, monitors) : draft;
+        var device = selection.DeviceName;
+        var rate = selection.RefreshRate;
+        void UpdateSelection(DisplayPageDraft value) { PageContext.DisplayDraft = value; setDraft(value); }
         var chosenDevice = device.Length == 0 ? monitors.FirstOrDefault()?.DeviceName ?? "" : device;
         var chosen = DisplayPolicy.Find(monitors, chosenDevice);
         var rates = chosen is null ? [] : DisplayPolicy.Rates(chosen);
         var currentChoice = rate ?? chosen?.CurrentHz;
         var brightness = draftBrightness ?? bundle?.Brightness;
         var working = busy || brightnessBusy || resource.Refreshing;
-        UseEffect(() => { if (device.Length == 0 && chosenDevice.Length > 0) setDevice(chosenDevice); }, chosenDevice);
-        UseEffect(() => { setRate(null); }, chosenDevice, chosen?.CurrentHz);
+        UseEffect(() => { if (selection != draft) UpdateSelection(selection); }, selection, draft);
         UseEffect(() =>
         {
             if (_brightnessWriting) return;
@@ -84,13 +87,15 @@ public sealed class DisplayPage : SettingsPage
                     await reader.RefreshAsync(value => Task.FromResult(value with { Displays = fresh, DisplayError = null }));
                     throw new InvalidOperationException("所选显示器已断开，或该刷新率已不可用。请重新选择。");
                 }
+                _rateReadback = null;
                 try { await Backend.CallAsync("set_display_monitor_refresh_rate", new { device_name = chosenDevice, hz }); }
-                finally { await reader.RefreshAsync(value => ReadAsync(value, displays: true, brightness: false)); }
+                finally { await (_rateReadback ?? reader.RefreshAsync("displays", value => ReadAsync(value, displays: true, brightness: false))); }
                 var readback = reader.Snapshot.Value;
                 if (readback?.DisplayError is { } error) throw new InvalidOperationException("刷新率写入后读回失败：" + error);
                 if (DisplayPolicy.Find(readback?.Displays ?? [], chosenDevice) is not { } actual) throw new InvalidOperationException("显示器已断开，请重新检测。");
                 if (actual.CurrentHz != hz) throw new InvalidOperationException($"请求 {hz} Hz，实际读回 {actual.CurrentHz} Hz。请检查显示模式。");
-                setRate(null);
+                PageContext.ClearDisplayRate(chosenDevice, hz);
+                if (!_disposed) setDraft(PageContext.DisplayDraft);
             }, Settled, setBusy)();
         }
         async Task WriteBrightnessAsync()
@@ -110,7 +115,7 @@ public sealed class DisplayPage : SettingsPage
                     // Finish a final queued request even if the user left the page.
                     if (_pendingBrightness is not null) continue;
                     if (_disposed) return;
-                    await reader.RefreshAsync(previous => ReadAsync(previous, displays: false, brightness: true));
+                    await reader.RefreshAsync("brightness", previous => ReadAsync(previous, displays: false, brightness: true));
                     // A new drag during recovery/readback always supersedes this result.
                     if (_pendingBrightness is not null) continue;
                     if (_disposed) return;
@@ -151,11 +156,11 @@ public sealed class DisplayPage : SettingsPage
             ComboBox(names.ToArray(), Optional<int>.Of(selectedIndex), index =>
             {
                 if (working || index < 0 || index >= monitors.Count) return;
-                setDevice(monitors[index].DeviceName); setRate(null); setFailure(null); setApplied(null);
+                UpdateSelection(new(monitors[index].DeviceName)); setFailure(null); setApplied(null);
             }).AutomationName("显示器选择").HAlign(HorizontalAlignment.Stretch).IsEnabled(!working && monitors.Count > 0),
             Chrome.Field("当前刷新率", chosen is null || chosen.CurrentHz == 0 ? "未知" : $"{chosen.CurrentHz} Hz"),
             ComboBox(rates.Select(hz => $"{hz} Hz").ToArray(), Optional<int>.Of(currentChoice is { } selectedHz ? Array.IndexOf(rates, selectedHz) : -1), index =>
-            { if (index >= 0 && index < rates.Length) setRate(rates[index]); })
+            { if (index >= 0 && index < rates.Length) UpdateSelection(selection with { RefreshRate = rates[index] == chosen?.CurrentHz ? null : rates[index] }); })
                 .AutomationName("显示刷新率").HAlign(HorizontalAlignment.Stretch).IsEnabled(controlsEnabled && rates.Length > 0),
             Button("应用刷新率", ApplyRate).AutomationName("应用显示刷新率").HAlign(HorizontalAlignment.Left)
                 .IsEnabled(controlsEnabled && currentChoice is { } picked && picked != chosen!.CurrentHz && DisplayPolicy.CanApply(monitors, chosenDevice, picked)),

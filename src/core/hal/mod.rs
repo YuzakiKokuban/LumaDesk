@@ -125,6 +125,7 @@ pub trait HardwareHal: Send + Sync {
     fn set_power_mode(&self, mode: PowerModeId) -> HalResult<()>;
     fn get_power_mode(&self) -> HalResult<PowerModeId>;
     fn set_fan_boost(&self, enabled: bool) -> HalResult<()>;
+    fn get_fan_boost(&self) -> HalResult<bool>;
     /// Toggles the custom fan-curve control loop.
     fn toggle_fan_curve_control(
         &self,

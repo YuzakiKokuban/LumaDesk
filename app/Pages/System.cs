@@ -34,11 +34,11 @@ public sealed class SystemPage : SettingsPage
         UseEffect(() => EventBus.Subscribe(raised =>
         {
             if (raised.Name == "shell://win-key-changed")
-                _ = reader.RefreshAsync(value => RefreshSectionAsync(value, "set_device_switch"));
+                _ = reader.RefreshAsync("switches", value => RefreshSectionAsync(value, "set_device_switch"));
             else if (raised.Name == "command://applied" && raised.Payload?["command"]?.GetValue<string>() is { } command && IsSettingCommand(command))
-                _ = reader.RefreshAsync(value => RefreshSectionAsync(value, command));
+                _ = reader.RefreshAsync(SectionKey(command), value => RefreshSectionAsync(value, command));
         }), []);
-        var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot);
+        var machine = UseExternalStore(MachineStore.Subscribe, () => MachineStore.Snapshot).ForPage("system");
 
         void Settled(string? error, string? ok)
         {
@@ -97,6 +97,16 @@ public sealed class SystemPage : SettingsPage
     private static bool IsSettingCommand(string command) => command is
         "set_device_switch" or "set_win_key_locked" or "toggle_oem_service" or "restore_official_control_center"
         or "set_autostart" or "set_log_level" or "set_log_filter" or "save_osd_config" or "set_osd_config" or "restore_app_settings";
+
+    private static string SectionKey(string command) => command switch
+    {
+        "set_device_switch" or "set_win_key_locked" => "switches",
+        "toggle_oem_service" or "restore_official_control_center" => "oem",
+        "set_autostart" => "autostart",
+        "set_log_level" or "set_log_filter" => "log",
+        "save_osd_config" or "set_osd_config" => "osd",
+        _ => "preferences",
+    };
 
     private static async Task<Bundle> RefreshSectionAsync(Bundle value, string command) => command switch
     {

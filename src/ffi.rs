@@ -20,6 +20,7 @@ pub const ABI_VERSION: u32 = 1;
 /// list and [`dispatch`] agree, so the two cannot drift apart silently.
 pub const COMMANDS: &[&str] = &[
     "get_hardware_status",
+    "get_page_status",
     "get_app_config",
     "save_app_config",
     "restore_app_settings",
@@ -307,6 +308,7 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
     match command {
         // -- status / configuration ---------------------------------------
         "get_hardware_status" => cmd!(api, args, get_hardware_status),
+        "get_page_status" => cmd!(api, args, get_page_status, page: String),
         "get_app_config" => cmd!(api, args, get_app_config),
         "save_app_config" => cmd!(api, args, save_app_config, cfg: AppConfig),
         "restore_app_settings" => cmd!(api, args, restore_app_settings, cfg: AppConfig),
@@ -723,6 +725,31 @@ mod tests {
         let text = unsafe { borrow(raw) }.expect("a response is always produced");
         unsafe { lumadesk_free(raw) };
         assert!(text.contains("\"ok\":false"), "unexpected response: {text}");
+    }
+
+    #[test]
+    fn page_status_only_returns_requested_sensor_groups() {
+        let value = envelope(c"get_page_status", Some(c"{\"page\":\"lighting\"}"));
+        assert_eq!(
+            value["ok"],
+            Value::Bool(true),
+            "page-scoped status was refused: {value}"
+        );
+        let data = &value["data"];
+        for section in ["cpu", "gpu", "fans", "battery", "device", "support_flags"] {
+            assert!(
+                data.get(section).is_none(),
+                "lighting requested unrelated section {section}"
+            );
+        }
+        assert_eq!(data["page"], "lighting");
+        assert!(data.get("power_mode").is_some());
+        assert!(data.get("fan_boost").is_some());
+        let display = envelope(c"get_page_status", Some(c"{\"page\":\"display\"}"));
+        assert!(display["data"].get("gpu").is_some());
+        assert!(display["data"].get("cpu").is_none());
+        let invalid = envelope(c"get_page_status", Some(c"{\"page\":\"invalid\"}"));
+        assert_eq!(invalid["ok"], false);
     }
 
     #[test]

@@ -4,6 +4,7 @@ using Microsoft.UI.Reactor.Layout;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using JiYaoChu.Model;
+using JiYaoChu.Services;
 using static Microsoft.UI.Reactor.Factories;
 
 namespace JiYaoChu.Ui;
@@ -26,7 +27,8 @@ public static class Chrome
         body.AddRange(sections.Where(section => section is not null));
 
         return ScrollViewer(
-            VStack(14, [.. body]).HAlign(HorizontalAlignment.Stretch).Padding(18, 12, 18, 20)) with
+            VStack(14, [.. body]).HAlign(HorizontalAlignment.Stretch).Padding(18, 12, 18, 20))
+            .AutomationName(PageContext.ScrollAutomationPrefix + title) with
         {
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             HorizontalScrollMode = ScrollMode.Disabled,

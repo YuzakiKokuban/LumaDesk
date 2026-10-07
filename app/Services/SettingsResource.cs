@@ -13,52 +13,151 @@ public sealed record SettingsSnapshot<T>(T? Value = null, string? Error = null, 
 public sealed class SettingsResource<T>(Func<Task<T>> fetch) : IDisposable where T : class
 {
     private readonly object _gate = new();
-    private readonly SemaphoreSlim _reads = new(1, 1);
     private SettingsSnapshot<T> _snapshot = new();
     private event Action? Changed;
     private bool _disposed;
+    private bool _running;
+    private RefreshBatch? _pending;
+    private RefreshBatch? _active;
+
+    private sealed class RefreshBatch
+    {
+        public bool Full;
+        public List<(string? Key, Func<T, Task<T>> Update)> Updates { get; } = [];
+        public List<TaskCompletionSource> Callers { get; } = [];
+    }
     public SettingsSnapshot<T> Snapshot { get { lock (_gate) return _snapshot; } }
     public Action Subscribe(Action listener)
     {
-        lock (_gate) Changed += listener;
+        lock (_gate) { if (!_disposed) Changed += listener; }
         return () => { lock (_gate) Changed -= listener; };
     }
     public void Refresh() => _ = RefreshAsync();
-    public async Task RefreshAsync(Func<T, Task<T>>? update = null)
+    public void Refresh(string sectionKey, Func<T, Task<T>> update) => _ = RefreshAsync(sectionKey, update);
+
+    /// <summary>Full reads coalesce. Unkeyed partial updates retain their individual order.</summary>
+    public Task RefreshAsync(Func<T, Task<T>>? update = null) => QueueRefresh(null, update);
+
+    /// <summary>
+    /// Coalesces pending reads for the same section using its newest updater. Distinct sections
+    /// receive the latest snapshot in turn. A full fetch must cover every section it supersedes.
+    /// Requests arriving after a batch starts always belong to a trailing batch.
+    /// </summary>
+    public Task RefreshAsync(string sectionKey, Func<T, Task<T>> update)
     {
-        await _reads.WaitAsync();
-        try
+        ArgumentException.ThrowIfNullOrWhiteSpace(sectionKey);
+        ArgumentNullException.ThrowIfNull(update);
+        return QueueRefresh(sectionKey, update);
+    }
+
+    private Task QueueRefresh(string? key, Func<T, Task<T>>? update)
+    {
+        var caller = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        bool start;
+        lock (_gate)
         {
-            if (_disposed) return;
+            if (_disposed) return Task.CompletedTask;
+            var batch = _pending ??= new();
+            batch.Callers.Add(caller);
+            if (update is null)
+            {
+                batch.Full = true;
+                batch.Updates.Clear();
+            }
+            else if (!batch.Full)
+            {
+                var existing = key is null ? -1 : batch.Updates.FindIndex(item => item.Key == key);
+                if (existing < 0) batch.Updates.Add((key, update));
+                else batch.Updates[existing] = (key, update);
+            }
+            start = !_running;
+            _running = true;
+        }
+        if (start) _ = ReadPendingAsync();
+        return caller.Task;
+    }
+
+    private async Task ReadPendingAsync()
+    {
+        while (true)
+        {
+            RefreshBatch batch;
+            lock (_gate)
+            {
+                if (_disposed || _pending is null) { _running = false; return; }
+                batch = _pending;
+                _pending = null;
+                _active = batch;
+            }
             Publish(Snapshot with { Refreshing = true });
+            lock (_gate)
+            {
+                if (_disposed) { _active = null; _running = false; return; }
+            }
+            var value = Snapshot.Value;
+            string? failure = null;
             try
             {
-                var previous = Snapshot.Value;
-                var value = update is not null && previous is not null ? await update(previous) : await fetch();
-                Publish(new(value));
+                if (batch.Full || value is null) value = await fetch();
+                else
+                {
+                    foreach (var (_, update) in batch.Updates)
+                    {
+                        lock (_gate) { if (_disposed) break; }
+                        try { value = await update(value); }
+                        catch (Exception error) { StartupLog.Write(error); failure ??= error.Message; }
+                    }
+                }
             }
             catch (Exception error)
             {
                 StartupLog.Write(error);
-                Publish(Snapshot with { Error = error.Message, Refreshing = false });
+                failure = error.Message;
             }
+            Publish(new(value, failure));
+            lock (_gate) _active = null;
+            foreach (var caller in batch.Callers) caller.TrySetResult();
         }
-        finally { _reads.Release(); }
     }
     private void Publish(SettingsSnapshot<T> snapshot)
     {
-        Action? listeners;
         lock (_gate)
         {
             if (_disposed) return;
             _snapshot = snapshot;
-            listeners = Changed;
         }
         var dispatcher = ReactorApp.UIDispatcher;
-        if (dispatcher is null || dispatcher.HasThreadAccess) listeners?.Invoke();
-        else dispatcher.TryEnqueue(() => { if (!_disposed) listeners?.Invoke(); });
+        if (dispatcher is null || dispatcher.HasThreadAccess) Notify();
+        else dispatcher.TryEnqueue(Notify);
     }
-    public void Dispose() { lock (_gate) { _disposed = true; Changed = null; } }
+
+    private void Notify()
+    {
+        // Synchronize notification with disposal, including callbacks already in the UI queue.
+        lock (_gate)
+        {
+            if (_disposed || Changed is null) return;
+            foreach (Action listener in Changed.GetInvocationList())
+            {
+                if (_disposed) break;
+                try { listener(); }
+                catch (Exception error) { StartupLog.Write(error); }
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            _disposed = true;
+            Changed = null;
+            _snapshot = _snapshot with { Refreshing = false };
+            if (_pending is { } pending) foreach (var caller in pending.Callers) caller.TrySetResult();
+            if (_active is { } active) foreach (var caller in active.Callers) caller.TrySetResult();
+            _pending = null;
+        }
+    }
 }
 
 public abstract class SettingsPage : Component

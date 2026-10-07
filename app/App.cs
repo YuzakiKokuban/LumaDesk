@@ -164,6 +164,11 @@ class App : Component
         var nav = UseNavigation(AppRoute.Status);
         var (isPaneOpen, setIsPaneOpen) = UseState(true);
         var overviewVisible = visible && nav.CurrentRoute == AppRoute.Status;
+        var telemetryPage = nav.CurrentRoute switch
+        {
+            AppRoute.Tuning => "tuning", AppRoute.Display => "display", AppRoute.System => "system", AppRoute.Lighting => "lighting", _ => "overview",
+        };
+        UseEffect(() => MachineStore.SetPage(telemetryPage), telemetryPage);
         UseEffect(() => MachineStore.SetTrendActive(overviewVisible), overviewVisible);
         UseEffect(() => () => MachineStore.SetTrendActive(false), []);
 

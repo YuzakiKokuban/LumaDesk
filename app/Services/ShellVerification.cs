@@ -34,7 +34,7 @@ internal static class ShellVerification
             report["background_memory"] = MemorySample();
             BackgroundHost.Show();
             await Task.Delay(3500);
-            Require(MachineStore.IsActive && MachineStore.HardwareReads > 0, "Opening the page did not resume polling");
+            Require(MachineStore.IsActive && MachineStore.HardwareReads > 0, $"Opening the page did not resume polling (active={MachineStore.IsActive}, reads={MachineStore.HardwareReads}, visible={IsWindowVisible(main)}, error={MachineStore.Snapshot.Error})");
             report["visible_reads"] = MachineStore.HardwareReads;
             report["visible_memory"] = MemorySample();
             Require(main != 0 && IsWindowVisible(main), "Main window is missing");

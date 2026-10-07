@@ -65,5 +65,24 @@ internal static class DisplayTrendVerification
         catch (IOException) { }
         Require(await failingWriter.ApplyAsync(83, failingWriter.NextRequest()) && attempts.SequenceEqual(new uint[] { 20, 83 }), "A failed brightness write blocked the next request");
         report["brightness_serialization_latest_request_and_failure_checks"] = true;
+        var delayedReads = 0;
+        var delayedWriter = new BrightnessWriter(_ => Task.CompletedTask,
+            () => Task.FromResult(++delayedReads < 3 ? 50u : 51u));
+        Require(await delayedWriter.ApplyAsync(51, delayedWriter.NextRequest()) && delayedReads == 3, "Delayed brightness readback was treated as an immediate mismatch");
+        var settlingEntered = new TaskCompletionSource();
+        var settlingRelease = new TaskCompletionSource();
+        uint visibleLevel = 50;
+        var settlingWriter = new BrightnessWriter(level => { visibleLevel = level; return Task.CompletedTask; }, async () =>
+        {
+            if (visibleLevel == 20) { settlingEntered.SetResult(); await settlingRelease.Task; }
+            return visibleLevel;
+        });
+        var settlingOld = settlingWriter.ApplyAsync(20, settlingWriter.NextRequest());
+        await settlingEntered.Task;
+        var settlingNew = settlingWriter.ApplyAsync(83, settlingWriter.NextRequest());
+        settlingRelease.SetResult();
+        await Task.WhenAll(settlingOld, settlingNew);
+        Require(!settlingOld.Result && settlingNew.Result && visibleLevel == 83, "A stale settling check blocked or overrode a newer brightness request");
+        report["brightness_delayed_readback_and_superseded_settling_checks"] = true;
     }
 }

@@ -1,0 +1,401 @@
+{
+  "passed": false,
+  "validation_status": "failed",
+  "physical_backend_verified": true,
+  "backend": "windows",
+  "pending": [
+    "unknown_readback:get_page_status:overview:cpu.power_w",
+    "unknown_readback:get_page_status:overview:battery.health_percent",
+    "unknown_readback:get_page_status:tuning:cpu.power_w",
+    "unknown_readback:get_page_status:tuning:battery.health_percent"
+  ],
+  "failures": [
+    "brightness_round_trip_failed"
+  ],
+  "duration_requested_seconds": 300.0,
+  "interval_seconds": 1.0,
+  "commands": {
+    "get_display_brightness": {
+      "attempts": 297,
+      "successes": 297,
+      "failures": 0,
+      "mean_ms": 13.693602693538411,
+      "minimum_ms": 0.0,
+      "maximum_ms": 77.99999999406282,
+      "p50_ms": 16.0,
+      "p95_ms": 31.0,
+      "percentile_sample_count": 297,
+      "error_categories": {},
+      "last_success_age_seconds": 0,
+      "stale": false,
+      "capabilities": {
+        "value": {
+          "state": "known",
+          "value": 50
+        }
+      }
+    },
+    "set_display_brightness": {
+      "attempts": 7,
+      "successes": 7,
+      "failures": 0,
+      "mean_ms": 26.571428573723615,
+      "minimum_ms": 14.999999999417923,
+      "maximum_ms": 31.000000002677552,
+      "p50_ms": 31.0,
+      "p95_ms": 31.0,
+      "percentile_sample_count": 7,
+      "error_categories": {},
+      "last_success_age_seconds": 299.75,
+      "stale": true,
+      "capabilities": {}
+    },
+    "get_page_status:overview": {
+      "attempts": 58,
+      "successes": 58,
+      "failures": 0,
+      "mean_ms": 360.70689655301476,
+      "minimum_ms": 31.000000002677552,
+      "maximum_ms": 1422.0000000059372,
+      "p50_ms": 203.0,
+      "p95_ms": 782.0,
+      "percentile_sample_count": 58,
+      "error_categories": {},
+      "last_success_age_seconds": 3.625,
+      "stale": false,
+      "capabilities": {
+        "cpu.temp": {
+          "state": "known",
+          "value": 50.1
+        },
+        "cpu.load": {
+          "state": "known",
+          "value": 10.2
+        },
+        "cpu.freq_mhz": {
+          "state": "known",
+          "value": 1900.0
+        },
+        "cpu.power_w": {
+          "state": "unknown"
+        },
+        "gpu.present": {
+          "state": "known",
+          "value": true
+        },
+        "gpu.temp": {
+          "state": "known",
+          "value": 40.0
+        },
+        "gpu.load": {
+          "state": "known",
+          "value": 0.0
+        },
+        "gpu.freq_mhz": {
+          "state": "known",
+          "value": 180.0
+        },
+        "gpu.vram_used_mb": {
+          "state": "known",
+          "value": 253
+        },
+        "gpu.vram_total_mb": {
+          "state": "known",
+          "value": 8151
+        },
+        "fans.available": {
+          "state": "known",
+          "value": true
+        },
+        "fans.cpu_rpm": {
+          "state": "known",
+          "value": 1879
+        },
+        "fans.gpu_rpm": {
+          "state": "known",
+          "value": 1882
+        },
+        "battery.percent": {
+          "state": "known",
+          "value": 100.0
+        },
+        "battery.charging": {
+          "state": "known",
+          "value": false
+        },
+        "battery.on_ac": {
+          "state": "known",
+          "value": true
+        },
+        "battery.limit": {
+          "state": "known",
+          "value": 80
+        },
+        "battery.health_percent": {
+          "state": "unknown"
+        },
+        "power_mode": {
+          "state": "known",
+          "value": 2
+        },
+        "fan_boost": {
+          "state": "known",
+          "value": false
+        },
+        "elevated": {
+          "state": "known",
+          "value": true
+        }
+      }
+    },
+    "get_page_status:tuning": {
+      "attempts": 58,
+      "successes": 58,
+      "failures": 0,
+      "mean_ms": 573.0689655187045,
+      "minimum_ms": 47.00000000593718,
+      "maximum_ms": 985.0000000005821,
+      "p50_ms": 531.0,
+      "p95_ms": 891.0,
+      "percentile_sample_count": 58,
+      "error_categories": {},
+      "last_success_age_seconds": 2.25,
+      "stale": false,
+      "capabilities": {
+        "cpu.temp": {
+          "state": "known",
+          "value": 50.1
+        },
+        "cpu.load": {
+          "state": "known",
+          "value": 17.4
+        },
+        "cpu.freq_mhz": {
+          "state": "known",
+          "value": 1900.0
+        },
+        "cpu.power_w": {
+          "state": "unknown"
+        },
+        "fans.available": {
+          "state": "known",
+          "value": true
+        },
+        "fans.cpu_rpm": {
+          "state": "known",
+          "value": 1802
+        },
+        "fans.gpu_rpm": {
+          "state": "known",
+          "value": 1626
+        },
+        "battery.percent": {
+          "state": "known",
+          "value": 100.0
+        },
+        "battery.charging": {
+          "state": "known",
+          "value": false
+        },
+        "battery.on_ac": {
+          "state": "known",
+          "value": true
+        },
+        "battery.limit": {
+          "state": "known",
+          "value": 80
+        },
+        "battery.health_percent": {
+          "state": "unknown"
+        },
+        "power_mode": {
+          "state": "known",
+          "value": 2
+        },
+        "fan_boost": {
+          "state": "known",
+          "value": false
+        },
+        "elevated": {
+          "state": "known",
+          "value": true
+        }
+      }
+    },
+    "get_page_status:display": {
+      "attempts": 58,
+      "successes": 58,
+      "failures": 0,
+      "mean_ms": 258.58620689641924,
+      "minimum_ms": 0.0,
+      "maximum_ms": 546.9999999913853,
+      "p50_ms": 390.0,
+      "p95_ms": 516.0,
+      "percentile_sample_count": 58,
+      "error_categories": {},
+      "last_success_age_seconds": 1.3289999999979045,
+      "stale": false,
+      "capabilities": {
+        "gpu.present": {
+          "state": "known",
+          "value": true
+        },
+        "gpu.temp": {
+          "state": "known",
+          "value": 40.0
+        },
+        "gpu.load": {
+          "state": "known",
+          "value": 0.0
+        },
+        "gpu.freq_mhz": {
+          "state": "known",
+          "value": 180.0
+        },
+        "gpu.vram_used_mb": {
+          "state": "known",
+          "value": 253
+        },
+        "gpu.vram_total_mb": {
+          "state": "known",
+          "value": 8151
+        },
+        "power_mode": {
+          "state": "known",
+          "value": 2
+        },
+        "fan_boost": {
+          "state": "known",
+          "value": false
+        },
+        "elevated": {
+          "state": "known",
+          "value": true
+        }
+      }
+    },
+    "get_page_status:system": {
+      "attempts": 58,
+      "successes": 58,
+      "failures": 0,
+      "mean_ms": 519.0689655184918,
+      "minimum_ms": 16.00000000325963,
+      "maximum_ms": 1360.000000000582,
+      "p50_ms": 719.0,
+      "p95_ms": 890.0,
+      "percentile_sample_count": 58,
+      "error_categories": {},
+      "last_success_age_seconds": 0.01600000000325963,
+      "stale": false,
+      "capabilities": {
+        "power_mode": {
+          "state": "known",
+          "value": 2
+        },
+        "fan_boost": {
+          "state": "known",
+          "value": false
+        },
+        "elevated": {
+          "state": "known",
+          "value": true
+        }
+      }
+    },
+    "get_page_status:lighting": {
+      "attempts": 57,
+      "successes": 57,
+      "failures": 0,
+      "mean_ms": 0.0,
+      "minimum_ms": 0.0,
+      "maximum_ms": 0.0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "percentile_sample_count": 57,
+      "error_categories": {},
+      "last_success_age_seconds": 4.875,
+      "stale": false,
+      "capabilities": {
+        "power_mode": {
+          "state": "known",
+          "value": 2
+        },
+        "fan_boost": {
+          "state": "known",
+          "value": false
+        },
+        "elevated": {
+          "state": "known",
+          "value": true
+        }
+      }
+    }
+  },
+  "read_only": false,
+  "scope": "Rust FFI readback; shell navigation and installed UI are not exercised",
+  "brightness_round_trip": {
+    "status": "failed",
+    "restored": true,
+    "writes_attempted": 7,
+    "errors": [
+      "brightness_readback_mismatch"
+    ],
+    "original": 50,
+    "requested": [
+      51,
+      52,
+      51,
+      49,
+      48,
+      49
+    ],
+    "readbacks": [
+      51,
+      52,
+      51,
+      49,
+      48
+    ]
+  },
+  "elapsed_seconds": 300.51600000000326,
+  "physical_suspend_resume": {
+    "source": "windows_power_notifications",
+    "status": "observed",
+    "completed_cycles": 1,
+    "suspend_without_resume": false,
+    "events": [
+      {
+        "kind": "suspend",
+        "utc_unix_seconds": 1791269043.989069
+      },
+      {
+        "kind": "resume_automatic",
+        "utc_unix_seconds": 1791269053.353997
+      },
+      {
+        "kind": "resume_suspend",
+        "utc_unix_seconds": 1791269053.353997
+      }
+    ],
+    "readback_status": "passed",
+    "successful_readbacks": [
+      "get_display_brightness",
+      "get_page_status:display",
+      "get_page_status:lighting",
+      "get_page_status:overview",
+      "get_page_status:system",
+      "get_page_status:tuning"
+    ],
+    "required_readbacks": [
+      "get_display_brightness",
+      "get_page_status:display",
+      "get_page_status:lighting",
+      "get_page_status:overview",
+      "get_page_status:system",
+      "get_page_status:tuning"
+    ]
+  },
+  "power_observer_registered": true,
+  "inherited_mock_flag_cleared": false,
+  "telemetry_passed": true
+}

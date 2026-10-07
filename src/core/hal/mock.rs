@@ -349,7 +349,7 @@ impl HardwareHal for MockHal {
             power_mode: Some(mode),
             power_mode_error: None,
             gpu_mode: Some(cfg.gpu_mode),
-            fan_boost: Some(cfg.fan_boost),
+            fan_boost: Some(self.fan_boost.load(Ordering::Relaxed)),
             windows_power_scheme: self.active_windows_power_scheme()?,
             elevated: self.is_elevated(),
         })
@@ -449,6 +449,10 @@ impl HardwareHal for MockHal {
         sim_log(&format!("set_fan_boost({enabled})"));
         self.fan_boost.store(enabled, Ordering::Relaxed);
         Ok(())
+    }
+
+    fn get_fan_boost(&self) -> HalResult<bool> {
+        Ok(self.fan_boost.load(Ordering::Relaxed))
     }
 
     fn toggle_fan_curve_control(
@@ -996,5 +1000,16 @@ mod tests {
         let hal = MockHal::new();
         hal.set_battery_limit(60).unwrap();
         assert_eq!(hal.battery_status(100).unwrap().limit, Some(60));
+    }
+
+    #[test]
+    fn full_fan_readback_matches_live_state_instead_of_saved_configuration() {
+        let hal = MockHal::new();
+        let cfg = AppConfig::default();
+        hal.set_fan_boost(true).unwrap();
+        assert!(hal.get_fan_boost().unwrap());
+        assert_eq!(hal.hardware_status(&cfg).unwrap().fan_boost, Some(true));
+        hal.set_fan_boost(false).unwrap();
+        assert_eq!(hal.hardware_status(&cfg).unwrap().fan_boost, Some(false));
     }
 }

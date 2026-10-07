@@ -1,4 +1,5 @@
 using Microsoft.UI.Reactor;
+using System.Text.Json;
 using JiYaoChu.Interop;
 using JiYaoChu.Model;
 
@@ -29,10 +30,21 @@ public sealed record MachineState
     public string? ConfigError { get; init; }
     public DateTimeOffset? LastUpdated { get; init; }
     public IReadOnlyList<TrendSample> Trends { get; init; } = [];
+    public string Page { get; init; } = "overview";
+    public IReadOnlyList<string> Fields { get; init; } = [];
     public bool IsStale => Error is not null || LastUpdated is { } at && DateTimeOffset.UtcNow - at > TimeSpan.FromSeconds(5);
 
     /// <summary>True while a fresh snapshot is being read and none has ever arrived.</summary>
     public bool HasData => Status is not null;
+
+    /// <summary>A different page's last read cannot make this page's sensors appear fresh.</summary>
+    public MachineState ForPage(string page) => Page == page && Fields.Count > 0 ? this : this with
+    {
+        Status = null,
+        LastUpdated = null,
+        Loading = Page != page || Loading,
+        Error = Page == page ? Error : null,
+    };
 }
 
 /// <summary>
@@ -57,6 +69,8 @@ public static class MachineStore
     private static int _started;
     private static int _active;
     private static bool _trendActive;
+    private static string _page = "overview";
+    private static long _pageRevision;
     private static long _hardwareReads;
     private static readonly TrendHistory History = new();
     internal static long HardwareReads => Interlocked.Read(ref _hardwareReads);
@@ -78,6 +92,19 @@ public static class MachineStore
             if (!active) History.MarkGap();
         }
         if (active && IsActive) Refresh();
+    }
+
+    public static void SetPage(string page)
+    {
+        if (!MachineTelemetry.Pages.Contains(page)) throw new ArgumentOutOfRangeException(nameof(page));
+        lock (Gate)
+        {
+            if (_page == page) return;
+            _page = page;
+            _pageRevision++;
+            if (page != "overview") { _trendActive = false; History.MarkGap(); }
+        }
+        if (IsActive) Refresh();
     }
 
     /// <summary>The current reading. Safe to call from any thread.</summary>
@@ -168,12 +195,15 @@ public static class MachineStore
                     continue;
                 }
                 var started = Environment.TickCount64;
+                string page;
+                long revision;
+                lock (Gate) { page = _page; revision = _pageRevision; }
                 try
                 {
                     var bootstrap = await Backend.InitializeAsync().ConfigureAwait(false);
                     if (!IsActive) continue;
                     Interlocked.Increment(ref _hardwareReads);
-                    var status = await Backend.CallAsync<HardwareStatus>("get_hardware_status")
+                    var data = await Backend.CallNodeAsync("get_page_status", new { page })
                         .ConfigureAwait(false);
                     if (!IsActive) continue;
                     var events = await Backend.DrainEventsAsync().ConfigureAwait(false);
@@ -181,6 +211,8 @@ public static class MachineStore
                     var updated = DateTimeOffset.UtcNow;
                     Publish(state =>
                     {
+                        if (revision != _pageRevision || !IsActive) return state;
+                        var status = MachineTelemetry.Merge(state.Status, data, page);
                         // Publish holds Gate, so a route change cannot race an in-flight poll
                         // into recording or copying a trend snapshot after the tab is left.
                         var trends = state.Trends;
@@ -198,6 +230,8 @@ public static class MachineStore
                             ConfigError = bootstrap.ConfigError,
                             LastUpdated = updated,
                             Trends = trends,
+                            Page = page,
+                            Fields = data["fields"]!.Deserialize<string[]>(Core.Json)!,
                         };
                     });
 
@@ -208,10 +242,19 @@ public static class MachineStore
                 }
                 catch (Exception error)
                 {
-                    History.MarkGap();
                     // A refused read is reportable, not fatal: keep the last good
                     // snapshot on screen and say why it is stale.
-                    Publish(state => state with { Error = error.Message, Loading = false });
+                    Publish(state =>
+                    {
+                        if (revision != _pageRevision || !IsActive) return state;
+                        History.MarkGap();
+                        return state with
+                        {
+                            Error = error.Message, Loading = false, Page = page,
+                            Fields = state.Page == page ? state.Fields : [],
+                            LastUpdated = state.Page == page ? state.LastUpdated : null,
+                        };
+                    });
                 }
 
                 // Keep the cadence even when a read itself took most of a second.
