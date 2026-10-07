@@ -2,6 +2,7 @@
 
 pub mod acpi;
 pub mod nvml;
+pub(crate) mod temperature;
 pub mod uefi;
 
 pub use acpi::{AcpiDriver, AcpiStatus};

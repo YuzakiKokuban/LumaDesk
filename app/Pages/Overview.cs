@@ -93,7 +93,7 @@ public sealed class OverviewPage : Component
         var cards = new Element[]
         {
             Chrome.StatCard(
-                "ACPI 热区温度",
+                "CPU 温度（EC）",
                 Chrome.Number(cpu.Temp),
                 "°C",
                 $"{Chrome.Number(cpu.FreqMhz, "0")} MHz · 负载 {Chrome.Number(cpu.Load, "0")} %",
@@ -215,7 +215,7 @@ public sealed class OverviewPage : Component
                 new TrendGraphElement(samples, metric).WithKey("trend:" + metric),
                 Caption(TrendGraph.Summary(samples, metric)).Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap));
         return Chrome.SectionCard("最近五分钟趋势",
-            Caption("仅在状态概览可见时记录；切页、收起、读取失败与缺失传感器显示为空隙。ACPI 热区温度并非 CPU 核心温度。")
+            Caption("仅在状态概览可见时记录；切页、收起、读取失败与缺失传感器显示为空隙。CPU 温度来自 EC；显卡优先使用 NVIDIA 读数，无效时尝试 EC。")
                 .Foreground(Theme.SecondaryText).TextWrapping(TextWrapping.Wrap),
             Plot("温度 (°C)", TrendMetric.Temperature),
             Plot("负载 (%)", TrendMetric.Load),

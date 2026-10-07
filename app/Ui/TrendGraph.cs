@@ -37,7 +37,7 @@ public static class TrendGraph
             var current = items.LastOrDefault() is { } latest ? select(latest) : null;
             return double.IsPositiveInfinity(minimum) ? "无有效读数" : $"当前 {Chrome.Number(current)} {unit} · 最低 {minimum:0.#} · 最高 {maximum:0.#}";
         }
-        var names = metric == TrendMetric.Temperature ? ("ACPI 热区", "GPU") : ("CPU", "GPU");
+        var names = metric == TrendMetric.Temperature ? ("CPU（EC）", "GPU") : ("CPU", "GPU");
         return $"{names.Item1}（实线）：{Describe(samples, first, unit)}\n{names.Item2}（虚线）：{Describe(samples, second, unit)}";
     }
     internal static (Func<TrendSample, double?> First, Func<TrendSample, double?> Second, string Unit) Select(TrendMetric metric) => metric switch

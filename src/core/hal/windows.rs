@@ -10,6 +10,7 @@ use crate::core::config::{
     AppConfig, BatteryMode, BatteryStatus, CoolerStrategy, CpuStatus, CurvePoint, DeviceStatus,
     FanStatus, GpuMode, GpuStatus, HardwareStatus, LightingState, PowerModeId, SupportFlags,
 };
+use crate::core::driver::temperature;
 use crate::core::driver::AcpiDriver;
 use crate::core::error::{HalError, HalResult};
 use crate::core::hal::{
@@ -143,9 +144,9 @@ impl HardwareHal for WindowsHal {
 
         #[cfg(windows)]
         {
-            // `Win32_Processor` gives us the rated and current clocks; the
-            // temperature comes from the ACPI thermal zone, which the platform
-            // exposes on most laptops and on almost no desktops.
+            // `Win32_Processor` provides clocks. ACPI thermal zones may be
+            // fixed firmware values rather than live CPU readings, so use the
+            // device-verified EC sensor instead; unavailable stays unknown.
             let freq_mhz = self.clock_cache.read(Duration::from_secs(5), || {
                 Ok(winapi::Wmi::first_row(
                     "ROOT\\CIMV2",
@@ -157,7 +158,7 @@ impl HardwareHal for WindowsHal {
                 .unwrap_or(0.0))
             })?;
 
-            let temp = acpi_thermal_zone_celsius();
+            let temp = temperature::read_ec(&self.acpi, temperature::CPU);
 
             Ok(CpuStatus {
                 temp,
@@ -181,7 +182,10 @@ impl HardwareHal for WindowsHal {
     }
 
     fn gpu_status(&self) -> HalResult<GpuStatus> {
-        if let Some(status) = crate::core::driver::nvml::snapshot() {
+        if let Some(mut status) = crate::core::driver::nvml::snapshot() {
+            status.temp = temperature::gpu_with_fallback(status.temp, || {
+                temperature::read_ec(&self.acpi, temperature::GPU)
+            });
             return Ok(status);
         }
         #[cfg(windows)]
@@ -216,11 +220,9 @@ impl HardwareHal for WindowsHal {
             Ok(GpuStatus {
                 present: !name.is_empty(),
                 name,
-                // GPU core temperature, clocks, utilisation and dedicated
-                // VRAM-in-use are not exposed through WMI on any consumer
-                // driver. Reporting a guess here would be the exact dishonesty
-                // this backend is written to avoid.
-                temp: None,
+                // WMI supplies identity only. The verified EC sensor can still
+                // provide temperature when NVIDIA telemetry is unavailable.
+                temp: temperature::read_ec(&self.acpi, temperature::GPU),
                 freq_mhz: None,
                 load: None,
                 vram_used_mb: None,
@@ -1043,38 +1045,6 @@ fn best_video_adapter(rows: &[winapi::WmiRow]) -> Option<&winapi::WmiRow> {
         real
     };
     pool.into_iter().max_by_key(|row| rank(row))
-}
-
-/// Reads the first ACPI thermal zone and converts it to Celsius.
-///
-/// `MSAcpi_ThermalZoneTemperature.CurrentTemperature` is reported in tenths of
-/// a Kelvin. The class is absent on many machines (and requires elevation on
-/// some), which is why this returns `Option` rather than an error.
-#[cfg(windows)]
-fn acpi_thermal_zone_celsius() -> Option<f64> {
-    let rows = winapi::Wmi::query_rows(
-        "ROOT\\WMI",
-        "SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature",
-    )
-    .ok()?;
-
-    let mut best: Option<f64> = None;
-    for row in rows {
-        let Some(raw) = row.f64_of("CurrentTemperature") else {
-            continue;
-        };
-        // tenths of Kelvin -> Celsius
-        let celsius = raw / 10.0 - 273.15;
-        // Sensor-less zones report 0 K or absurd values; discard those.
-        if !(-20.0..=150.0).contains(&celsius) {
-            continue;
-        }
-        best = Some(match best {
-            Some(current) => current.max(celsius),
-            None => celsius,
-        });
-    }
-    best.map(|value| (value * 10.0).round() / 10.0)
 }
 
 // ---------------------------------------------------------------------------

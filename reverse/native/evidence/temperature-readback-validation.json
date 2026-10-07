@@ -1,0 +1,152 @@
+{
+  "captured_utc": "2026-10-07T13:23:18.934362+00:00",
+  "hardware_writes": 0,
+  "samples": [
+    {
+      "index": 0,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 64,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 64.0,
+      "gpu": 44.0,
+      "nvidia_smi": 44.0
+    },
+    {
+      "index": 1,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 66,
+        "0x44f": 45
+      },
+      "api_ok": true,
+      "cpu": 66.0,
+      "gpu": 45.0,
+      "nvidia_smi": 45.0
+    },
+    {
+      "index": 2,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 58,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 58.0,
+      "gpu": 45.0,
+      "nvidia_smi": 45.0
+    },
+    {
+      "index": 3,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 59,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 59.0,
+      "gpu": 44.0,
+      "nvidia_smi": 44.0
+    },
+    {
+      "index": 4,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 55,
+        "0x44f": 45
+      },
+      "api_ok": true,
+      "cpu": 55.0,
+      "gpu": 45.0,
+      "nvidia_smi": 45.0
+    },
+    {
+      "index": 5,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 60,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 60.0,
+      "gpu": 44.0,
+      "nvidia_smi": 44.0
+    },
+    {
+      "index": 6,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 60,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 60.0,
+      "gpu": 44.0,
+      "nvidia_smi": 44.0
+    },
+    {
+      "index": 7,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 63,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 63.0,
+      "gpu": 43.0,
+      "nvidia_smi": 43.0
+    },
+    {
+      "index": 8,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 64,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 64.0,
+      "gpu": 43.0,
+      "nvidia_smi": 43.0
+    },
+    {
+      "index": 9,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 58,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 58.0,
+      "gpu": 43.0,
+      "nvidia_smi": 43.0
+    },
+    {
+      "index": 10,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 56,
+        "0x44f": 44
+      },
+      "api_ok": true,
+      "cpu": 56.0,
+      "gpu": 43.0,
+      "nvidia_smi": 43.0
+    },
+    {
+      "index": 11,
+      "ec": {
+        "0x740": 26,
+        "0x43e": 73,
+        "0x44f": 43
+      },
+      "api_ok": true,
+      "cpu": 73.0,
+      "gpu": 43.0,
+      "nvidia_smi": 43.0
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

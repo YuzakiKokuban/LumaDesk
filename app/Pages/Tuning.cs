@@ -228,7 +228,7 @@ public sealed class TuningPage : SettingsPage
 
         return Chrome.SectionCard(
             "实时读数",
-            Chrome.Field("ACPI 热区温度", $"{Chrome.Number(cpu?.Temp, "0.#")} °C"),
+            Chrome.Field("CPU 温度（EC）", $"{Chrome.Number(cpu?.Temp, "0.#")} °C"),
             Chrome.Field("CPU 频率", $"{Chrome.Number(cpu?.FreqMhz, "0")} MHz"),
             Chrome.Field("CPU 负载", $"{Chrome.Number(cpu?.Load, "0.#")} %"),
             Chrome.Field("CPU 功耗", cpu?.PowerW is null

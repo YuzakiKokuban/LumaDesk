@@ -75,7 +75,9 @@ pub fn snapshot() -> Option<GpuStatus> {
     );
     let mut temp = 0;
     let mut clock = 0;
-    let temp = (unsafe { temp_fn(device, 0, &mut temp) } == 0).then_some(f64::from(temp));
+    let temp = super::temperature::valid_celsius(
+        (unsafe { temp_fn(device, 0, &mut temp) } == 0).then_some(f64::from(temp)),
+    );
     let freq_mhz = (unsafe { clock_fn(device, 0, &mut clock) } == 0)
         .then_some(f64::from(clock))
         .filter(|v| (0.0..=6000.0).contains(v));

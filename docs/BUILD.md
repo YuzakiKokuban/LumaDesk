@@ -102,4 +102,10 @@ python scripts/verify-long-run.py --library target/release/jiyaochu_core.dll --o
 
 此脚本需管理员终端，使用独立配置目录并拒绝模拟后端，轮流读取五个页面的硬件范围与内屏亮度。默认不写硬件；上例显式启用少量亮度调整，等待实际读回并恢复原亮度。睡眠由用户手动执行；`--require-resume` 要求捕获 Windows 睡眠/唤醒事件及唤醒后的全部读回，单纯时间间隔不算通过。没有事件或存在未知传感器值时报告待确认，并分别记录遥测稳定性与亮度结果。退出码 0 为全部通过，2 为待确认，1 为失败；该脚本不更换已安装程序，也不证明窗口鼠标响应或物理快捷键链路。
 
+```powershell
+python scripts/verify-temperatures.py --library target/release/jiyaochu_core.dll --output artifacts/temperature-readback-validation.json --samples 12
+```
+
+温度检查仅读取项目 0x1A 的 CPU/GPU 温度，将连续 FFI 结果与紧邻的 EC `0x043E` / `0x044F`、`nvidia-smi` 交叉比较。使用独立配置目录，不写硬件；要求 NVIDIA 对照可用，不能以模拟结果替代实机读回。未适配机型、无效读数或差异超过 5°C 会使检查失败。
+
 设置模拟回归还覆盖按页查询范围、读回队列合并与失败恢复、跨页亮度请求覆盖，以及切页后原生控件卸载、未提交草稿和滚动位置恢复。会话草稿仅保留当前进程内的值，不缓存隐藏页面或启动隐藏页面读回。

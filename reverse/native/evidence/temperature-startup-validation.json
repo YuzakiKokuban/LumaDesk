@@ -1,0 +1,47 @@
+{
+  "background_startup_reads": 0,
+  "background_memory": {
+    "working_mib": 13.24,
+    "private_mib": 102.82
+  },
+  "visible_reads": 5,
+  "visible_memory": {
+    "working_mib": 110.87,
+    "private_mib": 119.48
+  },
+  "window_title": "\u673A\u8000\u5904",
+  "executable": "LumaDesk.exe",
+  "maximized_and_half_screen_restore": true,
+  "hidden_trends_paused": true,
+  "hidden_reads_before": 5,
+  "hidden_reads_after": 5,
+  "hidden_memory": {
+    "working_mib": 125,
+    "private_mib": 130.43
+  },
+  "osd_nonactivating": true,
+  "osd_styles": 134742440,
+  "osd_frame_styles": 340262912,
+  "osd_opacity_default": 60,
+  "osd_border_removed": true,
+  "osd_client_fills_window": true,
+  "osd_bounds": {
+    "Left": 1864,
+    "Top": 1240,
+    "Right": 2504,
+    "Bottom": 1448
+  },
+  "osd_opacity_custom": 37,
+  "brightness_percentage_osd": true,
+  "touchpad_state_osd": true,
+  "fn_lock_and_microphone_state_osd": true,
+  "hidden_event_reads": 11,
+  "lock_and_power_events": true,
+  "fn_f3_packet_toggle": true,
+  "idle_cpu_seconds_over_3s": 0.03125,
+  "final_hidden_memory": {
+    "working_mib": 130.83,
+    "private_mib": 127.15
+  },
+  "passed": true
+}
