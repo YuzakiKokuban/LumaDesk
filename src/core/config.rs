@@ -462,7 +462,7 @@ impl Default for AppConfig {
             power_mode: 1,
             power_mode_ac: 2,
             power_mode_battery: 0,
-            auto_power_mode: false,
+            auto_power_mode: true,
             fan_boost: false,
             battery_limit: 100,
             battery_mode: BatteryMode::Balanced,

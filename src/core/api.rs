@@ -376,7 +376,7 @@ impl Api {
         Ok(())
     }
 
-    /// Stores opt-in AC/DC rules; the resident shell applies them on power events.
+    /// Stores AC/DC rules; the resident shell applies them on power events.
     pub fn set_power_automation(
         &self,
         enabled: bool,
@@ -707,6 +707,19 @@ impl Api {
                 .map_err(fail)?;
         }
         Ok(())
+    }
+
+    /// Automation revalidates the internal-only topology at the HAL write.
+    pub fn set_internal_display_refresh_rate(
+        &self,
+        device_name: String,
+        hz: u32,
+    ) -> Result<(), String> {
+        let (device, rate) = resolve_rate(&self.state, Some(&device_name), hz).map_err(fail)?;
+        self.state
+            .hal()
+            .set_internal_display_refresh_rate(&device, rate)
+            .map_err(fail)
     }
 
     pub fn set_display_tuning_enabled(&self, enabled: bool) -> Result<(), String> {

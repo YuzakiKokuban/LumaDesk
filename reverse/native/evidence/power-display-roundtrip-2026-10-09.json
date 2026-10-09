@@ -1,0 +1,103 @@
+{
+  "passed": true,
+  "physical_plug_events_tested": false,
+  "samples": [
+    {
+      "mode": 0,
+      "display": {
+        "available_hz": [
+          60,
+          240
+        ],
+        "current_hz": 60,
+        "device_name": "\\\\.\\DISPLAY1",
+        "friendly_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "is_internal": true
+      }
+    },
+    {
+      "mode": 2,
+      "display": {
+        "available_hz": [
+          60,
+          240
+        ],
+        "current_hz": 240,
+        "device_name": "\\\\.\\DISPLAY1",
+        "friendly_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "is_internal": true
+      }
+    }
+  ],
+  "before": {
+    "mode": 2,
+    "panel": {
+      "available_hz": [
+        60,
+        240
+      ],
+      "current_hz": 240,
+      "device_name": "\\\\.\\DISPLAY1",
+      "friendly_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "is_internal": true
+    }
+  },
+  "restored": {
+    "mode": 2,
+    "display": [
+      {
+        "available_hz": [
+          60,
+          240
+        ],
+        "current_hz": 240,
+        "device_name": "\\\\.\\DISPLAY1",
+        "friendly_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "is_internal": true
+      }
+    ]
+  },
+  "ec_after": {
+    "device": "\\\\.\\ACPIDriver",
+    "opened": true,
+    "ioctl": "0x9c40a488",
+    "reads": [
+      {
+        "address": "0x751",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 16,
+        "byte": 16,
+        "duration_ms": 0.197
+      },
+      {
+        "address": "0x783",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 55,
+        "byte": 55,
+        "duration_ms": 0.109
+      },
+      {
+        "address": "0x784",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 55,
+        "byte": 55,
+        "duration_ms": 0.098
+      },
+      {
+        "address": "0x785",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 120,
+        "byte": 120,
+        "duration_ms": 0.094
+      }
+    ]
+  }
+}

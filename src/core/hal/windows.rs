@@ -621,6 +621,20 @@ impl HardwareHal for WindowsHal {
         }
     }
 
+    fn set_internal_display_refresh_rate(&self, device_name: &str, hz: u32) -> HalResult<()> {
+        #[cfg(windows)]
+        {
+            winapi::set_internal_refresh_rate(device_name, hz)
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = (device_name, hz);
+            Err(HalError::unavailable(
+                "refresh-rate switching requires Windows",
+            ))
+        }
+    }
+
     fn display_brightness(&self) -> HalResult<u32> {
         #[cfg(windows)]
         {
@@ -928,6 +942,7 @@ impl HardwareHal for WindowsHal {
                 .map(|display| DisplayInfo {
                     device_name: display.device_name,
                     friendly_name: display.friendly_name,
+                    is_internal: display.is_internal,
                     current_hz: display.current_hz,
                     available_hz: display.available_hz,
                 })

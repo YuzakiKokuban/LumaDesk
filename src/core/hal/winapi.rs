@@ -17,6 +17,7 @@ use crate::core::error::{HalError, HalResult};
 use std::collections::HashMap;
 use std::path::Path;
 use windows::core::{BSTR, GUID, PCWSTR, PWSTR};
+use windows::Win32::Devices::Display::*;
 use windows::Win32::Foundation::{CloseHandle, HANDLE, HWND, MAX_PATH};
 use windows::Win32::Graphics::Gdi::{
     ChangeDisplaySettingsExW, EnumDisplayDevicesW, EnumDisplaySettingsW, CDS_TEST,
@@ -975,12 +976,81 @@ fn wide_bytes_to_string(bytes: &[u8]) -> String {
 pub struct DisplayMode {
     pub device_name: String,
     pub friendly_name: String,
+    pub is_internal: bool,
     pub current_hz: u32,
     pub available_hz: Vec<u32>,
 }
 
+/// Group active targets by GDI source. A cloned external target makes the
+/// whole source ineligible for automatic changes, since GDI changes both.
+fn internal_display_sources() -> HalResult<HashMap<String, bool>> {
+    for _ in 0..3 {
+        let (mut path_count, mut mode_count) = (0, 0);
+        // SAFETY: valid count outputs; only active paths are requested.
+        unsafe {
+            GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count)
+        }
+        .ok()
+        .map_err(|e| HalError::unavailable(e.to_string()))?;
+        let mut paths = vec![DISPLAYCONFIG_PATH_INFO::default(); path_count as usize];
+        let mut modes = vec![DISPLAYCONFIG_MODE_INFO::default(); mode_count as usize];
+        // SAFETY: arrays have exactly the sizes returned by Windows. Counts
+        // remain in/out parameters; topology changes trigger a bounded retry.
+        let result = unsafe {
+            QueryDisplayConfig(
+                QDC_ONLY_ACTIVE_PATHS,
+                &mut path_count,
+                paths.as_mut_ptr(),
+                &mut mode_count,
+                modes.as_mut_ptr(),
+                None,
+            )
+        };
+        if result == windows::Win32::Foundation::ERROR_INSUFFICIENT_BUFFER {
+            continue;
+        }
+        result
+            .ok()
+            .map_err(|e| HalError::unavailable(e.to_string()))?;
+        let mut sources = HashMap::new();
+        for path in paths.iter().take(path_count as usize) {
+            let mut name = DISPLAYCONFIG_SOURCE_DEVICE_NAME::default();
+            name.header.r#type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+            name.header.size = std::mem::size_of_val(&name) as u32;
+            name.header.adapterId = path.sourceInfo.adapterId;
+            name.header.id = path.sourceInfo.id;
+            // SAFETY: the header describes the full initialized source-name
+            // buffer and the adapter/id originate from an active path.
+            let result = unsafe { DisplayConfigGetDeviceInfo(&mut name.header) };
+            if result != 0 {
+                return Err(HalError::unavailable(format!(
+                    "display source lookup failed: {result}"
+                )));
+            }
+            let technology = path.targetInfo.outputTechnology;
+            let internal = matches!(
+                technology,
+                DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INTERNAL
+                    | DISPLAYCONFIG_OUTPUT_TECHNOLOGY_LVDS
+                    | DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EMBEDDED
+                    | DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EMBEDDED
+            );
+            let source = wide_field_to_string(&name.viewGdiDeviceName).to_ascii_lowercase();
+            sources
+                .entry(source)
+                .and_modify(|value| *value &= internal)
+                .or_insert(internal);
+        }
+        return Ok(sources);
+    }
+    Err(HalError::unavailable("display topology kept changing"))
+}
+
 /// Enumerates GDI display devices and the modes each one reports.
 pub fn displays() -> HalResult<Vec<DisplayMode>> {
+    // An unavailable topology must never cause an external monitor to be
+    // guessed as internal. Manual display controls remain usable.
+    let internal_sources = internal_display_sources().unwrap_or_default();
     let mut out = Vec::new();
     let mut index = 0u32;
     loop {
@@ -1005,6 +1075,10 @@ pub fn displays() -> HalResult<Vec<DisplayMode>> {
         let rates = display_rates(&device_name);
         let mode = current_mode(&device_name);
         out.push(DisplayMode {
+            is_internal: internal_sources
+                .get(&device_name.to_ascii_lowercase())
+                .copied()
+                .unwrap_or(false),
             device_name,
             friendly_name,
             current_hz: mode,
@@ -1142,6 +1216,14 @@ mod display_mode_tests {
 /// mode change, so an unsupported value produces a typed "not supported" error
 /// instead of a black screen.
 pub fn set_refresh_rate(device_name: &str, hz: u32) -> HalResult<()> {
+    apply_refresh_rate(device_name, hz, false)
+}
+
+pub fn set_internal_refresh_rate(device_name: &str, hz: u32) -> HalResult<()> {
+    apply_refresh_rate(device_name, hz, true)
+}
+
+fn apply_refresh_rate(device_name: &str, hz: u32, internal_only: bool) -> HalResult<()> {
     let name_z = wide_z(device_name);
     let mut current = DEVMODEW {
         dmSize: std::mem::size_of::<DEVMODEW>() as u16,
@@ -1173,6 +1255,16 @@ pub fn set_refresh_rate(device_name: &str, hz: u32) -> HalResult<()> {
         return Err(HalError::unsupported(format!(
             "当前分辨率下驱动不接受 {hz} Hz"
         )));
+    }
+    if internal_only
+        && !internal_display_sources()?
+            .get(&device_name.to_ascii_lowercase())
+            .copied()
+            .unwrap_or(false)
+    {
+        return Err(HalError::unsupported(
+            "自动刷新率仅适用于独立内屏；显示拓扑已变化",
+        ));
     }
     current.dmDisplayFrequency = hz;
     current.dmFields |= DM_DISPLAYFREQUENCY;

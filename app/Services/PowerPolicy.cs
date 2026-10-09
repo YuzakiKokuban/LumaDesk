@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace JiYaoChu.Services;
 
-/// <summary>Opt-in rules triggered by power events, with no background telemetry.</summary>
+/// <summary>AC/DC profile and internal-panel rules, with no background telemetry.</summary>
 internal static class PowerPolicy
 {
     private static readonly SemaphoreSlim Gate = new(1, 1);
@@ -12,6 +12,19 @@ internal static class PowerPolicy
     private static uint? _source;
     private static int _revision;
     private static bool _started;
+
+    // Cancel older rules before waiting, then let any in-flight automatic write
+    // finish before the manual command. The user's write is therefore last.
+    internal static async Task<IDisposable> BeginManualChangeAsync()
+    {
+        ++_revision;
+        await Gate.WaitAsync();
+        return new ManualChangeLease();
+    }
+    private sealed class ManualChangeLease : IDisposable
+    {
+        public void Dispose() => Gate.Release();
+    }
 
     public static void Start(AppConfig config)
     {
@@ -35,10 +48,15 @@ internal static class PowerPolicy
                     AutoPowerMode = arguments["enabled"]!.GetValue<bool>(),
                     PowerModeAc = arguments["ac_mode"]!.GetValue<byte>(),
                     PowerModeBattery = arguments["battery_mode"]!.GetValue<byte>() };
+                ++_revision;
                 if (_config.AutoPowerMode)
                 {
                     var source = _source ?? ReadCurrentSource();
-                    if (source is { } known) OnPowerSource(known);
+                    if (source is { } known)
+                    {
+                        _source = known;
+                        _ = ApplyAsync(_revision);
+                    }
                 }
             }
         });
@@ -56,7 +74,7 @@ internal static class PowerPolicy
     private static extern bool GetSystemPowerStatus(out PowerStatus status);
     public static void OnPowerSource(uint source)
     {
-        if (source > 2) return;
+        if (source > 2 || _source == source) return;
         _source = source;
         var revision = ++_revision;
         _ = ApplyAsync(revision);
@@ -68,11 +86,27 @@ internal static class PowerPolicy
         {
             if (revision != _revision || !_config.AutoPowerMode || _source is not { } source) return;
             var mode = Math.Min((byte)2, source == 0 ? _config.PowerModeAc : _config.PowerModeBattery);
-            await Backend.CallAsync("set_power_mode", new { mode });
+            await Backend.CallAsync("set_power_mode", new { mode, automatic = true });
             if (MachineStore.IsActive) MachineStore.Refresh();
-            OsdOverlay.Show("自动性能档位", PowerModes.Label(mode));
+            if (revision != _revision) return;
+            var hz = source == 0 ? 240u : 90u;
+            var displays = await Backend.CallAsync<DisplayInfo[]>("get_displays");
+            var panels = displays.Where(display => display.IsInternal).ToArray();
+            var unsupported = false;
+            var appliedRates = new HashSet<uint>();
+            foreach (var panel in panels)
+            {
+                if (revision != _revision) return;
+                if (DisplayPolicy.AutomaticRate(panel, source == 0) is not { } rate) { unsupported = true; continue; }
+                if (panel.CurrentHz != rate)
+                    await Backend.CallAsync("set_internal_display_refresh_rate", new { device_name = panel.DeviceName, hz = rate });
+                appliedRates.Add(rate);
+            }
+            if (revision != _revision) return;
+            OsdOverlay.Show("自动档位与刷新率", PowerModes.Label(mode) +
+                (unsupported ? $" · 内屏不支持目标刷新率（{hz} Hz）" : panels.Length == 0 ? " · 未找到独立内屏" : $" · {string.Join("/", appliedRates.Order())} Hz"));
         }
-        catch (Exception error) { StartupLog.Write(error); OsdOverlay.Show("自动档位未完成", "请打开机耀处检查硬件状态"); }
+        catch (Exception error) { StartupLog.Write(error); if (revision == _revision) OsdOverlay.Show("自动档位与刷新率未完成", "请打开机耀处检查硬件状态"); }
         finally { Gate.Release(); }
     }
 }

@@ -45,7 +45,7 @@ public sealed class DisplayPage : SettingsPage
                 var command = raised.Payload?["command"]?.GetValue<string>();
                 if (command == "set_display_brightness")
                     _ = reader.RefreshAsync("brightness", value => ReadAsync(value, displays: false, brightness: true));
-                else if (command is "set_display_monitor_refresh_rate" or "switch_refresh_rate")
+                else if (command is "set_display_monitor_refresh_rate" or "set_internal_display_refresh_rate" or "switch_refresh_rate")
                     _rateReadback = reader.RefreshAsync("displays", value => ReadAsync(value, displays: true, brightness: false));
             }
         }), []);

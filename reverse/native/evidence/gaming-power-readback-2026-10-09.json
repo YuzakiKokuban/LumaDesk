@@ -1,0 +1,131 @@
+{
+  "date": "2026-10-09",
+  "read_only": true,
+  "display": {
+    "data": [
+      {
+        "available_hz": [
+          60,
+          240
+        ],
+        "current_hz": 240,
+        "device_name": "\\\\.\\DISPLAY1",
+        "friendly_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "is_internal": true
+      }
+    ],
+    "ok": true
+  },
+  "ec": {
+    "device": "\\\\.\\ACPIDriver",
+    "opened": true,
+    "ioctl": "0x9c40a488",
+    "reads": [
+      {
+        "address": "0x740",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 26,
+        "byte": 26,
+        "duration_ms": 0.273
+      },
+      {
+        "address": "0x751",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 16,
+        "byte": 16,
+        "duration_ms": 0.066
+      },
+      {
+        "address": "0x730",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 55,
+        "byte": 55,
+        "duration_ms": 0.043
+      },
+      {
+        "address": "0x731",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 55,
+        "byte": 55,
+        "duration_ms": 0.04
+      },
+      {
+        "address": "0x732",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 120,
+        "byte": 120,
+        "duration_ms": 0.039
+      },
+      {
+        "address": "0x734",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 45,
+        "byte": 45,
+        "duration_ms": 0.039
+      },
+      {
+        "address": "0x735",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 45,
+        "byte": 45,
+        "duration_ms": 0.038
+      },
+      {
+        "address": "0x736",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 120,
+        "byte": 120,
+        "duration_ms": 0.038
+      },
+      {
+        "address": "0x783",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 0,
+        "byte": 0,
+        "duration_ms": 0.038
+      },
+      {
+        "address": "0x784",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 0,
+        "byte": 0,
+        "duration_ms": 0.038
+      },
+      {
+        "address": "0x785",
+        "transport_ok": true,
+        "win32_error": 0,
+        "returned_bytes": 4,
+        "output_u32": 0,
+        "byte": 0,
+        "duration_ms": 0.037
+      }
+    ]
+  },
+  "windows": {
+    "PROCTHROTTLEMAX": "鐢垫簮鏂规�� GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (骞宠　)\r\n  GUID 鍒�鍚�: SCHEME_BALANCED\r\n  瀛愮粍 GUID: 54533251-82be-4824-96c1-47b60b740d00  (澶勭悊鍣ㄧ數婧愮�＄悊)\r\n    GUID 鍒�鍚�: SUB_PROCESSOR\r\n    鐢垫簮璁剧疆 GUID: bc5038f7-23e0-4960-96da-33abaf5935ec  (鏈�澶у�勭悊鍣ㄧ姸鎬�)\r\n      GUID 鍒�鍚�: PROCTHROTTLEMAX\r\n      鏈�灏忓彲鑳界殑璁剧疆: 0x00000000\r\n      鏈�澶у彲鑳界殑璁剧疆: 0x00000064\r\n      鍙�鑳界殑璁剧疆澧為噺: 0x00000001\r\n      鍙�鑳界殑璁剧疆鍗曚綅: %\r\n    褰撳墠浜ゆ祦鐢垫簮璁剧疆绱㈠紩: 0x00000064\r\n    褰撳墠鐩存祦鐢垫簮璁剧疆绱㈠紩: 0x00000064\r\n\r\n",
+    "PROCFREQMAX": "鐢垫簮鏂规�� GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (骞宠　)\r\n  GUID 鍒�鍚�: SCHEME_BALANCED\r\n  瀛愮粍 GUID: 54533251-82be-4824-96c1-47b60b740d00  (澶勭悊鍣ㄧ數婧愮�＄悊)\r\n    GUID 鍒�鍚�: SUB_PROCESSOR\r\n    鐢垫簮璁剧疆 GUID: 75b0ae3f-bce0-45a7-8c89-c9611c25e100  (澶勭悊鍣ㄦ渶澶ч�戠巼)\r\n      GUID 鍒�鍚�: PROCFREQMAX\r\n      鏈�灏忓彲鑳界殑璁剧疆: 0x00000000\r\n      鏈�澶у彲鑳界殑璁剧疆: 0xffffffff\r\n      鍙�鑳界殑璁剧疆澧為噺: 0x00000001\r\n      鍙�鑳界殑璁剧疆鍗曚綅: MHz\r\n    褰撳墠浜ゆ祦鐢垫簮璁剧疆绱㈠紩: 0x00000000\r\n    褰撳墠鐩存祦鐢垫簮璁剧疆绱㈠紩: 0x00000000\r\n\r\n",
+    "PROCFREQMAX1": "鐢垫簮鏂规�� GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (骞宠　)\r\n  GUID 鍒�鍚�: SCHEME_BALANCED\r\n  瀛愮粍 GUID: 54533251-82be-4824-96c1-47b60b740d00  (澶勭悊鍣ㄧ數婧愮�＄悊)\r\n    GUID 鍒�鍚�: SUB_PROCESSOR\r\n    鐢垫簮璁剧疆 GUID: 75b0ae3f-bce0-45a7-8c89-c9611c25e101  (绗� 1 绫诲�勭悊鍣ㄧ數婧愭晥鐜囩殑澶勭悊鍣ㄦ渶澶ч�戠巼)\r\n      GUID 鍒�鍚�: PROCFREQMAX1\r\n      鏈�灏忓彲鑳界殑璁剧疆: 0x00000000\r\n      鏈�澶у彲鑳界殑璁剧疆: 0xffffffff\r\n      鍙�鑳界殑璁剧疆澧為噺: 0x00000001\r\n      鍙�鑳界殑璁剧疆鍗曚綅: MHz\r\n    褰撳墠浜ゆ祦鐢垫簮璁剧疆绱㈠紩: 0x00000000\r\n    褰撳墠鐩存祦鐢垫簮璁剧疆绱㈠紩: 0x00000000\r\n\r\n",
+    "PERFBOOSTMODE": "鐢垫簮鏂规�� GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (骞宠　)\r\n  GUID 鍒�鍚�: SCHEME_BALANCED\r\n  瀛愮粍 GUID: 54533251-82be-4824-96c1-47b60b740d00  (澶勭悊鍣ㄧ數婧愮�＄悊)\r\n    GUID 鍒�鍚�: SUB_PROCESSOR\r\n    鐢垫簮璁剧疆 GUID: be337238-0d82-4146-a960-4f3749d470c7  (澶勭悊鍣ㄦ�ц兘鎻愬崌妯″紡)\r\n      GUID 鍒�鍚�: PERFBOOSTMODE\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 000\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 宸茬�佺敤\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 001\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 宸插惎鐢�\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 002\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 楂樻�ц兘\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 003\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 楂樻晥鐜�\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 004\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 楂樻�ц兘楂樻晥鐜�\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 005\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 绉�鏋佷笖鏈変繚闅�\r\n      鍙�鑳界殑璁剧疆绱㈠紩: 006\r\n      鍙�鑳界殑璁剧疆鍙嬪ソ鍚嶇О: 楂樻晥銆佺Н鏋佷笖鏈変繚闅�\r\n    褰撳墠浜ゆ祦鐢垫簮璁剧疆绱㈠紩: 0x00000002\r\n    褰撳墠鐩存祦鐢垫簮璁剧疆绱㈠紩: 0x00000002\r\n\r\n"
+  }
+}

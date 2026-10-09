@@ -1,5 +1,15 @@
 # 验证记录
 
+## 供电自动档位与内屏刷新率（2026-10-09）
+
+- 自动规则默认开启，已有配置中的显式关闭仍保留。接电默认狂暴与内屏 240 Hz，离电默认办公、优先 90 Hz；用户确认允许在驱动不支持 90 Hz 时使用 60 Hz。手动修改取消尚未完成的自动任务，并保留到下一次供电变化。恢复偏好不立即应用设备规则。
+- 自动刷新率只针对 Windows 活动路径确认的独立内屏；与外屏克隆的共享源及未知拓扑均排除。专用自动命令在实际写入前再次检查拓扑；普通显示器手动控制保持原有行为。参考 [Windows 显示路径查询](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-querydisplayconfig)及[内嵌连接类型](https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ne-wingdi-displayconfig_video_output_technology)。
+- [隔离模拟界面报告](../reverse/native/evidence/power-policy-settings-validation.json)通过启动、设置页面、90/240 Hz 自动规则、60 Hz 回退选择、外屏排除、不支持模式、重复事件、快速供电变化、手动与自动请求交错、规则关闭和备份恢复回归。新增自动改刷与回退检查分别在实现前失败，最终全部通过；一次中途运行在原有显示页滚动检查超时，复跑后通过。模拟测试不证明物理插拔或真实外接屏行为。
+- [实机只读记录](../reverse/native/evidence/gaming-power-readback-2026-10-09.json)确认当前内屏只接受 60/240 Hz，90 Hz 模式测试未通过。Windows 平衡计划接电时两类 CPU 最大频率均为 4900 MHz，最大处理器状态为 100%，性能提升模式为 2；本次未修改这些系统设置。
+- 当前 EC 为项目 0x1A、狂暴档；固件游戏默认 PL 字节为 55/55/120，办公为 45/45/120。应用切档使用这些固件默认值，不代表持续锁定相应瓦数；只读时实际 PL 设置字节均为 0，由固件接管。`cpu_safety_guard`、温度目标、PL4 余量等保留字段未执行额外限功耗，Windows HAL 的 CPU 限频接口仍返回不支持。
+- [实机控制往返](../reverse/native/evidence/power-display-roundtrip-2026-10-09.json)通过办公/60 Hz、狂暴/240 Hz 的独立 API 写入及读回，并恢复原狂暴/240 Hz。它不证明 Windows 物理供电事件链路；安装版实际拔插、睡眠恢复、外屏热插拔与克隆保护、游戏负载下 CPU/GPU 功耗及瓶颈仍待验证。本轮未更换本机安装版本。
+- Rust 56 项、Python 工具 48 项与离线协议 9 项通过，格式检查、Clippy、偏好恢复验证及代码复核通过。正式 Release 重建零警告/错误，便携 ZIP 与安装器同时通过版本、图标、管理员清单、CLI/FFI 包检查；未执行本机安装/卸载或游戏负载测试。
+
 2026-10-02，耀世 15 Air / EC 0x1A，Intel，RTX 5060 Laptop GPU。
 
 ## 温度读取修复（2026-10-07）

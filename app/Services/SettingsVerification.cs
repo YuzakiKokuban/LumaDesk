@@ -456,13 +456,45 @@ internal static class SettingsVerification
             report["failed_readback_keeps_settings"] = true;
 
             PowerPolicy.OnPowerSource(0);
+            var panel = new DisplayInfo { IsInternal = true, AvailableHz = new uint[] { 60, 240 } };
+            Require(DisplayPolicy.AutomaticRate(panel, false) == 60, "Battery policy did not fall back to supported 60 Hz");
+            Require(DisplayPolicy.AutomaticRate(panel with { AvailableHz = new uint[] { 60, 90, 240 } }, false) == 90, "Battery policy did not prefer 90 Hz");
+            Require(DisplayPolicy.AutomaticRate(panel with { IsInternal = false }, false) is null, "Automatic policy selected an external display");
+            Require(DisplayPolicy.AutomaticRate(panel with { AvailableHz = new uint[] { 120, 165 } }, false) is null, "Battery policy invented an unsupported refresh rate");
+            Require(DisplayPolicy.AutomaticRate(panel with { AvailableHz = new uint[] { 60, 90, 165 } }, true) is null, "AC policy replaced 240 Hz with an unrequested rate");
             await Backend.CallAsync("set_power_automation", new { enabled = true, ac_mode = (byte)2, battery_mode = (byte)0 });
             await Task.Delay(200);
             Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 2, "Enabling AC rule did not apply it");
+            Require((await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 240, "AC rule did not restore 240 Hz");
             PowerPolicy.OnPowerSource(1);
             await Task.Delay(200);
             Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 0, "Battery rule did not apply");
+            Require((await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 90, "Battery rule did not select 90 Hz");
+            await Backend.CallAsync("set_power_mode", new { mode = (byte)1 });
+            await Backend.CallAsync("set_display_monitor_refresh_rate", new { device_name = @"\\.\DISPLAY1", hz = 120 });
+            PowerPolicy.OnPowerSource(1);
+            await Task.Delay(200);
+            Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 1 &&
+                (await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 120, "Duplicate power event overwrote manual settings");
+            PowerPolicy.OnPowerSource(0);
+            PowerPolicy.OnPowerSource(1);
+            PowerPolicy.OnPowerSource(0);
+            await Task.Delay(400);
+            Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 2 &&
+                (await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 240, "Rapid power changes did not settle on the latest source");
+            PowerPolicy.OnPowerSource(1);
+            await Backend.CallAsync("set_power_mode", new { mode = (byte)1 });
+            await Backend.CallAsync("set_display_monitor_refresh_rate", new { device_name = @"\\.\DISPLAY1", hz = 120 });
+            await Task.Delay(300);
+            Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 1 &&
+                (await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 120, "Pending automatic change overwrote a manual command");
+            PowerPolicy.OnPowerSource(0);
+            await Task.Delay(300);
             await Backend.CallAsync("set_power_automation", new { enabled = false, ac_mode = (byte)2, battery_mode = (byte)0 });
+            PowerPolicy.OnPowerSource(1);
+            await Task.Delay(200);
+            Require((await Backend.CallAsync<PowerSettings>("get_power_settings")).PowerMode == 2 &&
+                (await Backend.CallAsync<DisplayInfo[]>("get_displays"))[0].CurrentHz == 240, "Disabled automation changed hardware");
             report["event_driven_power_rules"] = true;
 
             var backup = await SupportExport.ExportAsync(true, reveal: false);

@@ -90,6 +90,9 @@ pub struct PowerScheme {
 pub struct DisplayInfo {
     pub device_name: String,
     pub friendly_name: String,
+    /// True only for a source driving internal panels exclusively.
+    #[serde(default)]
+    pub is_internal: bool,
     pub current_hz: u32,
     pub available_hz: Vec<u32>,
 }
@@ -174,6 +177,14 @@ pub trait HardwareHal: Send + Sync {
     // ---------------------------------------------------------------- display
     fn switch_refresh_rate(&self, hz: u32) -> HalResult<()>;
     fn set_display_monitor_refresh_rate(&self, device_name: &str, hz: u32) -> HalResult<()>;
+    fn set_internal_display_refresh_rate(&self, device_name: &str, hz: u32) -> HalResult<()> {
+        if !self.display_list()?.iter().any(|display| {
+            display.device_name.eq_ignore_ascii_case(device_name) && display.is_internal
+        }) {
+            return Err(HalError::unsupported("自动刷新率仅适用于独立内屏"));
+        }
+        self.set_display_monitor_refresh_rate(device_name, hz)
+    }
     fn display_brightness(&self) -> HalResult<u32>;
     fn set_display_brightness(&self, percent: u32) -> HalResult<()>;
     fn display_tuning_state(&self) -> HalResult<bool>;

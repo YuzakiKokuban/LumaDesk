@@ -109,9 +109,9 @@ public sealed record OsdConfig
 public sealed record AppConfig
 {
     public byte PowerMode { get; init; }
-    public byte PowerModeAc { get; init; }
+    public byte PowerModeAc { get; init; } = 2;
     public byte PowerModeBattery { get; init; }
-    public bool AutoPowerMode { get; init; }
+    public bool AutoPowerMode { get; init; } = true;
     public GpuMode GpuMode { get; init; } = GpuMode.Hybrid;
     public BatteryMode BatteryMode { get; init; } = BatteryMode.Balanced;
     public uint BatteryLimit { get; init; } = 100;
@@ -198,6 +198,7 @@ public sealed record DisplayInfo
 {
     public string DeviceName { get; init; } = "";
     public string FriendlyName { get; init; } = "";
+    public bool IsInternal { get; init; }
     public uint CurrentHz { get; init; }
     public IReadOnlyList<uint> AvailableHz { get; init; } = [];
 }

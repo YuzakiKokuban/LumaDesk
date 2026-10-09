@@ -143,6 +143,9 @@ public static class Backend
     public static async Task<JsonNode> CallNodeAsync(string command, object? arguments = null)
     {
         var payload = arguments is null ? null : JsonSerializer.SerializeToNode(arguments, Core.Json);
+        var manualPowerChange = command is "set_power_mode" or "set_display_monitor_refresh_rate" or "switch_refresh_rate";
+        using var policyLease = manualPowerChange && payload?["automatic"]?.GetValue<bool>() != true
+            ? await PowerPolicy.BeginManualChangeAsync() : null;
         // UI-originated writers publish their event before completing, so the page
         // can await the event-owned readback instead of scheduling a duplicate.
         var result = await Task.Run(() => Core.Call(command, payload));

@@ -14,8 +14,8 @@ namespace JiYaoChu.Pages;
 /// </summary>
 /// <remarks>
 /// The stored configuration arrives through <c>get_power_settings</c> rather
-/// than from the polled status: it carries the scheme list and the CPU power
-/// limits, which the one-second snapshot deliberately does not. Write readbacks
+/// than from the polled status: it carries the scheme list and automation
+/// preferences, which the one-second snapshot deliberately does not. Write readbacks
 /// keep the controls and scroll position mounted while updating those values.
 /// </remarks>
 public sealed class TuningPage : SettingsPage
@@ -125,12 +125,12 @@ public sealed class TuningPage : SettingsPage
         void Save(bool enabled, byte ac, byte battery)
             => Act.Fire("set_power_automation", () => Backend.CallAsync("set_power_automation", new { enabled, ac_mode = ac, battery_mode = battery }), settled, setBusy)();
         var modes = new[] { "办公", "均衡", "狂暴" };
-        return Chrome.SectionCard("自动性能档位",
-            Chrome.SettingRow("随供电方式切换", "开启后立即应用当前规则；手动切换会保留到下次供电变化。",
+        return Chrome.SectionCard("自动档位与刷新率",
+            Chrome.SettingRow("随供电方式切换", "开启后立即应用当前规则；手动修改保留到下次供电变化。刷新率仅调整内屏。",
                 ToggleSwitch(Optional<bool>.Of(settings.AutoPowerMode), enabled => { if (enabled != settings.AutoPowerMode) Save(enabled, settings.PowerModeAc, settings.PowerModeBattery); }).IsEnabled(!busy)),
-            Chrome.SettingRow("连接电源", null,
+            Chrome.SettingRow("连接电源", "内屏 240 Hz；不支持时保留当前刷新率并提示。",
                 ComboBox(modes, Optional<int>.Of(settings.PowerModeAc), index => { if (index is >= 0 and <= 2 && index != settings.PowerModeAc) Save(settings.AutoPowerMode, (byte)index, settings.PowerModeBattery); }).IsEnabled(!busy)),
-            Chrome.SettingRow("电池或备用电源", null,
+            Chrome.SettingRow("电池或备用电源", "内屏优先 90 Hz，不支持时使用 60 Hz；两者均不支持时保留原值并提示。",
                 ComboBox(modes, Optional<int>.Of(settings.PowerModeBattery), index => { if (index is >= 0 and <= 2 && index != settings.PowerModeBattery) Save(settings.AutoPowerMode, settings.PowerModeAc, (byte)index); }).IsEnabled(!busy)));
     }
 

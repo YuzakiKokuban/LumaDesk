@@ -870,8 +870,9 @@ impl HardwareHal for MockHal {
         Ok(vec![DisplayInfo {
             device_name: r"\\.\DISPLAY1".into(),
             friendly_name: "Simulated internal panel".into(),
+            is_internal: true,
             current_hz: self.refresh_rate.load(Ordering::Relaxed),
-            available_hz: vec![60, 90, 120, 144, 165],
+            available_hz: vec![60, 90, 120, 144, 165, 240],
         }])
     }
 

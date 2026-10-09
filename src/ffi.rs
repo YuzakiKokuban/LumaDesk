@@ -57,6 +57,7 @@ pub const COMMANDS: &[&str] = &[
     "get_sleep_guard_option",
     "switch_refresh_rate",
     "set_display_monitor_refresh_rate",
+    "set_internal_display_refresh_rate",
     "set_auto_min_refresh_on_battery",
     "set_display_tuning_enabled",
     "apply_display_color_preset",
@@ -368,6 +369,9 @@ fn dispatch(api: &Api, command: &str, args: &Value) -> *mut c_char {
 
         // -- display -------------------------------------------------------
         "switch_refresh_rate" => cmd!(api, args, switch_refresh_rate, hz: u32),
+        "set_internal_display_refresh_rate" => {
+            cmd!(api, args, set_internal_display_refresh_rate, device_name: String, hz: u32)
+        }
         "set_display_monitor_refresh_rate" => cmd!(
             api, args, set_display_monitor_refresh_rate,
             device_name: String,
