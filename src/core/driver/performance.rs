@@ -92,14 +92,35 @@ pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
         if identify(ec.read(0x740)?)? == Project::Yilong15Pro {
             // Device evidence (PROJECT-19.md): the OEM leaves 0x783..0x785 and
             // 0x7AB at zero, and the firmware derives the active PL1/PL2/PL4
-            // from the 0x751 profile field alone.
+            // from the 0x751 profile field.
             if ec.read(0x726)? & 0x80 != 0 {
                 return Err(HalError::unavailable(
                     "OEM 自定义档位生效中，退出路径尚未在此机型验证",
                 ));
             }
-            let before = ec.read(0x751)?;
-            return ec.write_verified(0x751, (before & !0xb0) | value);
+            // The OEM turbo profile also raises Dynamic Boost: control bits
+            // 1..2 of 0x743, the total-power target 0x745 and the 25 W
+            // maximum 0x746. The firmware does not derive these from 0x751.
+            let addresses = [0x746, 0x745, 0x743, 0x751];
+            let mut before = [0u8; 4];
+            for (i, address) in addresses.iter().enumerate() {
+                before[i] = ec.read(*address)?;
+            }
+            let boost = mode == 2;
+            let values = [
+                if boost { 0x19 } else { 0 },
+                if boost { 0xff } else { 0 },
+                (before[2] & !0x06) | if boost { 0x06 } else { 0 },
+                (before[3] & !0xb0) | value,
+            ];
+            let result = addresses
+                .iter()
+                .zip(values)
+                .try_for_each(|(address, value)| ec.write_verified(*address, value));
+            let snapshot: Vec<_> = addresses.into_iter().zip(before).collect();
+            return super::rollback::recover(result, &snapshot, |address, value| {
+                ec.write_verified(address, value)
+            });
         }
         require_project(ec.read(0x740)?)?;
         let mut before = [0u8; 8];
