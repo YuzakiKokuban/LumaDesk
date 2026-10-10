@@ -1,4 +1,4 @@
-//! Read-only chassis temperatures on the device-verified project 0x1A.
+//! Read-only chassis temperatures on projects 0x1A (device-verified) and 0x19.
 //! Uniwill addresses: https://github.com/tuxedocomputers/tuxedo-drivers/blob/main/src/tuxedo_io/tuxedo_io.c
 use super::acpi::AcpiDriver;
 
@@ -14,7 +14,7 @@ pub(crate) fn valid_celsius(value: Option<f64>) -> Option<f64> {
 pub(crate) fn read_ec(driver: &AcpiDriver, address: u16) -> Option<f64> {
     driver
         .transaction(|ec| {
-            super::performance::require_project(ec.read(0x740)?)?;
+            super::performance::identify(ec.read(0x740)?)?;
             ec.read(address)
                 .map(|raw| valid_celsius(Some(f64::from(raw))))
         })

@@ -239,7 +239,9 @@ impl HardwareHal for WindowsHal {
     fn fan_status(&self) -> HalResult<FanStatus> {
         let result = self.acpi.transaction(|ec| {
             let cpu_rpm = u32::from(u16::from_be_bytes([ec.read(0x464)?, ec.read(0x465)?]));
-            let gpu_rpm = u32::from(u16::from_be_bytes([ec.read(0x46C)?, ec.read(0x46B)?]));
+            let gpu_low = crate::core::driver::performance::identify(ec.read(0x740)?)
+                .map_or(0x46B, |project| project.gpu_fan_low());
+            let gpu_rpm = u32::from(u16::from_be_bytes([ec.read(0x46C)?, ec.read(gpu_low)?]));
             if cpu_rpm > 8000 || gpu_rpm > 8000 {
                 return Err(HalError::io("风扇转速读数超出有效范围"));
             }
@@ -259,7 +261,11 @@ impl HardwareHal for WindowsHal {
             let snapshot = winapi::power_snapshot()?;
             let health = self.battery_health_percent()?;
             let applied_limit = self.acpi.transaction(|ec| {
-                crate::core::driver::performance::require_project(ec.read(0x740)?)?;
+                let project = ec.read(0x740)?;
+                if project == 0x19 {
+                    return Err(HalError::unsupported("此机型固件不提供充电上限"));
+                }
+                crate::core::driver::performance::require_project(project)?;
                 crate::core::driver::battery::decode(ec.read(0x7b9)?)
             });
             let limit_error = applied_limit.as_ref().err().map(ToString::to_string);
@@ -400,8 +406,9 @@ impl HardwareHal for WindowsHal {
 
     fn get_fan_boost(&self) -> HalResult<bool> {
         self.acpi.transaction(|ec| {
-            crate::core::driver::performance::require_project(ec.read(0x740)?)?;
-            Ok(ec.read(0x751)? & 0x40 != 0)
+            let (address, mask) =
+                crate::core::driver::performance::identify(ec.read(0x740)?)?.fan_boost_bit();
+            Ok(ec.read(address)? & mask != 0)
         })
     }
 
