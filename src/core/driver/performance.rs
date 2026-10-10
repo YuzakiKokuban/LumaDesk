@@ -5,6 +5,47 @@ use super::AcpiDriver;
 use crate::core::error::{HalError, HalResult};
 const REGISTERS: [u16; 8] = [0x751, 0x7ab, 0x783, 0x784, 0x785, 0x45b, 0x726, 0x727];
 
+/// EC projects whose register layout has device evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Project {
+    /// Yaoshi 15 Air / GM6IX9B: reads and writes validated.
+    Yaoshi15Air,
+    /// Yilong 15 Pro / GM5HG0A: reads and the profile field validated, see
+    /// PROJECT-19.md. Full-fan and charge-limit writes are not available.
+    Yilong15Pro,
+}
+
+impl Project {
+    /// Low byte of the GPU fan tachometer. Project 0x19 keeps the active
+    /// PL2 at 0x46B, so its tachometer pair is the contiguous 0x46C/0x46D.
+    pub(crate) fn gpu_fan_low(self) -> u16 {
+        match self {
+            Project::Yaoshi15Air => 0x46b,
+            Project::Yilong15Pro => 0x46d,
+        }
+    }
+
+    /// Register and mask of the full-fan flag.
+    pub(crate) fn fan_boost_bit(self) -> (u16, u8) {
+        match self {
+            Project::Yaoshi15Air => (0x751, 0x40),
+            Project::Yilong15Pro => (0x768, 0x04),
+        }
+    }
+}
+
+/// Gate for read-only telemetry: any project with a known layout.
+pub(crate) fn identify(project: u8) -> HalResult<Project> {
+    match project {
+        0x1a => Ok(Project::Yaoshi15Air),
+        0x19 => Ok(Project::Yilong15Pro),
+        _ => Err(HalError::unsupported(format!(
+            "EC 项目 {project:#04x} 的寄存器布局尚未验证"
+        ))),
+    }
+}
+
+/// Gate for the project 0x1A write sequences.
 pub(crate) fn require_project(project: u8) -> HalResult<()> {
     if project != 0x1a {
         return Err(HalError::unsupported(
@@ -15,7 +56,11 @@ pub(crate) fn require_project(project: u8) -> HalResult<()> {
 }
 pub fn read(driver: &AcpiDriver) -> HalResult<u8> {
     driver.transaction(|ec| {
-        require_project(ec.read(0x740)?)?;
+        // The OEM custom profile sets 0x726 bit 7 and leaves the 0x751 mode
+        // field at balanced; reporting balanced there would be wrong.
+        if identify(ec.read(0x740)?)? == Project::Yilong15Pro && ec.read(0x726)? & 0x80 != 0 {
+            return Err(HalError::unavailable("当前为 OEM 自定义档位，尚未解析"));
+        }
         decode(ec.read(0x751)?)
     })
 }
@@ -44,6 +89,39 @@ pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
         _ => return Err(HalError::unsupported("OEM 自定义档位尚未实现")),
     };
     driver.transaction(|ec| {
+        if identify(ec.read(0x740)?)? == Project::Yilong15Pro {
+            // Device evidence (PROJECT-19.md): the OEM leaves 0x783..0x785 and
+            // 0x7AB at zero, and the firmware derives the active PL1/PL2/PL4
+            // from the 0x751 profile field.
+            if ec.read(0x726)? & 0x80 != 0 {
+                return Err(HalError::unavailable(
+                    "OEM 自定义档位生效中，退出路径尚未在此机型验证",
+                ));
+            }
+            // The OEM turbo profile also raises Dynamic Boost: control bits
+            // 1..2 of 0x743, the total-power target 0x745 and the 25 W
+            // maximum 0x746. The firmware does not derive these from 0x751.
+            let addresses = [0x746, 0x745, 0x743, 0x751];
+            let mut before = [0u8; 4];
+            for (i, address) in addresses.iter().enumerate() {
+                before[i] = ec.read(*address)?;
+            }
+            let boost = mode == 2;
+            let values = [
+                if boost { 0x19 } else { 0 },
+                if boost { 0xff } else { 0 },
+                (before[2] & !0x06) | if boost { 0x06 } else { 0 },
+                (before[3] & !0xb0) | value,
+            ];
+            let result = addresses
+                .iter()
+                .zip(values)
+                .try_for_each(|(address, value)| ec.write_verified(*address, value));
+            let snapshot: Vec<_> = addresses.into_iter().zip(before).collect();
+            return super::rollback::recover(result, &snapshot, |address, value| {
+                ec.write_verified(address, value)
+            });
+        }
         require_project(ec.read(0x740)?)?;
         let mut before = [0u8; 8];
         for (i, address) in REGISTERS.iter().enumerate() {
@@ -87,7 +165,23 @@ pub fn apply(driver: &AcpiDriver, mode: u8) -> HalResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{decode, require_project};
+    use super::{decode, identify, require_project, Project};
+
+    #[test]
+    fn telemetry_knows_both_projects_but_writes_stay_on_the_validated_one() {
+        for project in 0..=255u8 {
+            assert_eq!(
+                identify(project).is_ok(),
+                matches!(project, 0x19 | 0x1a),
+                "project {project:#x}"
+            );
+        }
+        assert!(require_project(0x19).is_err());
+        assert_eq!(Project::Yaoshi15Air.gpu_fan_low(), 0x46b);
+        assert_eq!(Project::Yilong15Pro.gpu_fan_low(), 0x46d);
+        assert_eq!(Project::Yaoshi15Air.fan_boost_bit(), (0x751, 0x40));
+        assert_eq!(Project::Yilong15Pro.fan_boost_bit(), (0x768, 0x04));
+    }
 
     #[test]
     fn ec_controls_require_the_validated_project() {
