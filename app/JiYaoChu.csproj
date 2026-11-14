@@ -89,7 +89,7 @@
     <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
     <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
     <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.5.1" />
-    <PackageReference Include="Microsoft.UI.Reactor" Version="0.1.0-preview.16" />
+    <PackageReference Include="Microsoft.UI.Reactor" Version="0.1.0-preview.18" />
   </ItemGroup>
 
   <!--
@@ -100,7 +100,7 @@
     unconditioned ItemGroup above.
   -->
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <PackageReference Include="Microsoft.UI.Reactor.Devtools" Version="0.1.0-preview.16" />
+    <PackageReference Include="Microsoft.UI.Reactor.Devtools" Version="0.1.0-preview.18" />
     <RuntimeHostConfigurationOption Include="Reactor.DevtoolsSupport" Value="true" Trim="true" />
   </ItemGroup>
 
